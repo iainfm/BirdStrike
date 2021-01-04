@@ -13,4 +13,5 @@ To run, load the binary into the memory of a BBC Micro with
 ```
 PAGE=&3000
 *LOAD birdsk2 1200
-CALL &1E00```
+CALL &1E00
+```
