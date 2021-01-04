@@ -10,8 +10,7 @@ It can then be assembled with beebasm.exe (eg beebasm.exe -i birdsk2.asm) to pro
 
 To run, load the binary into the memory of a BBC Micro with
 
-```PAGE=&3000
-
+```
+PAGE=&3000
 *LOAD birdsk2 1200
-
 CALL &1E00```
