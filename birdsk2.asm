@@ -1,4 +1,4 @@
-L0000   = $0000												\ Zero Page uses
+L0000   = $0000		\ Zero Page uses
 L0008   = $0008
 L0009   = $0009
 L000A   = $000A
@@ -36,17 +36,17 @@ L008C   = $008C
 L008D   = $008D
 L008E   = $008E
 
-BYTEvA  = $020A												\ BYTEvA
-BYTEvB  = $020B												\ BYTEvB
+BYTEvA  = $020A		\ BYTEvA
+BYTEvB  = $020B		\ BYTEvB
 
 osword_redirection_C   = $020C
 osword_redirection_D   = $020D
 
-WRCHvA  = $020E												\ WRCH vector A
-WRCHvB  = $020F												\ WRCH vector B
+WRCHvA  = $020E		\ WRCH vector A
+WRCHvB  = $020F		\ WRCH vector B
 
-EVNTvA  = $0220												\ EVNT vector A
-EVNTvB  = $0221												\ EVNT vector B
+EVNTvA  = $0220		\ EVNT vector A
+EVNTvB  = $0221		\ EVNT vector B
 
 L02FC   = $02FC
 L3527   = $3527
@@ -56,23 +56,23 @@ L352A   = $352A
 L4180   = $4180
 L4900   = $4900
 
-LFE4D   = $FE4D												\ VIA interrupt address
-LFE4E   = $FE4E												\ Something to do with light pens, according to the AUG
+LFE4D   = $FE4D		\ VIA interrupt address
+LFE4E   = $FE4E		\ Something to do with light pens, according to the AUG
 
-vector_table_low_byte    = $FFB7							\ Vector table address low byte
-vector_table_high_byte   = $FFB8							\ Vector table address high byte
+vector_table_low_byte    = $FFB7	\ Vector table address low byte
+vector_table_high_byte   = $FFB8	\ Vector table address high byte
 
-osasci  = $FFE3												\ OSASCI
-oswrch  = $FFEE												\ OSWRCH
-osword  = $FFF1												\ OSWORD
-osbyte  = $FFF4												\ OSBYTE
+osasci  = $FFE3				\ OSASCI
+oswrch  = $FFEE				\ OSWRCH
+osword  = $FFF1				\ OSWORD
+osbyte  = $FFF4				\ OSBYTE
 
         
-		org     $1200										\ "P%" as per the original binary
+org     $1200		\ "P%" as per the original binary
 .L1200
-        EQUB    $02,$19,$02,$19,$00,$7C,$00,$7C				\ First 160 bytes of L1200 get copied to page 0 by .L136C
-        EQUB    $72,$E7,$01,$00,$07,$32,$83,$98				\ which are addresses normally used by BASIC and Econet
-        EQUB    $80,$77,$02,$19,$0A,$00,$43,$B4				\ (therefore fair game, probably)
+        EQUB    $02,$19,$02,$19,$00,$7C,$00,$7C		\ First 160 bytes of L1200 get copied to page 0 by .L136C
+        EQUB    $72,$E7,$01,$00,$07,$32,$83,$98		\ which are addresses normally used by BASIC and Econet
+        EQUB    $80,$77,$02,$19,$0A,$00,$43,$B4		\ (therefore fair game, probably)
         EQUB    $19,$00,$07,$00,$00,$19,$00,$00
         EQUB    $00,$FF,$FF,$FF,$00,$00,$00,$40
         EQUB    $FF,$FF,$00,$35,$00,$00,$00,$00
@@ -91,7 +91,7 @@ osbyte  = $FFF4												\ OSBYTE
         EQUB    $21,$01,$C9,$07,$F0,$03,$6C,$64
         EQUB    $00,$60,$04,$01,$FF,$FF,$FF,$00
 		
-        EQUB    $00,$00,$00,$00,$00,$00,$00,$00				\ The rest seems to be padding
+        EQUB    $00,$00,$00,$00,$00,$00,$00,$00		\ The rest seems to be padding
         EQUB    $00,$00,$00,$00,$00,$00,$00,$00
         EQUB    $00,$00,$00,$00,$00,$00,$00,$00
         EQUB    $00,$00,$00,$00,$00,$00,$00,$00
@@ -104,34 +104,34 @@ osbyte  = $FFF4												\ OSBYTE
         EQUB    $00,$00,$00,$00,$00,$00,$00,$00
         EQUB    $00,$00,$00,$00,$00,$00,$00,$00
 
-.L1300														\ Official code entry point. Needs BIRDSK1 to be loaded at page &3000 first.
-															\ *possibly* an anti-tamper mechanism?
-															\ Game can also be successfully started from $1E00 if not.
+.L1300							\ Official code entry point. Needs BIRDSK1 to be loaded at page &3000 first.
+							\ *possibly* an anti-tamper mechanism?
+							\ Game can also be successfully started from $1E00 if not.
 
-        SEI													\ Disable interrupts
-        LDA     L3527										\ Vector stuff...
+        SEI						\ Disable interrupts
+        LDA     L3527					\ Vector stuff...
         STA     WRCHvA
-        LDA     L3528										\ $E0 from BIRDSK1
+        LDA     L3528					\ $E0 from BIRDSK1
         STA     WRCHvB
-        LDA     L3529										\ $A6 from BIRDSK1
+        LDA     L3529					\ $A6 from BIRDSK1
         STA     EVNTvA
         LDA     L352A
         STA     EVNTvB
-        CLI													\ Enable interrupts
+        CLI						\ Enable interrupts
         LDA     #$0D
         LDX     #$00
-        JSR     osbyte										\ Disable output buffer empty event
+        JSR     osbyte					\ Disable output buffer empty event
 
         LDA     #$0D
         LDX     #$06
-        JSR     osbyte										\ Disable ESCAPE pressed event
+        JSR     osbyte					\ Disable ESCAPE pressed event
 
         LDA     #$0F
         LDX     #$00
-        JSR     osbyte										\ Flush all buffers
+        JSR     osbyte					\ Flush all buffers
 
-        SEI													\ Disable interrupts
-        LDA     BYTEvA										\ Vector stuff...
+        SEI						\ Disable interrupts
+        LDA     BYTEvA					\ Vector stuff...
         STA     L0008
         LDA     BYTEvB
         STA     L0009
@@ -148,18 +148,18 @@ osbyte  = $FFF4												\ OSBYTE
         LDA     #$C8
         LDX     #$03
         LDY     #$00
-        JSR     osbyte										\ Disable escape, clear memory on break
+        JSR     osbyte					\ Disable escape, clear memory on break
 
-        CLI													\ Enable interrupts
+        CLI						\ Enable interrupts
         LDA     #$7C
-        JSR     osbyte										\ Clear Esc condition
+        JSR     osbyte					\ Clear Esc condition
 
         LDA     L0008
         STA     BYTEvA
         LDA     L0009
         STA     BYTEvB
         LDX     #$00
-.L136C														\ Copy 160 bytes at &1200 to page zero.
+.L136C							\ Copy 160 bytes at &1200 to page zero.
         LDA     L1200,X
         STA     L0000,X
         INX
@@ -168,7 +168,7 @@ osbyte  = $FFF4												\ OSBYTE
 
         LDA     #$8C
         LDX     #$0C
-        JSR     osbyte										\ Set TAPE filing system and baud rate (X)
+        JSR     osbyte					\ Set TAPE filing system and baud rate (X)
 
         JMP     L1E00
 
@@ -236,10 +236,10 @@ osbyte  = $FFF4												\ OSBYTE
 
         EQUB    $C9,$07,$F0,$FB,$6C,$68,$14
 
-.wordv_1													\ OSWORD redirection vector stored here
+.wordv_1						\ OSWORD redirection vector stored here
         EQUB    $EB
 
-.wordv_2													\ OSWORD redirection vector stored here
+.wordv_2						\ OSWORD redirection vector stored here
         EQUB    $E7
 
 .L146A
@@ -299,7 +299,7 @@ osbyte  = $FFF4												\ OSBYTE
 
         JMP     L1E21
 
-.L14CA													\ GAME OVER text
+.L14CA							\ GAME OVER text
         EQUB    $1F,$05,$0F,$11,$01,$47,$41,$4D
         EQUB    $45,$20,$4F,$56,$45,$52
 
@@ -443,7 +443,7 @@ osbyte  = $FFF4												\ OSBYTE
 
         RTS
 
-.L15AC													\ BONUS! text
+.L15AC							\ BONUS! text
         EQUB    $11,$06,$1F,$07,$0F,$42,$4F,$4E
         EQUB    $55,$53,$21
 
@@ -460,7 +460,7 @@ osbyte  = $FFF4												\ OSBYTE
 .L15C7
         EQUB    $02
 
-.L15C8												\ MODE 7 Title Screen stuff
+.L15C8							\ MODE 7 Title Screen stuff
         EQUB    $16,$07,$17,$00,$0A,$20,$00,$00
         EQUB    $00,$00,$00,$00,$9A,$94,$68,$3F
         EQUB    $6F,$34,$20,$20,$20,$20,$20,$20
@@ -489,7 +489,7 @@ osbyte  = $FFF4												\ OSBYTE
         EQUB    $65,$1F,$0B,$09,$8D,$83,$48,$69
         EQUB    $67,$68,$20,$53,$63,$6F,$72,$65		\ g, h, , S, c, o, r, e
 
-.L16A0												\ High score display
+.L16A0							\ High score display
         EQUB    $1F,$0B,$0B,$2E,$2E,$2E,$2E,$2E
         EQUB    $2E,$2E,$2E,$2E,$2E,$2E,$2E,$2E
         EQUB    $00,$1F,$19,$0B
@@ -756,7 +756,7 @@ L17AC = L17AB+1
         LDA     L16A0,Y
 L18F5 = L18F4+1
 L18F6 = L18F4+2
-        JSR     osasci									\ Print the dots in the high score 'table'
+        JSR     osasci					\ Print the dots in the high score 'table'
 
         CMP     #$00
         BNE     L18F3
@@ -772,7 +772,7 @@ L18F6 = L18F4+2
 .L1907
         JMP     L1907
 
-        EQUB    $00,$00,$05,$00,$00,$00,$00,$08			\ Lives icon, RAF(?) logo, explosion sprites
+        EQUB    $00,$00,$05,$00,$00,$00,$00,$08		\ Lives icon, RAF(?) logo, explosion sprites
         EQUB    $08,$1C,$08,$08,$08,$00,$28,$28
         EQUB    $28,$3E,$28,$28,$00,$00,$00,$08
         EQUB    $08,$08,$08,$08,$08,$00,$00,$10
@@ -830,7 +830,7 @@ L18F6 = L18F4+2
         EQUB    $00,$00,$04,$2C,$00,$00,$00,$00
         EQUB    $00,$00,$00,$28
 
-.L1A60													\ Skull, pigeon, number, some scenery sprites
+.L1A60								\ Skull, pigeon, numbers, some scenery sprites
         EQUB    $00,$00,$00,$00,$00,$40,$00,$40
         EQUB    $40,$80,$80,$40,$40,$40,$80,$00
         EQUB    $C0,$80,$80,$40,$C0,$40,$80,$00
@@ -935,7 +935,7 @@ L18F6 = L18F4+2
 .L1D55
         EQUB    $00
 
-.L1D56													\ Something to do with lives(?)
+.L1D56							\ Something to do with lives(?)
         EQUB    $00
 
 .L1D57
@@ -976,58 +976,58 @@ L18F6 = L18F4+2
         EQUB    $20,$20,$30,$30,$00,$08,$04,$04
         EQUB    $30,$3A,$30,$30
 
-.L1E00														\ Game can be run by starting execution here
+.L1E00								\ Game can be run by starting execution here
 
-        LDA     #$C8										\ Read/write escape/break effect
-        LDX     #$03										\ esc disabled, memory clear on break
-        LDY     #$00										\ could be useful for debugging?
+        LDA     #$C8						\ Read/write escape/break effect
+        LDX     #$03						\ esc disabled, memory clear on break
+        LDY     #$00						\ could be useful for debugging?
         JSR     osbyte
 
-        JSR     L18C3										\ No 'press space to play' message if RTS'd
+        JSR     L18C3						\ No 'press space to play' message if RTS'd
 
         LDX     #$01
         LDA     #$04
         LDY     #$00
-        JSR     osbyte										\ Disable cursor editing
+        JSR     osbyte						\ Disable cursor editing
 
-        LDA     osword_redirection_C						\ Get OSWORD indrection vector (low(?) byte - TBC)
+        LDA     osword_redirection_C				\ Get OSWORD indrection vector (low(?) byte - TBC)
         STA     wordv_1
-        LDA     osword_redirection_D						\ Get OSWORD indirecton vector (high(?) byte - TBC)
+        LDA     osword_redirection_D				\ Get OSWORD indirecton vector (high(?) byte - TBC)
         STA     wordv_2
 .L1E21
-        JSR     L1819										\ Display title screen/high score/controls
+        JSR     L1819						\ Display title screen/high score/controls
 
-        JSR     L1E6C										\ Start game on spacebar from title screen
+        JSR     L1E6C						\ Start game on spacebar from title screen
 
-.L1E27														\ Main game loop
+.L1E27								\ Main game loop
 
-        JSR     L25B8										\ unknown
+        JSR     L25B8						\ unknown
 
-        JSR     L284A										\ Delay? - plays at high speed when disabled. Also clears an interrupt(?)
+        JSR     L284A						\ Delay? - plays at high speed when disabled. Also clears an interrupt(?)
 
-        JSR     L2A94										\ Enemy movement (First attempt produced Level completion check? Jumped to next level if RTS'd)
+        JSR     L2A94						\ Enemy movement (First attempt produced Level completion check? Jumped to next level if RTS'd)
 
-        JSR     L29F7										\ unknown
+        JSR     L29F7						\ unknown
 
-        JSR     L286E										\ unknown
+        JSR     L286E						\ unknown
 
-        JSR     L28E2										\ Player bullet
+        JSR     L28E2						\ Player bullet
 
-        JSR     L295E										\ unknown
+        JSR     L295E						\ unknown
 
-        JSR     L2C98										\ Enemy bombs
+        JSR     L2C98						\ Enemy bombs
 
-        JSR     L2C45										\ unknown
+        JSR     L2C45						\ unknown
 
-        JSR     L240E										\ Pigeon
+        JSR     L240E						\ Pigeon
 
-        JSR     L2238										\ Player hit detection
+        JSR     L2238						\ Player hit detection
 
-        JSR     L1FE0										\ Gravestones plot / pigeon reset after hit
+        JSR     L1FE0						\ Gravestones plot / pigeon reset after hit
 
-        JSR     L1426										\ 
+        JSR     L1426						\ 
 
-        JMP     L1E27										\ branch back around
+        JMP     L1E27						\ branch back around
 
         EQUB    $28,$63,$29,$41,$2E,$45,$2E,$46
         EQUB    $72,$69,$67,$61,$61,$72,$64,$20
@@ -1628,8 +1628,8 @@ L18F6 = L18F4+2
         STA     L0081
         JMP     L2581
 
-.L2238													\ Death-check
-        LDA     #$20									\ Change to RTS for invincibility
+.L2238							\ Death-check
+        LDA     #$20					\ Change to RTS for invincibility
         BIT     L2D76
         BNE     L2245
 
@@ -1647,7 +1647,7 @@ L18F6 = L18F4+2
         LDA     #$07
         LDY     #$2D
         LDX     #$E0
-        JSR     osword									\ Play a sound
+        JSR     osword					\ Play a sound
 
         LDA     #$FF
         STA     L1D55
@@ -1754,7 +1754,7 @@ L18F6 = L18F4+2
         STA     L1D57
         JMP     L2223
 
-        EQUB    $00,$00,$00,$00,$00,$14,$3C,$3C			\ Musical notes and player sprite
+        EQUB    $00,$00,$00,$00,$00,$14,$3C,$3C		\ Musical notes and player sprite
         EQUB    $38,$38,$38,$38,$38,$38,$38,$20
         EQUB    $00,$00,$00,$00,$00,$14,$38,$3C
         EQUB    $38,$38,$38,$38,$38,$38,$38,$00
@@ -2307,7 +2307,7 @@ L2673 = L2671+2
 
 .L284A
         LDA     #$02
-        STA     LFE4E									\ Clear interrupt?
+        STA     LFE4E					\ Clear interrupt?
 .L284F
         BIT     LFE4D
         BEQ     L284F
@@ -3013,16 +3013,16 @@ L2D03 = L2D02+1
 .L2D76
         EQUB    $00
 
-.score_low_byte											\ $2D77
+.score_low_byte						\ $2D77
         EQUB    $00
 
-.score_high_byte										\ $2D78
+.score_high_byte					\ $2D78
         EQUB    $00
 
 .L2D79
         EQUB    $20
 
-.L2D7A													\ Life / lives counter?
+.L2D7A							\ Life / lives counter?
         EQUB    $03
 
 .L2D7B
