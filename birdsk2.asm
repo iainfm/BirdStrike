@@ -104,34 +104,34 @@ org     $1200		\ "P%" as per the original binary
         EQUB    $00,$00,$00,$00,$00,$00,$00,$00
         EQUB    $00,$00,$00,$00,$00,$00,$00,$00
 
-.L1300							\ Official code entry point. Needs BIRDSK1 to be loaded at page &3000 first.
-							\ *possibly* an anti-tamper mechanism?
-							\ Game can also be successfully started from $1E00 if not.
+.L1300	\ Official code entry point. Needs BIRDSK1 to be loaded at page &3000 first.
+		\ *possibly* an anti-tamper mechanism?
+		\ Game can also be successfully started from $1E00 if not.
 
-        SEI						\ Disable interrupts
-        LDA     L3527					\ Vector stuff...
+        SEI					\ Disable interrupts
+        LDA     L3527		\ Vector stuff...
         STA     WRCHvA
-        LDA     L3528					\ $E0 from BIRDSK1
+        LDA     L3528		\ $E0 from BIRDSK1
         STA     WRCHvB
-        LDA     L3529					\ $A6 from BIRDSK1
+        LDA     L3529		\ $A6 from BIRDSK1
         STA     EVNTvA
         LDA     L352A
         STA     EVNTvB
-        CLI						\ Enable interrupts
+        CLI					\ Enable interrupts
         LDA     #$0D
         LDX     #$00
-        JSR     osbyte					\ Disable output buffer empty event
+        JSR     osbyte		\ Disable output buffer empty event
 
         LDA     #$0D
         LDX     #$06
-        JSR     osbyte					\ Disable ESCAPE pressed event
+        JSR     osbyte		\ Disable ESCAPE pressed event
 
         LDA     #$0F
         LDX     #$00
-        JSR     osbyte					\ Flush all buffers
+        JSR     osbyte		\ Flush all buffers
 
-        SEI						\ Disable interrupts
-        LDA     BYTEvA					\ Vector stuff...
+        SEI					\ Disable interrupts
+        LDA     BYTEvA		\ Vector stuff...
         STA     L0008
         LDA     BYTEvB
         STA     L0009
@@ -148,11 +148,11 @@ org     $1200		\ "P%" as per the original binary
         LDA     #$C8
         LDX     #$03
         LDY     #$00
-        JSR     osbyte					\ Disable escape, clear memory on break
+        JSR     osbyte			\ Disable escape, clear memory on break
 
         CLI						\ Enable interrupts
         LDA     #$7C
-        JSR     osbyte					\ Clear Esc condition
+        JSR     osbyte			\ Clear Esc condition
 
         LDA     L0008
         STA     BYTEvA
@@ -168,7 +168,7 @@ org     $1200		\ "P%" as per the original binary
 
         LDA     #$8C
         LDX     #$0C
-        JSR     osbyte					\ Set TAPE filing system and baud rate (X)
+        JSR     osbyte			\ Set TAPE filing system and baud rate (X)
 
         JMP     L1E00
 
@@ -188,11 +188,8 @@ org     $1200		\ "P%" as per the original binary
         EQUB    $00,$00,$00,$00,$00,$00,$00,$00
         EQUB    $00,$00,$00,$00,$00,$00,$00,$00
         EQUB    $00,$00,$00,$00,$00,$00,$00,$00
-        EQUB    $54,$68,$61,$6E,$6B,$73,$20,$44		\ Thanks and credits
-        EQUB    $61,$76,$69,$64,$2C,$49,$61,$6E
-        EQUB    $2C,$4D,$61,$72,$74,$69,$6E,$2C
-        EQUB    $4D,$75,$6D,$2C,$44,$61,$64,$2C
-        EQUB    $53,$75,$73,$69,$20,$43
+		
+		EQUS	"Thanks David,Ian,Martin,Mum,Dad,Susi C"	\ Thanks and credits
 
 .L1426
         LDX     #$EF
@@ -236,10 +233,10 @@ org     $1200		\ "P%" as per the original binary
 
         EQUB    $C9,$07,$F0,$FB,$6C,$68,$14
 
-.wordv_1						\ OSWORD redirection vector stored here
+.wordv_1	\ OSWORD redirection vector stored here
         EQUB    $EB
 
-.wordv_2						\ OSWORD redirection vector stored here
+.wordv_2	\ OSWORD redirection vector stored here
         EQUB    $E7
 
 .L146A
@@ -299,9 +296,9 @@ org     $1200		\ "P%" as per the original binary
 
         JMP     L1E21
 
-.L14CA							\ GAME OVER text
-        EQUB    $1F,$05,$0F,$11,$01,$47,$41,$4D
-        EQUB    $45,$20,$4F,$56,$45,$52
+.L14CA	\ GAME OVER message
+        EQUB    $1F,$05,$0F,$11,$01		\ Red text, centred on screen
+		EQUS	"GAME OVER"
 
 .L14D8
         RTS
@@ -443,9 +440,9 @@ org     $1200		\ "P%" as per the original binary
 
         RTS
 
-.L15AC							\ BONUS! text
-        EQUB    $11,$06,$1F,$07,$0F,$42,$4F,$4E
-        EQUB    $55,$53,$21
+.L15AC	\ BONUS! message
+        EQUB    $11,$06,$1F,$07,$0F			\ Cyan text, centred
+		EQUS	"BONUS!"
 
 .L15B7
         EQUB    $12,$00,$FF,$FF,$00,$00,$00,$00
@@ -460,7 +457,7 @@ org     $1200		\ "P%" as per the original binary
 .L15C7
         EQUB    $02
 
-.L15C8							\ MODE 7 Title Screen stuff
+.L15C8	\ MODE 7 Title Screen stuff
         EQUB    $16,$07,$17,$00,$0A,$20,$00,$00
         EQUB    $00,$00,$00,$00,$9A,$94,$68,$3F
         EQUB    $6F,$34,$20,$20,$20,$20,$20,$20
@@ -480,46 +477,37 @@ org     $1200		\ "P%" as per the original binary
         EQUB    $6F,$7C,$3F,$20,$20,$2A,$7C,$7E
         EQUB    $27,$20,$6F,$74,$30,$FF,$20,$20
         EQUB    $6F,$30,$FF,$20,$2B,$34,$6D,$78
-        EQUB    $24,$1F,$05,$05,$82,$46,$49,$52		\ ?, [, [no cursor], [green], F, I, R
-        EQUB    $45,$42,$49,$52,$44,$20,$28,$63		\ E, B, I, R, D, , (, c
-        EQUB    $29,$20,$41,$6E,$64,$72,$65,$77
-        EQUB    $20,$46,$72,$69,$67,$61,$61,$72
-        EQUB    $64,$0D,$1F,$0B,$08,$8D,$83,$48
-        EQUB    $69,$67,$68,$20,$53,$63,$6F,$72
-        EQUB    $65,$1F,$0B,$09,$8D,$83,$48,$69
-        EQUB    $67,$68,$20,$53,$63,$6F,$72,$65		\ g, h, , S, c, o, r, e
+        EQUB    $24,$1F,$05,$05,$82					\ ?, [, [no cursor], [green]
+		EQUS	"FIREBIRD (c) Andrew Frigaard"
+		EQUB 	$0D,$1F,$0B,$08,$8D,$83
+		EQUS	"High Score"
+		EQUB	$1F,$0B,$09,$8D,$83
+		EQUS	"High Score"
 
-.L16A0							\ High score display
-        EQUB    $1F,$0B,$0B,$2E,$2E,$2E,$2E,$2E
-        EQUB    $2E,$2E,$2E,$2E,$2E,$2E,$2E,$2E
+.L16A0	\ High score display
+        EQUB    $1F,$0B,$0B
+		EQUS    "............."
         EQUB    $00,$1F,$19,$0B
 
 .L16B4
-        EQUB    $61,$6E,$64,$72,$65,$77,$20,$20		\ a, n, d, r, e, w, , (original high score holder)
-        EQUB    $00,$1F,$0E,$0E,$8D,$83,$4B,$65		\ key definition display
-        EQUB    $79,$73,$1F,$0E,$0F,$8D,$83,$4B
-        EQUB    $65,$79,$73,$1F,$06,$11,$86,$5A
-        EQUB    $20,$2E,$2E,$2E,$2E,$2E,$2E,$2E
-        EQUB    $2E,$2E,$2E,$2E,$2E,$20,$6D,$6F
-        EQUB    $76,$65,$20,$6C,$65,$66,$74,$1F
-        EQUB    $06,$12,$86,$58,$20,$2E,$2E,$2E
-        EQUB    $2E,$2E,$2E,$2E,$2E,$2E,$2E,$2E
-        EQUB    $20,$6D,$6F,$76,$65,$20,$72,$69
-        EQUB    $67,$68,$74,$1F,$06,$13,$86,$52
-        EQUB    $45,$54,$55,$52,$4E,$20,$2E,$2E
-        EQUB    $2E,$2E,$2E,$2E,$2E,$2E,$2E,$2E
-        EQUB    $2E,$20,$73,$68,$6F,$6F,$74,$1F
-        EQUB    $06,$14,$86,$53,$2F,$51,$20,$2E
-        EQUB    $2E,$2E,$2E,$2E,$2E,$2E,$20,$73
-        EQUB    $6F,$75,$6E,$64,$20,$6F,$6E,$2F
-        EQUB    $6F,$66,$66,$1F,$06,$15,$86,$52
-        EQUB    $20,$2E,$2E,$2E,$2E,$2E,$2E,$2E
-        EQUB    $2E,$2E,$2E,$2E,$2E,$2E,$2E,$2E
-        EQUB    $2E,$2E,$20,$72,$65,$73,$74,$00		\ ...rest
-        EQUB    $1F,$07,$18,$81,$88,$50,$72,$65		\ ... Press space to play
-        EQUB    $73,$73,$20,$73,$70,$61,$63,$65
-        EQUB    $20,$74,$6F,$20,$70,$6C,$61,$79
-        EQUB    $2E,$00,$00,$00
+		EQUS    "andrew  "		\ original high score holder
+        EQUB    $00,$1F,$0E,$0E,$8D,$83
+		EQUS    "Keys"		\ Double height line 1
+		EQUB    $1F,$0E,$0F,$8D,$83
+		EQUS    "Keys"		\ Double height line 2
+		EQUB    $1F,$06,$11,$86
+		EQUS    "Z ............ move left"
+		EQUB    $1F,$06,$12,$86
+		EQUS    "X ........... move right"
+		EQUB    $1F,$06,$13,$86
+		EQUS    "RETURN ........... shoot"
+		EQUB    $1F,$06,$14,$86
+		EQUS    "S/Q ....... sound on/off"
+		EQUB    $1F,$06,$15,$86
+		EQUS    "R ................. rest"
+		EQUB    $00,$1F,$07,$18,$81,$88
+		EQUS    "Press space to play."
+		EQUB    $00,$00,$00
 
 .L1778
         LDY     #$0A
@@ -851,15 +839,23 @@ L18F6 = L18F4+2
         EQUB    $14,$00,$00,$00,$14,$3C,$00,$00
         EQUB    $28,$3C,$34,$3C,$39,$00,$00,$00
         EQUB    $00,$00,$3C,$2D,$22,$00,$00,$00
-        EQUB    $30,$24,$10,$13,$16,$19,$1C,$34			\ BASIC/keyboard/source artefacts?
+		
+        EQUB    $30,$24,$10,$13,$16,$19,$1C,$34			
         EQUB    $41,$1F,$48,$48,$48,$48,$48,$48
-        EQUB    $48,$4C,$44,$41,$53,$54,$41,$4A
-        EQUB    $53,$52,$52,$54,$53,$42,$4E,$45
-        EQUB    $50,$2E,$7E,$21,$26,$16,$34,$13
-        EQUB    $31,$32,$30,$30,$30,$4C,$2E,$0E
-        EQUB    $0D,$52,$55,$4E,$0D,$16,$32,$17
+        EQUB    $48
+		EQUS    "LDASTAJSRRTSBNE"					\ BASIC/keyboard/source artefacts?
+		EQUS    "P.~!&"
+
+		EQUS $16,$34,$13
+		EQUS    "12000L."
+        EQUB    $0E
+        EQUB    $0D
+		EQUS    "RUN"
+		EQUB    $0D,$16,$32,$17
         EQUB    $00,$0C,$00,$00,$00,$00,$00,$00
-        EQUB    $00,$00,$43,$41,$4C,$4C,$51,$25
+        EQUB    $00,$00
+		EQUS    "CALLQ%"
+		\ $43,$41,$4C,$4C,$51,$25
         EQUB    $0D,$00,$00,$14,$3C,$00,$00,$00
         EQUB    $00,$00,$00,$3C,$3C,$34,$3C,$28
         EQUB    $00,$00,$3C,$2D,$22,$00,$00,$00
@@ -990,16 +986,16 @@ L18F6 = L18F4+2
         LDY     #$00
         JSR     osbyte						\ Disable cursor editing
 
-        LDA     osword_redirection_C				\ Get OSWORD indrection vector (low(?) byte - TBC)
+        LDA     osword_redirection_C		\ Get OSWORD indrection vector (low(?) byte - TBC)
         STA     wordv_1
-        LDA     osword_redirection_D				\ Get OSWORD indirecton vector (high(?) byte - TBC)
+        LDA     osword_redirection_D		\ Get OSWORD indirecton vector (high(?) byte - TBC)
         STA     wordv_2
 .L1E21
         JSR     L1819						\ Display title screen/high score/controls
 
         JSR     L1E6C						\ Start game on spacebar from title screen
 
-.L1E27								\ Main game loop
+.L1E27	\ Main game loop
 
         JSR     L25B8						\ unknown
 
@@ -1028,11 +1024,8 @@ L18F6 = L18F4+2
         JSR     L1426						\ 
 
         JMP     L1E27						\ branch back around
-
-        EQUB    $28,$63,$29,$41,$2E,$45,$2E,$46			\ Copyright and Hello!
-        EQUB    $72,$69,$67,$61,$61,$72,$64,$20
-        EQUB    $31,$39,$38,$34,$20,$48,$65,$6C
-        EQUB    $6C,$6F,$21
+		
+		EQUS    "(c)A.E.Frigaard 1984 Hello!"	\ Copyright and Hello!
 
 .L1E6C
         LDA     #$05
@@ -1629,7 +1622,7 @@ L18F6 = L18F4+2
         JMP     L2581
 
 .L2238							\ Death-check
-        LDA     #$20					\ Change to RTS for invincibility
+        LDA     #$20			\ Change to RTS for invincibility
         BIT     L2D76
         BNE     L2245
 
@@ -1647,7 +1640,7 @@ L18F6 = L18F4+2
         LDA     #$07
         LDY     #$2D
         LDX     #$E0
-        JSR     osword					\ Play a sound
+        JSR     osword			\ Play a sound
 
         LDA     #$FF
         STA     L1D55
@@ -3013,10 +3006,10 @@ L2D03 = L2D02+1
 .L2D76
         EQUB    $00
 
-.score_low_byte						\ $2D77
+.score_low_byte					\ $2D77
         EQUB    $00
 
-.score_high_byte					\ $2D78
+.score_high_byte				\ $2D78
         EQUB    $00
 
 .L2D79
