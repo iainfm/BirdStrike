@@ -15,6 +15,22 @@ PAGE=&3000
 *LOAD birdsk2 1200
 CALL &1E00
 ```
+
+If that doesn't work (hangs at 'press space to play') try the following:
+
+```
+PAGE=&3000
+*LOAD birdsk2 1200
+?&3527 = &A4
+?&3528 = &E0
+?&3529 = &A6
+?&352A = &FF
+
+CALL &1300
+```
+
+This emulates the loader program BIRDSK1 being loaded, which BIRDSK2 copies some memory locations from - possibly as an anti-tamper/copy protection method.
+
 ## SaveStates
 
 A number of BeebEm save states have been added for anyone wanting to see the glitch without having to play through the levels, or for debugging/analysis purposes, etc.
