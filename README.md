@@ -26,3 +26,10 @@ They are:
 3) Level 13 - the first visible glitch - a 'stuck' enemy bomb at the top of the screen
 4) Level 20 - many glitches present by this point - cloud/pigeon sprite corruption etc
 5) Level 22 - the last level before the game crashes completely. Down the plane and it's all over!
+
+The save states have invincibility enabled. To disable enter the following command in the BeebEm debugger:
+```
+c 2238 A9
+```
+
+(To re-enable repeat but replace A9 with 60 (RTS))
