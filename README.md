@@ -13,11 +13,10 @@ To run, load the binary into the memory of a BBC Micro with
 ```
 PAGE=&3000
 *LOAD birdsk2 1200
-CALL &1E00
+CALL &1300
 ```
 
-If that doesn't work (hangs at 'press space to play') try the following:
-
+To play the original game either load BIRDSK1 in between changing page and `*LOADing above, or do the following:
 ```
 PAGE=&3000
 *LOAD birdsk2 1200
@@ -29,7 +28,7 @@ PAGE=&3000
 CALL &1300
 ```
 
-This emulates the loader program BIRDSK1 being loaded, which BIRDSK2 copies some memory locations from - possibly as an anti-tamper/copy protection method.
+This emulates the loader program BIRDSK1 being loaded, which the original BIRDSK2 copies some memory locations from - possibly as an anti-tamper/copy protection method.
 
 ## SaveStates
 
@@ -49,3 +48,7 @@ c 2238 A9
 ```
 
 (To re-enable repeat but replace A9 with 60 (RTS))
+
+## Changes
+
+06/01/20 Additional comments added. Vector table data hard-coded so BIRDSK1 doesn't need to be loaded first. NOPs added so memory locations are consistent with the original binary.
