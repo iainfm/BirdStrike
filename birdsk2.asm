@@ -69,10 +69,16 @@ osbyte  = $FFF4        \ OSBYTE
 
         
 org     $1200          \ "P%" as per the original binary
-.L1200
-        EQUB    $02,$19,$02,$19,$00,$7C,$00,$7C        \ First 160 bytes of L1200 get copied to page 0 by .L136C
-        EQUB    $72,$E7,$01,$00,$07,$32,$83,$98        \ which are addresses normally used by BASIC and Econet
-        EQUB    $80,$77,$02,$19,$0A,$00,$43,$B4        \ (therefore fair game, probably)
+
+.p0data \ L1200
+        \ First 160 bytes of code get copied to page 0 by p0copyloop
+        \ These addresses are normally used by BASIC and Econet
+        \ (therefore fair game, probably)
+		\ Probably a memory lookup table in the main for zero page addressing
+		
+        EQUB    $02,$19,$02,$19,$00,$7C,$00,$7C
+        EQUB    $72,$E7,$01,$00,$07,$32,$83,$98        
+        EQUB    $80,$77,$02,$19,$0A,$00,$43,$B4
         EQUB    $19,$00,$07,$00,$00,$19,$00,$00
         EQUB    $00,$FF,$FF,$FF,$00,$00,$00,$40
         EQUB    $FF,$FF,$00,$35,$00,$00,$00,$00
@@ -91,7 +97,8 @@ org     $1200          \ "P%" as per the original binary
         EQUB    $21,$01,$C9,$07,$F0,$03,$6C,$64
         EQUB    $00,$60,$04,$01,$FF,$FF,$FF,$00
         
-        EQUB    $00,$00,$00,$00,$00,$00,$00,$00        \ The rest seems to be padding
+		\ The rest seems to be padding
+        EQUB    $00,$00,$00,$00,$00,$00,$00,$00
         EQUB    $00,$00,$00,$00,$00,$00,$00,$00
         EQUB    $00,$00,$00,$00,$00,$00,$00,$00
         EQUB    $00,$00,$00,$00,$00,$00,$00,$00
@@ -104,19 +111,31 @@ org     $1200          \ "P%" as per the original binary
         EQUB    $00,$00,$00,$00,$00,$00,$00,$00
         EQUB    $00,$00,$00,$00,$00,$00,$00,$00
 
-.L1300    \ Official code entry point. Needs BIRDSK1 to be loaded at page &3000 first.
-          \ *possibly* an anti-tamper mechanism?
-          \ Game can also be successfully started from $1E00 if not.
+.entry  \ L1300
+
+        \ Official code entry point. Originally needed BIRDSK1 to be loaded at page &3000 first.
+        \ *possibly* an anti-tamper mechanism?
+        \
+		\ This version hard-codes the memory location values so this is no longer necessary.
 
         SEI                  \ Disable interrupts
-        LDA     L3527        \ Vector stuff...
+        
+		LDA     #$A4         \ Originally loaded from L3527
+		NOP                  \ To keep memory addresses consistent with original
         STA     WRCHvA
-        LDA     L3528        \ $E0 from BIRDSK1
+		
+		LDA     #$E0         \ Originally loaded from L3528
+		NOP                  \ To keep memory addresses consistent with original
         STA     WRCHvB
-        LDA     L3529        \ $A6 from BIRDSK1
+        
+		LDA     #$A6         \ Originally loaded from L3529
+		NOP                  \ To keep memory addresses consistent with original
         STA     EVNTvA
-        LDA     L352A
+		
+		LDA     #$FF         \ Originally loaded from L352A
+		NOP                  \ To keep memory addresses consistent with original
         STA     EVNTvB
+		
         CLI                  \ Enable interrupts
         LDA     #$0D
         LDX     #$00
@@ -145,6 +164,7 @@ org     $1200          \ "P%" as per the original binary
         INY
         LDA     (L000A),Y
         STA     BYTEvB
+		
         LDA     #$C8
         LDX     #$03
         LDY     #$00
@@ -159,18 +179,21 @@ org     $1200          \ "P%" as per the original binary
         LDA     L0009
         STA     BYTEvB
         LDX     #$00
-.L136C                        \ Copy 160 bytes at &1200 to page zero.
-        LDA     L1200,X
+		
+.p0copyloop     \ L136C
+        \ Copy 160 bytes at &1200 to page zero.
+		
+        LDA     p0data,X
         STA     L0000,X
         INX
         CPX     #$A0
-        BNE     L136C
+        BNE     p0copyloop
 
         LDA     #$8C
         LDX     #$0C
         JSR     osbyte        \ Set TAPE filing system and baud rate (X)
 
-        JMP     L1E00
+        JMP     game
 
         EQUB    $00,$00,$00,$00,$00,$00,$00,$00
         EQUB    $00,$00,$00,$00,$00,$00,$00,$00
@@ -355,7 +378,7 @@ org     $1200          \ "P%" as per the original binary
         LDX     #$F8
         LDY     #$2D
         LDA     #$07
-        JSR     osword
+        JSR     osword        \ Play a sound
 
         INC     L1D56
         CLC
@@ -407,7 +430,7 @@ org     $1200          \ "P%" as per the original binary
         LDX     #$E8
         LDY     #$2D
         LDA     #$07
-        JSR     osword
+        JSR     osword        \ Play a sound
 
         JSR     L2054
 
@@ -420,7 +443,7 @@ org     $1200          \ "P%" as per the original binary
         LDX     #$B7
         LDY     #$15
         LDA     #$07
-        JSR     osword
+        JSR     osword        \ Play a sound
 
         DEC     L15B7
         LDA     #$80
@@ -431,7 +454,7 @@ org     $1200          \ "P%" as per the original binary
 .L159E
         LDY     #$00
 .L15A0
-        LDA     L15AC,Y
+        LDA     bonusText,Y
         JSR     oswrch
 
         INY
@@ -440,7 +463,8 @@ org     $1200          \ "P%" as per the original binary
 
         RTS
 
-.L15AC    \ BONUS! message
+.bonusText      \L15AC
+        \ BONUS! message
         EQUB    $11,$06,$1F,$07,$0F        \ Cyan text, centred
         EQUS    "BONUS!"
 
@@ -457,7 +481,9 @@ org     $1200          \ "P%" as per the original binary
 .L15C7
         EQUB    $02
 
-.L15C8    \ MODE 7 Title Screen stuff
+.titleScreen    \ L15C8
+       \ MODE 7 Title Screen
+	   
         EQUB    $16,$07,$17,$00,$0A,$20,$00,$00
         EQUB    $00,$00,$00,$00,$9A,$94,$68,$3F
         EQUB    $6F,$34,$20,$20,$20,$20,$20,$20
@@ -484,12 +510,13 @@ org     $1200          \ "P%" as per the original binary
         EQUB    $1F,$0B,$09,$8D,$83
         EQUS    "High Score"
 
-.L16A0    \ High score display
+.highScoreDots  \ L16A0
+        \ High score display
         EQUB    $1F,$0B,$0B
         EQUS    "............."
         EQUB    $00,$1F,$19,$0B
 
-.L16B4
+.keysText       \ L16B4
         EQUS    "andrew  "    \ original high score holder
         EQUB    $00,$1F,$0E,$0E,$8D,$83
         EQUS    "Keys"        \ Double height line 1
@@ -675,7 +702,7 @@ L17AC = L17AB+1
         TXA
         LDX     #$C0
         LDY     #$15
-        JSR     osword
+        JSR     osword        \ Read line from input to memory, probably the name for the high score table
 
         JMP     L18B1
 
@@ -683,8 +710,8 @@ L17AC = L17AB+1
         LDY     #$FF
 .L18A6
         INY
-        LDA     L16B4,Y
-        JSR     osasci
+        LDA     keysText,Y    \ read and
+        JSR     osasci        \ print instructions text
 
         CMP     #$20
         BPL     L18A6
@@ -692,7 +719,7 @@ L17AC = L17AB+1
 .L18B1
         LDY     #$02
 .L18B3
-        LDA     L15C8,Y
+        LDA     titleScreen,Y
         JSR     oswrch
 
         INY
@@ -741,7 +768,7 @@ L17AC = L17AB+1
 .L18F3
         INY
 .L18F4
-        LDA     L16A0,Y
+        LDA     highScoreDots,Y
 L18F5 = L18F4+1
 L18F6 = L18F4+2
         JSR     osasci            \ Print the dots in the high score 'table'
@@ -758,7 +785,7 @@ L18F6 = L18F4+2
         RTS
 
 .L1907
-        JMP     L1907
+        JMP     L1907                              \ Infinite loop alert
 
         EQUB    $00,$00,$05,$00,$00,$00,$00,$08    \ Lives icon, RAF(?) logo, explosion sprites
         EQUB    $08,$1C,$08,$08,$08,$00,$28,$28
@@ -805,8 +832,10 @@ L18F6 = L18F4+2
 .L1A0B
         EQUB    $FF
 
-.L1A0C  \ Life lost animation sprites
-        EQUB    $FF,$FF,$FF,$FF,$00,$04,$00,$04
+.L1A0C  
+        EQUB    $FF,$FF,$FF,$FF
+		\ Life lost animation sprites
+		EQUB    $00,$04,$00,$04
         EQUB    $28,$04,$00,$04,$00,$00,$00,$00
         EQUB    $28,$00,$00,$00,$28,$00,$28,$00
         EQUB    $28,$00,$00,$00,$00,$04,$00,$04
@@ -818,23 +847,27 @@ L18F6 = L18F4+2
         EQUB    $00,$00,$04,$2C,$00,$00,$00,$00
         EQUB    $00,$00,$00,$28
 
-.L1A60  \ Skull, pigeon, numbers, some scenery sprites
+.L1A60  \ Skull
         EQUB    $00,$00,$00,$00,$00,$40,$00,$40
         EQUB    $40,$80,$80,$40,$40,$40,$80,$00
         EQUB    $C0,$80,$80,$40,$C0,$40,$80,$00
         EQUB    $00,$80,$80,$00,$00,$40,$80,$40
+		\ Pigeon sprite ($1A80)
         EQUB    $00,$00,$00,$00,$00,$00,$00,$00
         EQUB    $00,$00,$00,$14,$3C,$00,$00,$00
         EQUB    $00,$00,$00,$3C,$3C,$34,$3C,$28
         EQUB    $00,$00,$3C,$2D,$22,$00,$00,$00
+		\ Pigeon sprite ($1AA0) s, pigeon, numbers, some scenery sprites
         EQUB    $00,$00,$00,$14,$3C,$00,$14,$00
         EQUB    $00,$00,$00,$3C,$3C,$34,$28,$00
         EQUB    $00,$00,$3C,$2D,$22,$00,$00,$00
         EQUB    $00,$00,$00,$14,$3C,$00,$00,$00
+		\ Pigeon TBC
         EQUB    $00,$00,$00,$3C,$39,$00,$00,$00
         EQUB    $00,$00,$3C,$2D,$22,$00,$00,$00
         EQUB    $00,$00,$00,$00,$14,$3C,$00,$00
         EQUB    $00,$3C,$34,$3C,$39,$00,$00,$00
+		
         EQUB    $00,$00,$3C,$2D,$22,$00,$00,$00
         EQUB    $14,$00,$00,$00,$14,$3C,$00,$00
         EQUB    $28,$3C,$34,$3C,$39,$00,$00,$00
@@ -972,7 +1005,8 @@ L18F6 = L18F4+2
         EQUB    $20,$20,$30,$30,$00,$08,$04,$04
         EQUB    $30,$3A,$30,$30
 
-.L1E00  \ Game can be run by starting execution here
+.game   \L1E00
+        \ Game can be run by starting execution here
 
         LDA     #$C8                        \ Read/write escape/break effect
         LDX     #$03                        \ esc disabled, memory clear on break
@@ -1258,7 +1292,7 @@ L18F6 = L18F4+2
         LDX     #$B7
         LDY     #$15
         LDA     #$07
-        JSR     osword
+        JSR     osword        \ Play a sound
 
         SED
 .L2021
@@ -1541,6 +1575,7 @@ L18F6 = L18F4+2
 .L21A6
         STA     L0070
 .L21A8
+        \ Sound player routine (start of level chimes, bonus tunes etc)
         LDY     L0070
         LDA     L23B2,Y
         BEQ     L21C9
@@ -1552,7 +1587,7 @@ L18F6 = L18F4+2
         LDX     #$F8
         LDY     #$2D
         LDA     #$07
-        JSR     osword
+        JSR     osword        \ Play a sound
 
         INC     L0070
         INC     L0070
@@ -1560,8 +1595,8 @@ L18F6 = L18F4+2
 
 .L21C9
         LDA     #$80
-        LDX     #$FA
-        JSR     osbyte
+        LDX     #$FA          \ Sound channel 1
+        JSR     osbyte        \ Read ADC channel or get buffer status
 
         CPX     #$0F
         BMI     L21C9
@@ -1774,6 +1809,7 @@ L18F6 = L18F4+2
         EQUB    $42,$42,$44,$46,$24,$14,$05,$00
 
 .L23B2
+		\ Start of level / bonus tunes
         EQUB    $65,$17,$5D,$05,$59,$0A,$65,$05
         EQUB    $79,$0A,$81,$05,$89,$1E,$79,$1E
         EQUB    $00,$6D,$17,$75,$05,$79,$0A,$75
@@ -1917,7 +1953,7 @@ L246C = L246B+1
         TAX
         LDA     #$07
         LDY     #$2D
-        JSR     osword
+        JSR     osword        \ Play a sound
 
         LDA     #$10
         STA     L2D7E
@@ -1970,7 +2006,7 @@ L252F = L252E+1
         LDA     #$07
         LDY     #$2D
         LDX     #$F0
-        JSR     osword
+        JSR     osword        \ Play a sound
 
 .L253F
         LDX     L2D7E
@@ -2171,6 +2207,9 @@ L252F = L252E+1
 .L266C
         LDX     #$07
 .L266E
+
+        \ Cloud drawing routines? I think this maybe mirrors them top-to-bottom and/or left-to-right?
+		
         LDA     L4900,Y
 L266F = L266E+1
 L2670 = L266E+2
@@ -2291,7 +2330,7 @@ L2673 = L2671+2
         TAX
         LDA     #$08
         LDY     #$2D
-        JSR     osword
+        JSR     osword        \ Define an envelope
 
         DEC     L0070
         BNE     L2835
@@ -2300,7 +2339,7 @@ L2673 = L2671+2
 
 .L284A
         LDA     #$02
-        STA     LFE4E                    \ Clear interrupt?
+        STA     LFE4E         \ Clear interrupt?
 .L284F
         BIT     LFE4D
         BEQ     L284F
@@ -2654,7 +2693,7 @@ L28D7 = L28D5+2
         TAX
         LDA     #$07
         LDY     #$2D
-        JSR     osword
+        JSR     osword        \ Play a sound (enemy explosion)
 
         PLA
         TAY
@@ -3123,5 +3162,5 @@ L2D03 = L2D02+1
         EQUB    $20,$00,$00,$00,$3C,$00,$00,$3A
 
 .BeebDisEndAddr
-SAVE "birdsk2.bin",L1200,BeebDisEndAddr
+SAVE "birdsk2.bin",p0data,BeebDisEndAddr
 
