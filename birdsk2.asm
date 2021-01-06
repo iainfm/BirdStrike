@@ -73,8 +73,7 @@ org     $1200          \ "P%" as per the original binary
 .p0data \ L1200
         \ First 160 bytes of code get copied to page 0 by p0copyloop
         \ These addresses are normally used by BASIC and Econet
-        \ (therefore fair game, probably)
-		\ Probably a memory lookup table in the main for zero page addressing
+		\ Possibly a memory lookup table in the main for zero page addressing
 		
         EQUB    $02,$19,$02,$19,$00,$7C,$00,$7C
         EQUB    $72,$E7,$01,$00,$07,$32,$83,$98        
@@ -97,7 +96,7 @@ org     $1200          \ "P%" as per the original binary
         EQUB    $21,$01,$C9,$07,$F0,$03,$6C,$64
         EQUB    $00,$60,$04,$01,$FF,$FF,$FF,$00
         
-		\ The rest seems to be padding
+		\ The rest is padding
         EQUB    $00,$00,$00,$00,$00,$00,$00,$00
         EQUB    $00,$00,$00,$00,$00,$00,$00,$00
         EQUB    $00,$00,$00,$00,$00,$00,$00,$00
@@ -214,9 +213,10 @@ org     $1200          \ "P%" as per the original binary
         
         EQUS    "Thanks David,Ian,Martin,Mum,Dad,Susi C"    \ Thanks and credits
 
+    \ Set up osword vectors based on machine type?
 .L1426
         LDX     #$EF
-        JSR     L21D5
+        JSR     readMachineSubType
 
         BNE     L1437
 
@@ -224,31 +224,29 @@ org     $1200          \ "P%" as per the original binary
         STA     osword_redirection_C
         LDA     #$14
         STA     osword_redirection_D
+		
 .L1437
         LDX     #$AE
-        JSR     L21D5
+        JSR     readMachineSubType
 
         BNE     L144A
-
         LDA     wordv_1
         STA     osword_redirection_C
         LDA     wordv_2
         STA     osword_redirection_D
+
 .L144A
         LDX     #$CC
-        JSR     L21D5
-
+        JSR     readMachineSubType
         BNE     L1460
 
 .L1451
         LDA     #$81
         LDY     #$01
         LDX     #$00
-        JSR     osbyte
-
-        BCS     L1451
-
-        CPX     #$52
+        JSR     osbyte    \ Read key with timeout
+        BCS     L1451     \ No key detected
+        CPX     #$52      \ INKEY value of R
         BEQ     L1451
 
 .L1460
@@ -288,8 +286,9 @@ org     $1200          \ "P%" as per the original binary
         BCC     L1490
 
         INC     L0079
-.L1490
-        LDA     #$01
+		
+.L1490  \ Enemy left-right zigzag
+        LDA     #$01    \ 0 = vertical descent
         EOR     L149B
         STA     L149B
         JMP     L2BE1
@@ -299,27 +298,28 @@ org     $1200          \ "P%" as per the original binary
         EQUB    $14,$60,$A9,$12,$8D,$AD,$14,$4C
         EQUB    $7D,$29,$00
 
-.L14AE
+.gameOver       \ Display Game Over message    \ L14AE
         PLA
         PLA
         LDY     #$FF
-.L14B2
+		
+.gameOverLoop   \ L14B2
         INY
         LDA     #$0A
         JSR     L208D
 
-        LDA     L14CA,Y
-        JSR     oswrch
+        LDA     gameOverText,Y    \ Load chr at gameOverText (L14CA), offset Y
+        JSR     oswrch            \ Print it
 
-        CMP     #$52
-        BNE     L14B2
+        CMP     #$52              \ Loop untl the "R" of "OVER"
+        BNE     gameOverLoop
 
         LDA     #$96
         JSR     L208D
 
         JMP     L1E21
 
-.L14CA    \ GAME OVER message
+.gameOverText   \ GAME OVER message        \ L14CA    
         EQUB    $1F,$05,$0F,$11,$01        \ Red text, centred on screen
         EQUS    "GAME OVER"
 
@@ -344,7 +344,7 @@ org     $1200          \ "P%" as per the original binary
         BNE     L1502
 
         LDY     score_high_byte
-        CPY     #$05
+        CPY     #$05				\ Extra life at 5000?
         BMI     L1519
 
         ORA     L151A
@@ -399,7 +399,7 @@ org     $1200          \ "P%" as per the original binary
         LDA     #$0F
         JSR     L208D
 
-        JSR     L1778
+        JSR     vduCalls
 
         JMP     L1556
 
@@ -512,38 +512,49 @@ org     $1200          \ "P%" as per the original binary
 
 .highScoreDots  \ L16A0
         \ High score display
-        EQUB    $1F,$0B,$0B
+        EQUB    $1F,$0B,$0B   \ Move text cursor
         EQUS    "............."
-        EQUB    $00,$1F,$19,$0B
+        EQUB    $00
+		EQUB    $1F,$19,$0B   \ Move text cursor
 
 .keysText       \ L16B4
         EQUS    "andrew  "    \ original high score holder
-        EQUB    $00,$1F,$0E,$0E,$8D,$83
+        EQUB    $00
+		EQUB    $1F,$0E,$0E   \ Move text cursor
+		EQUB    $8D,$83       \ Double-height / yellow
         EQUS    "Keys"        \ Double height line 1
-        EQUB    $1F,$0E,$0F,$8D,$83
+        EQUB    $1F,$0E,$0F   \ Move text cursor
+		EQUB    $8D,$83       \ Double-height / yellow
         EQUS    "Keys"        \ Double height line 2
-        EQUB    $1F,$06,$11,$86
+        EQUB    $1F,$06,$11   \ Move text cursor
+		EQUB    $86           \ Cyan
         EQUS    "Z ............ move left"
-        EQUB    $1F,$06,$12,$86
+        EQUB    $1F,$06,$12   \ Move text cursor
+		EQUB    $86           \ Cyan
         EQUS    "X ........... move right"
-        EQUB    $1F,$06,$13,$86
+        EQUB    $1F,$06,$13   \ Move text cursor
+		EQUB    $86           \ Cyan
         EQUS    "RETURN ........... shoot"
-        EQUB    $1F,$06,$14,$86
+        EQUB    $1F,$06,$14   \ Move text cursor
+		EQUB    $86           \ Cyan
         EQUS    "S/Q ....... sound on/off"
-        EQUB    $1F,$06,$15,$86
+        EQUB    $1F,$06,$15   \ Move text cursor
+		EQUB    $86           \ Cyan
         EQUS    "R ................. rest"
-        EQUB    $00,$1F,$07,$18,$81,$88
+        EQUB    $00
+		EQUB    $1F,$07,$18   \ Move text cursor
+		EQUB    $81,$88       \ Red / flash
         EQUS    "Press space to play."
         EQUB    $00,$00,$00
 
-.L1778
+.vduCalls       \ Call the VDU commands at vduCallsTable in reverse order    \ L1778
         LDY     #$0A
-.L177A
-        LDA     L180E,Y
+.vduLoop        \ L177A
+        LDA     vduCallsTable,Y
         JSR     oswrch
 
         DEY
-        BPL     L177A
+        BPL     vduLoop
 
         LDA     #$80
         STA     L17A0
@@ -577,7 +588,7 @@ L17AC = L17AB+1
         STA     L17AC
         JSR     oswrch
 
-        JSR     L21EE
+        JSR     drawStave
 
         DEC     L0070
         BNE     L1791
@@ -621,11 +632,20 @@ L17AC = L17AB+1
         LDA     L1A08
         STA     L1D5C
         LDA     #$1A
-        JMP     oswrch
+        JMP     oswrch \ Restore default windows
 
-.L180E
-        EQUB    $10,$03,$FF,$04,$0F,$02,$0F,$00
-        EQUB    $F0,$18,$1A
+.vduCallsTable         \ VDU calls    \ L180E
+        EQUB    $10    \ Clear graphics area
+		EQUB    $03    \ Disable printer
+		EQUB    $FF    \ terminator character?
+		EQUB    $04    \ Write text at text cursor
+		EQUB    $0F    \ Paged mode off
+		EQUB    $02    \ Enable printer
+		EQUB    $0F    \ Paged mode off
+		EQUB    $00    \ nada
+        EQUB    $F0    \ ?
+		EQUB    $18    \ Define graphics colour
+		EQUB    $1A    \ Restore default windows
 
 .L1819
         LDA     #$00
@@ -739,7 +759,7 @@ L17AC = L17AB+1
 
 .L18CF
         LDX     #$9D
-        JSR     L21D5
+        JSR     readMachineSubType
 
         BNE     L18CF
 
@@ -1151,7 +1171,7 @@ L18F6 = L18F4+2
 
         JSR     L25C9
 
-        JSR     L21EE
+        JSR     drawStave
 
         JSR     L2054
 
@@ -1405,7 +1425,7 @@ L18F6 = L18F4+2
         LDX     #$0D
         RTS
 
-.L20C3
+.L20C3	
         DEX
         BNE     L20CB
 
@@ -1516,7 +1536,7 @@ L18F6 = L18F4+2
         STA     L0082
         RTS
 
-.L215D
+.L215D	\ Something to do with the plotting of dots on the stave
         LSR     A
         BIT     L0070
         BEQ     L2167
@@ -1535,7 +1555,7 @@ L18F6 = L18F4+2
 .L2171
         RTS
 
-.L2172
+.L2172  \ Possibly something to do with pigeon hit
         TYA
         PHA
         LDY     #$07
@@ -1603,10 +1623,10 @@ L18F6 = L18F4+2
 
         RTS
 
-.L21D5
+.readMachineSubType           \ readMachineSubType
         LDA     #$81
         LDY     #$FF
-        JSR     osbyte
+        JSR     osbyte        \ Read machine sub type?)
 
         INX
         RTS
@@ -1614,33 +1634,31 @@ L18F6 = L18F4+2
         EQUB    $E8,$60,$00,$00,$00,$00,$00,$00
         EQUB    $00,$00,$00,$00,$00,$00,$00,$00
 
-.L21EE
+.drawStave      \ Draw stave    \ L21EE
         LDY     #$00
-.L21F0
-        LDA     L220E,Y
-        JSR     oswrch
 
+.staveLoop1     \ L21F0
+        LDA     staveData,Y
+        JSR     oswrch
         INY
         CPY     #$09
-        BNE     L21F0
-
+        BNE     staveLoop1
         LDX     #$05
-.L21FD
-        LDY     #$09
-.L21FF
-        LDA     L220E,Y
-        JSR     oswrch
 
+.staveLoop2     \ L21FD
+        LDY     #$09
+
+.staveLoop3     \ L21FF
+        LDA     staveData,Y
+        JSR     oswrch
         INY
         CPY     #$15
-        BNE     L21FF
-
+        BNE     staveLoop3
         DEX
-        BNE     L21FD
-
+        BNE     staveLoop2
         RTS
 
-.L220E
+.staveData      \ L220E
         EQUB    $12,$00,$04,$19,$04,$00,$01,$EC
         EQUB    $03,$19,$01,$00,$03,$00,$00,$19
         EQUB    $00,$00,$FD,$F0,$FF
@@ -1729,7 +1747,7 @@ L18F6 = L18F4+2
         DEC     L1D56
         BNE     L22B3
 
-        JMP     L14AE
+        JMP     gameOver
 
 .L22B3
         JSR     L28D3
