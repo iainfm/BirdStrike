@@ -1002,7 +1002,8 @@ L18F6 = L18F4+2
 .L1D5B
         EQUB    $00
 
-.L1D5C
+.L1D5C  \ Game data? $1D5C is the current level
+
         EQUB    $00,$00,$00,$00,$28,$3C,$0D,$2D
         EQUB    $2D,$0D,$3C,$2C,$28,$0F,$31,$31
         EQUB    $35,$30,$1A,$0F,$28,$0F,$30,$30
@@ -2872,15 +2873,15 @@ L28D7 = L28D5+2
 .L2C07
         RTS
 
-.L2C08
+.L2C08  \ Enemy drawing?
         TYA
         PHA
         CLC
         LDA     L0078
-        ADC     #$78
+        ADC     #$78    \ interlace?
         STA     L0084
-        AND     #$07
-        EOR     #$07
+        AND     #$07    \ 0 - 7
+        EOR     #$07    \ 7 - 0
         STA     L0074
         LDA     L0079
         ADC     #$02
@@ -2898,7 +2899,7 @@ L2C1E = L2C1D+1
         BEQ     L2C2D
 
         EOR     (L0084),Y
-        STA     (L0084),Y
+        STA     (L0084),Y    \ NOPping this causes enemies to flicker. Memory copy for smooth animation?
 .L2C2D
         DEY
         DEX
