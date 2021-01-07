@@ -294,7 +294,8 @@ org     $1200          \ "P%" as per the original binary
         JMP     L2BE1
 
 .L149B
-        EQUB    $00,$AD,$AD,$14,$F0,$04,$CE,$AD
+        EQUB    $00    \ enemy zig-zag state?
+		EQUB    $AD,$AD,$14,$F0,$04,$CE,$AD
         EQUB    $14,$60,$A9,$12,$8D,$AD,$14,$4C
         EQUB    $7D,$29,$00
 
@@ -1139,7 +1140,7 @@ L18F6 = L18F4+2
         LDA     #$2F
         STA     L0089
         LDA     #$F0
-        STA     L2D71
+        STA     useless
         LDA     #$00
         STA     L1A09
 .L1EE3
@@ -1157,7 +1158,7 @@ L18F6 = L18F4+2
 
         DEC     L2D79
         DEC     L2D79
-        DEC     L2D71
+        DEC     useless
 .L1F03
         INC     L1A09
         INC     L1A09
@@ -3043,10 +3044,13 @@ L2D03 = L2D02+1
 .L2D68
         EQUB    $88,$A0,$B8,$D0,$E8,$D0,$B8,$88
 
-.L2D70
+.L2D70  \ Something to do with player bounds?
         EQUB    $20
 
-.L2D71
+.useless        \ L2D71
+                \ Seems to be completely redundent. Set to $D7 here, changed to
+                \ $F0 by L1EC6 (at the beginning of a new game), then decremented
+				\ once by L1EE3. Possibly a removed or planned feature?
         EQUB    $D7
 
 .L2D72
@@ -3062,7 +3066,7 @@ L2D03 = L2D02+1
         EQUB    $23
 
 .L2D76
-        EQUB    $00
+        EQUB    $00		\ pigeon flying, 10 = add notes (use for bonus cheat), 80 = end level - c 2d76 80
 
 .score_low_byte \ $2D77
         EQUB    $00
