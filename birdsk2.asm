@@ -1144,7 +1144,7 @@ L18F6 = L18F4+2
         LDA     #$F0
         STA     useless
         LDA     #$00
-        STA     L1A09
+        STA     L1A09    \ Part of the problem
 .L1EE3
         JSR     L20B1
 
@@ -1156,14 +1156,14 @@ L18F6 = L18F4+2
 
         LDA     level
         AND     #$01     \ Is level even?
-        BEQ     L1F03    \ Yes, branch (don't know why; reduces L2D79 by 2 every 2nd level)
-
-        DEC     L2D79
+        BEQ     L1F03    \ Yes, branch
+		                 \ If not... (don't know why; reduces L2D79 by 2 every 2nd level)
+        DEC     L2D79    \ Commenting these out gives a slightly different corruption
         DEC     L2D79
         DEC     useless
 .L1F03
-        INC     L1A09
-        INC     L1A09
+        INC     L1A09    \ J'accuse! NOP this out (x3 to keep addresses consistent for fix)
+        INC     L1A09    \ J'accuse! NOP this out (x3 to keep addresses consistent for fix)
         LDA     #$0C
         JSR     oswrch   \ Clear screen
 
@@ -1184,12 +1184,13 @@ L18F6 = L18F4+2
         STA     gameFlags    \ Reset game flags
         STA     L2D7D        \ Reset Pigeon position
         LDY     #$54
-.L1F2E
-        STA     L2D0A,Y
+		
+.zeroLoop       \L1F2E
+        STA     L2D0A,Y      \ Zero 2D0A to 2D5E (backwards)
         DEY
-        BNE     L1F2E
+        BNE     zeroLoop
 
-        LDA     L1A09
+        LDA     L1A09        \ Restore 2D47
         STA     L2D47
         LDA     #$06
         STA     L2D0A
@@ -3032,9 +3033,9 @@ L2D03 = L2D02+1
         EQUB    $00,$00,$00,$00
 
 .L2D47
-        EQUB    $02,$D6,$00,$00,$00,$00,$00,$00
+        EQUB    $02,$D6,$00,$00,$00,$00,$00,$00    \ First byte is copied from 1A09
         EQUB    $00,$00,$00,$00,$00,$00,$00,$00
-        EQUB    $00,$00,$00,$00,$00,$00,$00,$00
+        EQUB    $00,$00,$00,$00,$00,$00,$00,$00    \ Last byte is $2D5E ($2D0A + $54)
 
 .L2D5F
         EQUB    $80,$40,$40,$00,$80,$00,$40,$80
