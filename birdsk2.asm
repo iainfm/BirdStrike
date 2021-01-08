@@ -28,8 +28,8 @@ L0084   = $0084
 L0085   = $0085
 L0086   = $0086
 L0087   = $0087
-L0088   = $0088
-L0089   = $0089
+enemySpriteAddrLow   = $0088        \ L0088 \ Enemy sprite address low byte (0 = level 1 aircraft, add $40 per level)
+enemySpriteAddrHigh  = $0089        \ L0089 \ Enemy sprite address high byte
 L008A   = $008A
 L008B   = $008B
 L008C   = $008C
@@ -328,7 +328,7 @@ org     $1200          \ "P%" as per the original binary
         RTS
 
 .L14D9
-        LDA     L1D55
+        LDA     timer_L1D55
         BEQ     L14D8
 
         LDA     L007A
@@ -393,7 +393,7 @@ org     $1200          \ "P%" as per the original binary
         RTS
 
 .L153E
-        LDA     L1D5C
+        LDA     level
         AND     #$03
         BNE     L1550
 
@@ -407,7 +407,7 @@ org     $1200          \ "P%" as per the original binary
 .L1550
         JSR     L20B1
 
-        JSR     L21A6
+        JSR     playTune
 
 .L1556
         JSR     L159E
@@ -448,8 +448,8 @@ org     $1200          \ "P%" as per the original binary
 
         DEC     L15B7
         LDA     #$80
-        ORA     L2D76
-        STA     L2D76
+        ORA     gameFlags
+        STA     gameFlags
         RTS
 
 .L159E
@@ -594,10 +594,10 @@ L17AC = L17AB+1
         DEC     L0070
         BNE     L1791
 
-        LDA     L1D5C
+        LDA     level
         STA     L1A08
         LDA     #$00
-        STA     L1D5C
+        STA     level
         LDA     #$26
         STA     L1A0C
         LDA     #$88
@@ -613,7 +613,7 @@ L17AC = L17AB+1
         JSR     L20B1
 
         STX     L2382
-        INC     L1D5C
+        INC     level
 .L17EC
         JSR     L20DE
 
@@ -621,17 +621,17 @@ L17AC = L17AB+1
 
         JSR     L20B1
 
-        JSR     L21A6
+        JSR     playTune
 
         LDA     #$3C
         JSR     L208D
 
-        LDA     L1D5C
+        LDA     level
         CMP     #$04
         BNE     L17D1
 
         LDA     L1A08
-        STA     L1D5C
+        STA     level
         LDA     #$1A
         JMP     oswrch \ Restore default windows
 
@@ -979,10 +979,10 @@ L18F6 = L18F4+2
         EQUB    $C8,$7C,$BA,$77,$51,$7A,$B8,$7C
         EQUB    $20,$7A,$42,$7A
 
-.L1D54
+.unused_L1D54   \ Unused?
         EQUB    $00
 
-.L1D55
+.timer_L1D55    \ Only used for the screen flash timer, I think.
         EQUB    $00
 
 .L1D56  \ Something to do with lives(?)
@@ -1000,12 +1000,14 @@ L18F6 = L18F4+2
 .L1D5A
         EQUB    $00
 
-.L1D5B
+.L1D5B  \ Enemy kill counter (x2)
         EQUB    $00
 
-.L1D5C  \ Game data? $1D5C is the current level
+.level  \ L1D5C \ Current level
+        EQUB    $00
 
-        EQUB    $00,$00,$00,$00,$28,$3C,$0D,$2D
+.L1D5D  \ Game data?
+        EQUB    $00,$00,$00,$28,$3C,$0D,$2D
         EQUB    $2D,$0D,$3C,$2C,$28,$0F,$31,$31
         EQUB    $35,$30,$1A,$0F,$28,$0F,$30,$30
         EQUB    $33,$30,$25,$1E,$34,$1C,$1E,$0E
@@ -1049,7 +1051,7 @@ L18F6 = L18F4+2
 .L1E21
         JSR     L1819                       \ Display title screen/high score/controls
 
-        JSR     L1E6C                       \ Start game on spacebar from title screen
+        JSR     newGame                    \ Start game on spacebar from title screen
 
 .L1E27    \ Main game loop
 
@@ -1057,7 +1059,7 @@ L18F6 = L18F4+2
 
         JSR     L284A                       \ Delay? - plays at high speed when disabled. Also clears an interrupt(?)
 
-        JSR     L2A94                       \ Enemy movement (First attempt produced Level completion check? Jumped to next level if RTS'd)
+        JSR     L2A94                       \ Enemy movement
 
         JSR     L29F7                       \ unknown
 
@@ -1083,29 +1085,29 @@ L18F6 = L18F4+2
         
         EQUS    "(c)A.E.Frigaard 1984 Hello!"
 
-.L1E6C
+.newGame        \ L1E6C    \ Set up new game
         LDA     #$05
         STA     L0070
         JSR     L2835
 
-        LDA     #$49
-        JSR     L21A6
+        LDA     #$49       \ New game tune
+        JSR     playTune
 
         LDA     #$16
-        JSR     oswrch
+        JSR     oswrch     \ VDU 22 (change mode)
 
         LDA     #$02
-        JSR     oswrch
+        JSR     oswrch     \ To mode 2
 
         LDA     #$00
-        STA     L151A
+        STA     L151A      
         STA     L008E
-        STA     L1D5C
-        STA     L1D54
-        STA     L1D55
-        STA     score_low_byte
-        STA     score_high_byte
-        STA     L0088
+        STA     level                 \ Reset level
+        STA     unused_L1D54          \ Unused
+        STA     timer_L1D55           \ 'Lightning' effect timer
+        STA     score_low_byte        \ Reset score
+        STA     score_high_byte       \ Reset score
+        STA     enemySpriteAddrLow    \ Reset enemey aircraft to level 1 biplane
         CLC
         LDA     #$20
         STA     L2D79
@@ -1128,7 +1130,7 @@ L18F6 = L18F4+2
         LDX     #$0F
         LDY     #$07
 .L1EC6
-        JSR     L281D
+        JSR     L281D    \ Set palette
 
         DEX
         CPX     #$07
@@ -1137,8 +1139,8 @@ L18F6 = L18F4+2
         STX     L007D
         LDA     #$03
         STA     L1D56
-        LDA     #$2F
-        STA     L0089
+        LDA     #$2F                 
+        STA     enemySpriteAddrHigh
         LDA     #$F0
         STA     useless
         LDA     #$00
@@ -1147,14 +1149,14 @@ L18F6 = L18F4+2
         JSR     L20B1
 
         STX     L2382
-        INC     L1D5C
+        INC     level    \ Increment level number
         LDA     L2D79
         CMP     #$0F
         BMI     L1F03
 
-        LDA     L1D5C
-        AND     #$01
-        BEQ     L1F03
+        LDA     level
+        AND     #$01     \ Is level even?
+        BEQ     L1F03    \ Yes, branch (don't know why; reduces L2D79 by 2 every 2nd level)
 
         DEC     L2D79
         DEC     L2D79
@@ -1163,24 +1165,24 @@ L18F6 = L18F4+2
         INC     L1A09
         INC     L1A09
         LDA     #$0C
-        JSR     oswrch
+        JSR     oswrch   \ Clear screen
 
         LDA     #$9A
         LDX     #$14
-        JSR     osbyte
+        JSR     osbyte   \ Write to Video ULA CPL and cursor width?
 
-        JSR     L261A
+        JSR     L261A    \ Draw clouds - not culprit
 
-        JSR     L25C9
+        JSR     L25C9    \ Draw scenery - not culprit
 
-        JSR     drawStave
+        JSR     drawStave \ not culprit
 
         JSR     L2054
 
         LDA     #$00
-        STA     L1D5B
-        STA     L2D76
-        STA     L2D7D
+        STA     L1D5B        \ Reset Ememy kill counter
+        STA     gameFlags    \ Reset game flags
+        STA     L2D7D        \ Reset Pigeon position
         LDY     #$54
 .L1F2E
         STA     L2D0A,Y
@@ -1201,7 +1203,7 @@ L18F6 = L18F4+2
         STA     L1D57
         LDA     #$32
         STA     L1D58
-        LDX     L1D56
+        LDX     L1D56    \ Lives
 .L1F5B
         JSR     L2223
 
@@ -1278,16 +1280,16 @@ L18F6 = L18F4+2
         STA     L28D6
         JSR     L28D3
 
-        LDA     #$40
-        JMP     L21A6
+        LDA     #$40       \ Begin level tune
+        JMP     playTune
 
 .L1FE0
-        LDA     L2D76
-        BEQ     L2054
+        LDA     gameFlags
+        BEQ     L2054     \ Zero? Skip to L2054
 
         SED
-        AND     #$02
-        BEQ     L1FFE
+        AND     #$02      \ Bit 2 set?
+        BEQ     L1FFE     \ Skip to L1FFE
 
         CLC
         LDA     #$15
@@ -1300,7 +1302,7 @@ L18F6 = L18F4+2
 
 .L1FFE
         LDA     #$40
-        BIT     L2D76
+        BIT     gameFlags
         BEQ     L2021
 
         CLC
@@ -1318,13 +1320,13 @@ L18F6 = L18F4+2
 
         SED
 .L2021
-        LDA     #$10
-        BIT     L2D76
+        LDA     #$10		  \ Pigeon hit - add a note to the stave
+        BIT     gameFlags
         BEQ     L2042
 
         CLC
         LDA     #$0A
-        ADC     score_low_byte
+        ADC     score_low_byte    \ Wing hit?
         STA     score_low_byte
         LDA     score_high_byte
         ADC     #$00
@@ -1340,14 +1342,14 @@ L18F6 = L18F4+2
         CLD
         JSR     L14EB
 
-        LDA     L2D76
-        BPL     L204E
+        LDA     gameFlags
+        BPL     L204E   \ Bit 8 clear? Skip to reset game flag
 
-        JMP     L209D
+        JMP     nextLevel   \ Next level
 
 .L204E
-        LDA     #$00
-        STA     L2D76
+        LDA     #$00    \ Reset game flag
+        STA     gameFlags
         RTS
 
 .L2054
@@ -1398,13 +1400,13 @@ L18F6 = L18F4+2
         TAY
         RTS
 
-.L209D
+.nextLevel      \ L209D
         LDA     #$00
-        STA     L2D76
+        STA     gameFlags    \ Reset gameFlags to zero
         CLC
-        LDA     L0088
-        ADC     #$40
-        STA     L0088
+        LDA     enemySpriteAddrLow        \ Enemy sprite address
+        ADC     #$40                      \ Add $40 to get new aircraft
+        STA     enemySpriteAddrLow        \ Store it back
         LDA     #$64
         JSR     L208D
 
@@ -1412,7 +1414,7 @@ L18F6 = L18F4+2
 
 .L20B1
         LDA     #$03
-        AND     L1D5C
+        AND     level
         TAX
         BNE     L20BC
 
@@ -1594,14 +1596,14 @@ L18F6 = L18F4+2
         TAY
         RTS
 
-.L21A6
+.playTune       \ L21A6  \ Sound routines (start of level chimes, bonus tunes etc); not the culprit
         STA     L0070
-.L21A8
-        \ Sound player routine (start of level chimes, bonus tunes etc)
+		
+.playTuneLoop   \ L21A8
+        \ Sound player routine 
         LDY     L0070
         LDA     L23B2,Y
-        BEQ     L21C9
-
+        BEQ     holdLoop
         STA     L2DFC
         INY
         LDA     L23B2,Y
@@ -1610,19 +1612,16 @@ L18F6 = L18F4+2
         LDY     #$2D
         LDA     #$07
         JSR     osword        \ Play a sound
-
         INC     L0070
         INC     L0070
-        JMP     L21A8
+        JMP     playTuneLoop
 
-.L21C9
+.holdLoop       \ L21C9       \ Wait for tune to (almost) finish?
         LDA     #$80
         LDX     #$FA          \ Sound channel 1
         JSR     osbyte        \ Read ADC channel or get buffer status
-
         CPX     #$0F
-        BMI     L21C9
-
+        BMI     holdLoop
         RTS
 
 .readMachineSubType           \ readMachineSubType
@@ -1665,7 +1664,7 @@ L18F6 = L18F4+2
         EQUB    $03,$19,$01,$00,$03,$00,$00,$19
         EQUB    $00,$00,$FD,$F0,$FF
 
-.L2223
+.L2223  \ not the culprit
         LDA     #$10
         STA     L0082
         LDA     #$19
@@ -1678,10 +1677,10 @@ L18F6 = L18F4+2
 
 .L2238                          \ Death-check
         LDA     #$20            \ Change to RTS for invincibility
-        BIT     L2D76
+        BIT     gameFlags
         BNE     L2245
 
-        LDA     L1D55
+        LDA     timer_L1D55
         BNE     L2278
 
 .L2244
@@ -1690,15 +1689,15 @@ L18F6 = L18F4+2
 .L2245
         LDX     #$00
         LDY     #$07
-        JSR     L281D
+        JSR     L281D          \ Flash screen white when player hit
 
         LDA     #$07
         LDY     #$2D
         LDX     #$E0
-        JSR     osword            \ Play a sound
+        JSR     osword         \ Play a sound
 
         LDA     #$FF
-        STA     L1D55
+        STA     timer_L1D55
         LDA     #$60
         STA     L2C45
         STA     L29F7
@@ -1713,14 +1712,14 @@ L18F6 = L18F4+2
         JMP     L28D3
 
 .L2278
-        DEC     L1D55
-        LDA     L1D55
+        DEC     timer_L1D55    \ Screen flash timer
+        LDA     timer_L1D55
         CMP     #$FE
         BNE     L2289
 
         LDX     #$00
         LDY     #$00
-        JMP     L281D
+        JMP     L281D    \ Unflash screen
 
 .L2289
         CMP     #$DC
@@ -1851,7 +1850,7 @@ L240F = L240E+1
         BNE     L248E
 
         LDA     #$42
-        BIT     L2D76
+        BIT     gameFlags
         BEQ     L248D
 
         LDA     #$02
@@ -1929,8 +1928,8 @@ L246C = L246B+1
         EOR     #$80
         STA     L0081
         LDA     #$10
-        ORA     L2D76
-        STA     L2D76
+        ORA     gameFlags
+        STA     gameFlags
         LDA     #$00
         STA     L2D7D
         BEQ     L24FE
@@ -1991,8 +1990,8 @@ L246C = L246B+1
 
 .L2509
         LDA     #$04
-        ORA     L2D76
-        STA     L2D76
+        ORA     gameFlags
+        STA     gameFlags
         LDA     #$00
         STA     L2D7D
 .L2516
@@ -2066,7 +2065,7 @@ L252F = L252E+1
         DEC     L0081
 .L2581
         LDY     #$17
-.L2583
+.L2583 \ not the culprit
         LDA     (L0082),Y
         EOR     (L0080),Y
         STA     (L0080),Y
@@ -2124,9 +2123,9 @@ L252F = L252E+1
         INY
         BNE     L25CB
 
-        LDA     L0088
+        LDA     enemySpriteAddrLow
         STA     L0082
-        LDA     L0089
+        LDA     enemySpriteAddrHigh
         STA     L0083
         LDA     #$1F
         STA     L2C1E
@@ -2141,8 +2140,8 @@ L252F = L252E+1
         BIT     L0070
         BNE     L25FF
 
-        STA     L0089
-        STX     L0088
+        STA     enemySpriteAddrHigh
+        STX     enemySpriteAddrLow
         INY
         LDX     L27C3,Y
         INY
@@ -2158,9 +2157,9 @@ L252F = L252E+1
         LDA     #$3F
         STA     L2C1E
         LDA     L0082
-        STA     L0088
+        STA     enemySpriteAddrLow
         LDA     L0083
-        STA     L0089
+        STA     enemySpriteAddrHigh
         RTS
 
         EQUB    $00
@@ -2323,7 +2322,7 @@ L2673 = L2671+2
         EQUB    $7B,$C0,$1D,$08,$79,$E0,$1D,$28
         EQUB    $79,$00
 
-.L281D
+.L281D  \ PLOT X, Y, 00 ?
         LDA     #$13
         JSR     oswrch
 
@@ -2573,15 +2572,15 @@ L28D7 = L28D5+2
         BEQ     L2A91
 
         LDX     #$19
-        STX     L0089
-        LDA     L0088
+        STX     enemySpriteAddrHigh
+        LDA     enemySpriteAddrLow
         PHA
         LDA     L0077
         CMP     #$15
         BNE     L2A53
 
         LDA     #$40
-        STA     L0088
+        STA     enemySpriteAddrLow
         JSR     L2C08
 
         JMP     L2A88
@@ -2591,11 +2590,11 @@ L28D7 = L28D5+2
         BNE     L2A68
 
         LDA     #$40
-        STA     L0088
+        STA     enemySpriteAddrLow
         JSR     L2C08
 
         LDA     #$80
-        STA     L0088
+        STA     enemySpriteAddrLow
         JSR     L2C08
 
         JMP     L2A88
@@ -2605,11 +2604,11 @@ L28D7 = L28D5+2
         BNE     L2A7D
 
         LDA     #$80
-        STA     L0088
+        STA     enemySpriteAddrLow
         JSR     L2C08
 
         LDA     #$C0
-        STA     L0088
+        STA     enemySpriteAddrLow
         JSR     L2C08
 
         JMP     L2A88
@@ -2619,14 +2618,14 @@ L28D7 = L28D5+2
         BNE     L2A88
 
         LDA     #$C0
-        STA     L0088
+        STA     enemySpriteAddrLow
         JSR     L2C08
 
 .L2A88
         LDA     #$2F
-        STA     L0089
+        STA     enemySpriteAddrHigh
         PLA
-        STA     L0088
+        STA     enemySpriteAddrLow
         DEC     L0077
 .L2A91
         JMP     L2BE4
@@ -2699,8 +2698,8 @@ L28D7 = L28D5+2
         BEQ     L2AFE
 
         LDA     #$40
-        ORA     L2D76
-        STA     L2D76
+        ORA     gameFlags
+        STA     gameFlags
         ASL     A
         STA     (L008A),Y
         BNE     L2B21
@@ -2718,8 +2717,8 @@ L28D7 = L28D5+2
         PLA
         TAY
         LDA     #$02
-        ORA     L2D76
-        STA     L2D76
+        ORA     gameFlags
+        STA     gameFlags
         JSR     L2C08
 
         JMP     L2A38
@@ -2896,7 +2895,7 @@ L2C1E = L2C1D+1
         BEQ     L2C33
 
 .L2C25
-        LDA     (L0088),Y
+        LDA     (enemySpriteAddrLow),Y
         BEQ     L2C2D
 
         EOR     (L0084),Y
@@ -2908,7 +2907,7 @@ L2C1E = L2C1D+1
         BNE     L2C25
 
 .L2C33
-        LDA     (L0088),Y
+        LDA     (enemySpriteAddrLow),Y
         BEQ     L2C3B
 
         EOR     (L0078),Y
@@ -3053,7 +3052,7 @@ L2D03 = L2D02+1
 				\ once by L1EE3. Possibly a removed or planned feature?
         EQUB    $D7
 
-.L2D72
+.L2D72  \ Bullet 'sprite'
         EQUB    $00
 
 .L2D73
@@ -3065,8 +3064,8 @@ L2D03 = L2D02+1
 .L2D75
         EQUB    $23
 
-.L2D76
-        EQUB    $00		\ pigeon flying, 10 = add notes (use for bonus cheat), 80 = end level - c 2d76 80
+.gameFlags      \ L2D76 \ Game flags
+        EQUB    $00		\ pigeon flying, 10 = add notes (use for bonus cheat), 80 = end level (c 2d76 80)
 
 .score_low_byte \ $2D77
         EQUB    $00
@@ -3086,7 +3085,7 @@ L2D03 = L2D02+1
 .L2D7C
         EQUB    $00
 
-.L2D7D
+.L2D7D  \ Pigeon position
         EQUB    $00
 
 .L2D7E
