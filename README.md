@@ -51,4 +51,5 @@ c 2238 A9
 
 ## Changes
 
-06/01/20 Additional comments added. Vector table data hard-coded so BIRDSK1 doesn't need to be loaded first. NOPs added so memory locations are consistent with the original binary.
+08/01/21 Cause of the original glitch/crash discovered! See code at label L1F03.
+06/01/21 Additional comments added. Vector table data hard-coded so BIRDSK1 doesn't need to be loaded first. NOPs added so memory locations are consistent with the original binary.
