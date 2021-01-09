@@ -50,7 +50,9 @@ c 2238 A9
 (To re-enable repeat but replace A9 with 60 (RTS))
 
 ## Changes
-09/01/21 Added playable binary with BeebEm-format .INF file and a .SSD file containing the repaired game. These are as close to the original as possible, so require BirdSk1 to be loaded first. Shift-Break the disk image, or replace file BirdSk2 on your Bird Strike floppy/image with the one here.
+09/01/21 Added playable binary with BeebEm-format .INF file and a .SSD file containing the repaired game. These are as close to the original as possible*, so require BirdSk1 to be loaded first. Shift-Break the disk image, or replace file BirdSk2 on your Bird Strike floppy/image with the one here.
+
+* With the exception of giving myself a little credit :D
 
 08/01/21 Cause of the original glitch/crash discovered! See code at label L1F03.
 
