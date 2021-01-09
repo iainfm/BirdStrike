@@ -1,0 +1,31 @@
+DEBUG: Code at $29EF is writing to ROM at $8005
+DEBUG: Code at $29EF is writing to ROM at $8004
+DEBUG: Code at $29EF is writing to ROM at $8003
+DEBUG: Code at $29EF is writing to ROM at $8002
+DEBUG: Code at $29EF is writing to ROM at $8001
+DEBUG: Code at $29EF is writing to ROM at $8000
+
+
+[29EB] 29EF: STA ($80),Y    [A=01 X=01 Y=00 S=F8 F=C    1  ] [addr=4040 val=00]
+
+.L29EB
+        LDA     (L0082),Y
+        EOR     (L0080),Y
+        STA     (L0080),Y
+        DEY
+        BPL     L29EB
+
+        PLA
+        TAY
+        RTS
+
+writem 2238 60
+writem 2d76 80
+
+bmw 1313
+bmw 1314
+bmw 1315
+
+BAILING: ISC abx
+
+
