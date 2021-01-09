@@ -644,7 +644,7 @@ L17AC = L17AB+1
         LDA     L1A08
         STA     level
         LDA     #$1A
-        JMP     oswrch \ Restore default windows
+        JMP     oswrch \ Restore default windows and then RTS
 
 .vduCallsTable         \ VDU calls    \ L180E
         EQUB    $10    \ Clear graphics area
@@ -791,7 +791,7 @@ L17AC = L17AB+1
         AND     #$0F
         CLC
         ADC     #$30
-        JMP     osasci
+        JMP     osasci    \ with implied RTS
 
 .L18EB
         STX     L18F5
@@ -2356,7 +2356,7 @@ L2673 = L2671+2
 
         JSR     oswrch
 
-        JMP     oswrch    \ Why JMP and not JSR?
+        JMP     oswrch    \ with implied RTS
 
 .L2835
         LDA     L0070
