@@ -1209,7 +1209,7 @@ L18F6 = L18F4+2
         BNE     zeroLoop
 
         LDA     L1A09        \ Restore 2D47
-        STA     L2D47
+        STA     L2D47        \ NOPping this out will cure the code overwrite issue too.
         LDA     #$06
         STA     L2D0A
         LDA     #$1E
