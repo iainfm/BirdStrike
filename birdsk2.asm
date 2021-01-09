@@ -115,24 +115,33 @@ org     $1200          \ "P%" as per the original binary
         \ Official code entry point. Originally needed BIRDSK1 to be loaded at page &3000 first.
         \ *possibly* an anti-tamper mechanism?
         \
-		\ This version hard-codes the memory location values so this is no longer necessary.
+		\ To hard-code the memory location values so this is no longer necessary see the instructions below
 
         SEI                  \ Disable interrupts
         
-		LDA     #$A4         \ Originally loaded from L3527
-		NOP                  \ To keep memory addresses consistent with original
+		\ To produce an original binary, uncomment the 4 LDA <address> lines (absolute addressing)
+		\ below and comment out the immediate LDAs and the NOPs
+		\ To remove the anti-tamper comment out the absolute LDAs and uncomment the immediate LDAs and NOPs
+		\ Todo: Implement this via beebasm IF...THEN...ELSE
+		
+		LDA     L3527
+		\ LDA     #$A4         \ Originally loaded from L3527
+		\ NOP                  \ To keep memory addresses consistent with original
         STA     WRCHvA
 		
-		LDA     #$E0         \ Originally loaded from L3528
-		NOP                  \ To keep memory addresses consistent with original
+		LDA     L3528
+		\ LDA     #$E0         \ Originally loaded from L3528
+		\ NOP                  \ To keep memory addresses consistent with original
         STA     WRCHvB
         
-		LDA     #$A6         \ Originally loaded from L3529
-		NOP                  \ To keep memory addresses consistent with original
+		LDA     L3529
+		\ LDA     #$A6         \ Originally loaded from L3529
+		\ NOP                  \ To keep memory addresses consistent with original
         STA     EVNTvA
 		
-		LDA     #$FF         \ Originally loaded from L352A
-		NOP                  \ To keep memory addresses consistent with original
+		LDA     L352A
+		\ LDA     #$FF         \ Originally loaded from L352A
+		\ NOP                  \ To keep memory addresses consistent with original
         STA     EVNTvB
 		
         CLI                  \ Enable interrupts
@@ -519,7 +528,9 @@ org     $1200          \ "P%" as per the original binary
 		EQUB    $1F,$19,$0B   \ Move text cursor
 
 .keysText       \ L16B4
-        EQUS    "andrew  "    \ original high score holder
+        \ ToDo: Add this to an IF...THEN...ELSE clause
+        \ EQUS    "andrew  "    \ original high score holder
+		EQUS    "iainfm  "    \ Credit for my fix :D
         EQUB    $00
 		EQUB    $1F,$0E,$0E   \ Move text cursor
 		EQUB    $8D,$83       \ Double-height / yellow
@@ -1162,8 +1173,15 @@ L18F6 = L18F4+2
         DEC     L2D79
         DEC     useless
 .L1F03
-        INC     L1A09    \ J'accuse! NOP this out (x3 to keep addresses consistent for fix)
-        INC     L1A09    \ J'accuse! NOP this out (x3 to keep addresses consistent for fix)
+		\ The glitch/crash bug lies with the two INCs below
+		\ To create a byte-for-byte original version leave them in and uncomment the NOPs
+		\ To fix the bug comment out the INCs
+		\ To fix the bug and maintain addresses consistent with the original comment the INCs and uncomment the NOPs
+		\ Todo: Implement this via beebasm IF...THEN...ELSE
+		
+        \ INC     L1A09    \ J'accuse! NOP this out (x3 to keep addresses consistent for fix)
+        \ INC     L1A09    \ J'accuse! NOP this out (x3 to keep addresses consistent for fix)
+		NOP:NOP:NOP:NOP:NOP:NOP
         LDA     #$0C
         JSR     oswrch   \ Clear screen
 
@@ -2338,7 +2356,7 @@ L2673 = L2671+2
 
         JSR     oswrch
 
-        JMP     oswrch
+        JMP     oswrch    \ Why JMP and not JSR?
 
 .L2835
         LDA     L0070
