@@ -1,3 +1,10 @@
+\ Build directives
+
+ORIGINAL = TRUE       \ Build an exact copy of the original
+PRESERVE = TRUE        \ Preserve original memory locations (only when ORIGINAL = FALSE)
+
+
+\ BirdSk2.bin
 L0000   = $0000        \ Zero Page uses
 L0008   = $0008
 L0009   = $0009
@@ -124,24 +131,44 @@ org     $1200          \ "P%" as per the original binary
 		\ To remove the anti-tamper comment out the absolute LDAs and uncomment the immediate LDAs and NOPs
 		\ Todo: Implement this via beebasm IF...THEN...ELSE
 		
-		LDA     L3527
-		\ LDA     #$A4         \ Originally loaded from L3527
-		\ NOP                  \ To keep memory addresses consistent with original
+		IF ORIGINAL = TRUE
+		    LDA     L3527
+	    ELSE
+		    LDA     #$A4         \ Originally loaded from L3527
+			IF PRESERVE = TRUE
+		        NOP                  \ To keep memory addresses consistent with original
+			ENDIF
+		ENDIF
         STA     WRCHvA
 		
-		LDA     L3528
-		\ LDA     #$E0         \ Originally loaded from L3528
-		\ NOP                  \ To keep memory addresses consistent with original
+		IF ORIGINAL = TRUE
+		    LDA     L3528
+		ELSE
+		    LDA     #$E0         \ Originally loaded from L3528
+			IF PRESERVE = TRUE
+		        NOP                  \ To keep memory addresses consistent with original
+			ENDIF
+		ENDIF
         STA     WRCHvB
         
-		LDA     L3529
-		\ LDA     #$A6         \ Originally loaded from L3529
-		\ NOP                  \ To keep memory addresses consistent with original
+		IF ORIGINAL = TRUE
+		    LDA     L3529
+		ELSE
+		    LDA     #$A6         \ Originally loaded from L3529
+			IF PRESERVE = TRUE
+		        NOP                  \ To keep memory addresses consistent with original
+			ENDIF
+		ENDIF
         STA     EVNTvA
 		
-		LDA     L352A
-		\ LDA     #$FF         \ Originally loaded from L352A
-		\ NOP                  \ To keep memory addresses consistent with original
+		IF ORIGINAL = TRUE
+		    LDA     L352A
+		ELSE
+		    LDA     #$FF         \ Originally loaded from L352A
+			IF PRESERVE = TRUE
+		        NOP                  \ To keep memory addresses consistent with original
+			ENDIF
+		ENDIF
         STA     EVNTvB
 		
         CLI                  \ Enable interrupts
@@ -529,8 +556,12 @@ org     $1200          \ "P%" as per the original binary
 
 .keysText       \ L16B4
         \ ToDo: Add this to an IF...THEN...ELSE clause
-        \ EQUS    "andrew  "    \ original high score holder
-		EQUS    "iainfm  "    \ Credit for my fix :D
+		IF ORIGINAL = TRUE
+            EQUS    "andrew  "    \ original high score holder
+	    ELSE
+		    EQUS    "iainfm  "    \ Credit for my fix :D
+		ENDIF
+		
         EQUB    $00
 		EQUB    $1F,$0E,$0E   \ Move text cursor
 		EQUB    $8D,$83       \ Double-height / yellow
@@ -1179,9 +1210,9 @@ L18F6 = L18F4+2
 		\ To fix the bug and maintain addresses consistent with the original comment the INCs and uncomment the NOPs
 		\ Todo: Implement this via beebasm IF...THEN...ELSE
 		
-        \ INC     L1A09    \ J'accuse! NOP this out (x3 to keep addresses consistent for fix)
-        \ INC     L1A09    \ J'accuse! NOP this out (x3 to keep addresses consistent for fix)
-		NOP:NOP:NOP:NOP:NOP:NOP
+        INC     L1A09    \ J'accuse! NOP this out (x3 to keep addresses consistent for fix) - Changed to NOPping the STA 24d7 out
+        INC     L1A09    \ J'accuse! NOP this out (x3 to keep addresses consistent for fix) - Changed to NOPping the STA 24d7 out
+		\ NOP:NOP:NOP:NOP:NOP:NOP
         LDA     #$0C
         JSR     oswrch   \ Clear screen
 
@@ -1209,7 +1240,14 @@ L18F6 = L18F4+2
         BNE     zeroLoop
 
         LDA     L1A09        \ Restore 2D47
-        STA     L2D47        \ NOPping this out will cure the code overwrite issue too.
+		IF ORIGINAL = TRUE
+            STA     L2D47        \ NOPping this out will cure the code overwrite issue too.
+		ELSE
+		    IF PRESERVE = TRUE
+		        NOP:NOP:NOP      \ Preserve addresses with original
+			ENDIF
+		ENDIF
+		
         LDA     #$06
         STA     L2D0A
         LDA     #$1E
@@ -1604,7 +1642,7 @@ L18F6 = L18F4+2
         CPY     L0074
         BNE     L218F
 
-.L219A
+.L219A  \ not the culprit
         LDA     (L0082),Y
         ORA     (L0080),Y
         STA     (L0080),Y
@@ -2107,10 +2145,10 @@ L252F = L252E+1
         STY     L1D5B
         LDY     #$04
         LDA     #$55
-.L25A7
+.L25A7  \ not the culprit
         STA     (L0080),Y
         DEY
-        BPL     L25A7
+        BPL     L25A7    \ not the culprit
 
         LDY     #$09
         ASL     A
@@ -2389,7 +2427,7 @@ L2673 = L2671+2
 .L285A
         STA     L0082
         LDY     #$0F
-.L285E
+.L285E  \ not the culprit
         LDA     (L0082),Y
         STA     (L0080),Y
         DEY
@@ -2537,7 +2575,7 @@ L28D7 = L28D5+2
         EQUB    $8D,$76,$2D,$A9,$07,$A0,$2D,$A2
         EQUB    $D0,$4C,$F1,$FF
 
-.L29C3
+.L29C3  \ Bullet plotting?    \ RTSing here prevents bug
         TYA
         PHA
         LDY     #$05
@@ -2555,7 +2593,7 @@ L28D7 = L28D5+2
         CMP     #$05
         BPL     L29EB
 
-.L29E0
+.L29E0  \ Not the culprit
         LDA     (L0082),Y
         EOR     (L0084),Y
         STA     (L0084),Y
@@ -2563,7 +2601,8 @@ L28D7 = L28D5+2
         CPY     L0074
         BNE     L29E0
 
-.L29EB
+.L29EB  \ triggered when bomb dropped - smooth animation as per screen memory layout
+        \ not the culprit
         LDA     (L0082),Y
         EOR     (L0080),Y
         STA     (L0080),Y
@@ -2959,72 +2998,72 @@ L2C1E = L2C1D+1
         EQUB    $73,$60
 
 .L2C98
-        LDY     #$00
-        LDA     (L008C),Y
-        STA     L0070
-        LDA     L2D74
-        STA     L0082
-        LDA     L2D75
-        STA     L0083
+        LDY     #$00                        \ Y = 0
+        LDA     (L008C),Y                   \ A = ?(&2D47+0)
+        STA     L0070                       \ ?&70 = A                (=?&2D47)
+        LDA     L2D74                       \ ?&2D74 = A              (seems pointless!)
+        STA     L0082                       \ ?&82 = A                (=?&2D47)
+        LDA     L2D75                       \ A = ?&2D75
+        STA     L0083                       \ ?&83 = A                (=?&2D75)
 .L2CA8
-        INY
-        LDA     (L008C),Y
-        STA     L0080
-        INY
-        LDA     (L008C),Y
-        STA     L0081
-        BNE     L2CBD
+        INY                                 \ Y = Y + 1               (Y = 1)
+        LDA     (L008C),Y                   \ A = ?(&2D47+1)          (A = ?&2D48)
+        STA     L0080                       \ ?&80 = A                (A = ?&2D48)
+        INY                                 \ Y = Y + 1               (Y = 2)
+        LDA     (L008C),Y                   \ A = ?&(2D47+2)          (A = ?&2D49)
+        STA     L0081                       \ ?&81 = A (?(&2D47+2))   (?&81 = ?&2D49)
+        BNE     L2CBD                       \ Branch if not zero to .L2CBD
 
-        LDA     #$7F
-        AND     L0073
-        STA     L0073
-        JMP     L2CF5
+        LDA     #$7F                        \ A = &7F
+        AND     L0073                       \ A = &7F AND ?&73        (set bottom 7 bits)
+        STA     L0073                       \ ?&73 = A
+        JMP     L2CF5                       \ Goto .L2CF5
 
 .L2CBD
-        JSR     L29C3
+        JSR     L29C3                       \ PROC L29C3, then back here
 
-        LDA     L0080
-        AND     #$07
-        CMP     #$06
-        BPL     L2CD1
+        LDA     L0080                       \ A = ?&80
+        AND     #$07                        \ A = A AND 7 (set bit 7)
+        CMP     #$06                        \ A = 6
+        BPL     L2CD1                       \ IF A > 6 goto .L2CD1 (check this)
 
-        INC     L0080
-        INC     L0080
-        LDA     L0081
-        JMP     L2CDE
+        INC     L0080                       \ ?&80 = ?&80 + 1
+        INC     L0080                       \ ?&80 = ?&80 + 1
+        LDA     L0081                       \ A = ?&81
+        JMP     L2CDE                       \ Goto .L2CDE
 
 .L2CD1
-        CLC
-        LDA     L0080
-        ADC     #$7A
-        STA     L0080
-        LDA     L0081
-        ADC     #$02
-        STA     L0081
+        CLC                                 \ Clear carry
+        LDA     L0080                       \ A = ?&80
+        ADC     #$7A                        \ A = A + ?&7A (C=0)
+        STA     L0080                       \ ?&80 = A
+        LDA     L0081                       \ A = ?&81
+        ADC     #$02                        \ A = A + 2
+        STA     L0081                       \ ?&81 = A
 .L2CDE
-        CMP     #$80
-        BMI     L2CE8
+        CMP     #$80                        \ A = &80 (128)? 
+        BMI     L2CE8                       \ Less? Goto .L2CE8   (check this)
 
-        LDA     #$00
-        STA     (L008C),Y
-        BEQ     L2CF5
+        LDA     #$00                        \ A = 0
+        STA     (L008C),Y                   \ ?&(2D47+0) = 0
+        BEQ     L2CF5                       \ Goto .L2CF5
 
 .L2CE8
-        JSR     L29C3
+        JSR     L29C3                       \ PROC L29C3
 
-        DEY
-        LDA     L0080
-        STA     (L008C),Y
-        INY
-        LDA     L0081
-        STA     (L008C),Y
+        DEY                                 \ Y = Y - 1
+        LDA     L0080                       \ A = ?&80
+        STA     (L008C),Y    \ $(2D47+Y)    \ ?&(2D47+Y) = ?&80
+        INY                                 \ Y = Y + 1
+        LDA     L0081                       \ A = ?&81
+        STA     (L008C),Y    \ $(2D47+Y)    \ ?&(2D47+Y) = ?&81
 .L2CF5
-        CPY     L0070
-        BMI     L2CA8
+        CPY     L0070                       \ Y = ?&70?
+        BMI     L2CA8                       \ Branch if minus to .L2CA8 (loop) *** No glitch if this NOPped J'accuse surtout
 
-        RTS
+        RTS                                 \ Return
 
-        STA     L2D03
+        STA     L2D03                       \ Does this ever execute?
 .L2CFD
         SEC
         LDA     L007C
