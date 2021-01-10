@@ -2582,7 +2582,7 @@ L28D7 = L28D5+2
         CLC
         LDA     L0080
         ADC     #$78
-        STA     L0084
+        STA     L0084    \ 
         LDA     L0081
         ADC     #$02
         STA     L0085
@@ -2606,7 +2606,6 @@ L28D7 = L28D5+2
 							 \ cpu core6502: 29E4: break on write to 2852, value=D0
                              \ 29E4: 9184       STA (84),Y  >r
 							 \ A=D0 X=01 Y=04 S=F8 P=N    C PC=29E6
-							 \
 							 \ 0080 : D6 25 D6 25 4E 28 90 7E 80 2F 0A 2D 47 2D 00 8D
 							 \
 							 \ Continuing gives:
@@ -2627,8 +2626,6 @@ L28D7 = L28D5+2
 							 
 							 \ cpu core6502: BRK at 2852
                              \ 2852: 00         BRK         >
-							 
-							 
 							 
         DEY
         CPY     L0074
