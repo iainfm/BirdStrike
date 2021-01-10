@@ -2593,10 +2593,43 @@ L28D7 = L28D5+2
         CMP     #$05
         BPL     L29EB
 
-.L29E0  \ Not the culprit
+.L29E0  \ Not the culprit...or is it?
         LDA     (L0082),Y
         EOR     (L0084),Y
-        STA     (L0084),Y
+        STA     (L0084),Y    \ B-Em at point of crash w/ wp on writes to $2852:
+                             \ cpu core6502: 29E4: break on write to 2852, value=55
+                             \ 29E4: 9184       STA (84),Y  >?
+		                     \ A=55 X=01 Y=04 S=F8 P=     C PC=29E6
+							 \ 0080 : D6 25 D4 25 4E 28 90 7E 80 2F 0A 2D 47 2D 00 8D
+							 \
+							 \ Continuing gives:
+							 \ cpu core6502: 29E4: break on write to 2852, value=D0
+                             \ 29E4: 9184       STA (84),Y  >r
+							 \ A=D0 X=01 Y=04 S=F8 P=N    C PC=29E6
+							 \
+							 \ 0080 : D6 25 D6 25 4E 28 90 7E 80 2F 0A 2D 47 2D 00 8D
+							 \
+							 \ Continuing gives:
+							 \ cpu core6502: 29EF: break on write to 2852, value=75
+                             \ 29EF: 9180       STA (80),Y  >r
+							 \ A=75 X=01 Y=02 S=F8 P=     C PC=29F1
+							 \ 0080 : 50 28 D6 25 C8 2A 90 7E 80 2F 0A 2D 47 2D 00 8D
+							 \
+							 \ cpu core6502: 29EF: break on write to 2852, value=0
+                             \ 29EF: 9180       STA (80),Y  >
+							 \ A=00 X=01 Y=02 S=F8 P=    ZC PC=29F1
+							 \ 0080 : 50 28 50 28 C8 2A 90 7E 80 2F 0A 2D 47 2D 00 8D
+							 \
+							 \ cpu core6502: 29EF: break on write to 2852, value=0
+                             \ 29EF: 9180       STA (80),Y  >
+							 \ A=00 X=01 Y=00 S=F8 P=    ZC PC=29F1
+							 \ 0080 : 52 28 50 28 CA 2A 90 7E 80 2F 0A 2D 47 2D 00 8D
+							 
+							 \ cpu core6502: BRK at 2852
+                             \ 2852: 00         BRK         >
+							 
+							 
+							 
         DEY
         CPY     L0074
         BNE     L29E0
@@ -3035,6 +3068,7 @@ L2C1E = L2C1D+1
 .L2CD1
         CLC                                 \ Clear carry
         LDA     L0080                       \ A = ?&80
+        ADC     #$7A                        \ A = A + ?&7A (C=0)
         ADC     #$7A                        \ A = A + ?&7A (C=0)
         STA     L0080                       \ ?&80 = A
         LDA     L0081                       \ A = ?&81
