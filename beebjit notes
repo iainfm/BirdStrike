@@ -3,8 +3,18 @@ DEBUG: Code at $29EF is writing to ROM at $8004
 DEBUG: Code at $29EF is writing to ROM at $8003
 DEBUG: Code at $29EF is writing to ROM at $8002
 DEBUG: Code at $29EF is writing to ROM at $8001
-DEBUG: Code at $29EF is writing to ROM at $8000
 
+DEBUG: Code at $29EF is writing to ROM at $8000 STA ($80),Y
+
+(From level 1)
+DEBUG: Code at $29E4 is writing to ROM at $8142 STA ($84),Y
+DEBUG: Code at $2C2B is writing to ROM at $8128 STA ($84),Y
+
+(From level 3)
+DEBUG: Code at $29EF is writing to ROM at $8105 STA ($80),Y
+
+(From level 7)
+DEBUG: Code at $29EF is writing to ROM at $8136
 
 [29EB] 29EF: STA ($80),Y    [A=01 X=01 Y=00 S=F8 F=C    1  ] [addr=4040 val=00]
 
