@@ -1,6 +1,6 @@
 \ Build directives
 
-ORIGINAL = TRUE       \ Build an exact copy of the original
+ORIGINAL = FALSE       \ Build an exact copy of the original
 PRESERVE = TRUE        \ Preserve original memory locations (only when ORIGINAL = FALSE)
 
 
@@ -125,11 +125,6 @@ org     $1200          \ "P%" as per the original binary
 		\ To hard-code the memory location values so this is no longer necessary see the instructions below
 
         SEI                  \ Disable interrupts
-        
-		\ To produce an original binary, uncomment the 4 LDA <address> lines (absolute addressing)
-		\ below and comment out the immediate LDAs and the NOPs
-		\ To remove the anti-tamper comment out the absolute LDAs and uncomment the immediate LDAs and NOPs
-		\ Todo: Implement this via beebasm IF...THEN...ELSE
 		
 		IF ORIGINAL = TRUE
 		    LDA     L3527
@@ -555,7 +550,7 @@ org     $1200          \ "P%" as per the original binary
 		EQUB    $1F,$19,$0B   \ Move text cursor
 
 .keysText       \ L16B4
-        \ ToDo: Add this to an IF...THEN...ELSE clause
+        
 		IF ORIGINAL = TRUE
             EQUS    "andrew  "    \ original high score holder
 	    ELSE
@@ -1208,7 +1203,7 @@ L18F6 = L18F4+2
 		\ To create a byte-for-byte original version leave them in and uncomment the NOPs
 		\ To fix the bug comment out the INCs
 		\ To fix the bug and maintain addresses consistent with the original comment the INCs and uncomment the NOPs
-		\ Todo: Implement this via beebasm IF...THEN...ELSE
+		\ This is all deprecated. See .zeroLoop (L1F2E)
 		
         INC     L1A09    \ J'accuse! NOP this out (x3 to keep addresses consistent for fix) - Changed to NOPping the STA 24d7 out
         INC     L1A09    \ J'accuse! NOP this out (x3 to keep addresses consistent for fix) - Changed to NOPping the STA 24d7 out
@@ -1239,14 +1234,17 @@ L18F6 = L18F4+2
         DEY
         BNE     zeroLoop
 
-        LDA     L1A09        \ Restore 2D47
+        
 		IF ORIGINAL = TRUE
-            STA     L2D47        \ NOPping this out will cure the code overwrite issue too.
+		    LDA     L1A09        \ Restore 2D47
 		ELSE
+		    LDA #$02             \ Required for double-fire
 		    IF PRESERVE = TRUE
-		        NOP:NOP:NOP      \ Preserve addresses with original
+		        NOP              \ Preserve addresses with original
 			ENDIF
 		ENDIF
+		
+		STA     L2D47        \ NOPping this out will cure the code overwrite issue too, but no double-fire
 		
         LDA     #$06
         STA     L2D0A
@@ -3065,7 +3063,6 @@ L2C1E = L2C1D+1
 .L2CD1
         CLC                                 \ Clear carry
         LDA     L0080                       \ A = ?&80
-        ADC     #$7A                        \ A = A + ?&7A (C=0)
         ADC     #$7A                        \ A = A + ?&7A (C=0)
         STA     L0080                       \ ?&80 = A
         LDA     L0081                       \ A = ?&81
