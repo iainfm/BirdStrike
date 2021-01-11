@@ -38,9 +38,12 @@ They are:
 
 1) Fresh game loaded, never been played. Press space and enjoy!
 2) Level 9 - a few levels before the first glitch I can spot.
-3) Level 13 - the first visible glitch - a 'stuck' enemy bomb at the top of the screen
-4) Level 20 - many glitches present by this point - cloud/pigeon sprite corruption etc
-5) Level 22 - the last level before the game crashes completely. Down the plane and it's all over!
+2) Lever 12 - the level before the first visible glitch
+4) Level 13 - the first visible glitch - a 'stuck' enemy bomb at the top of the screen
+5) Level 20 - many glitches present by this point - cloud/pigeon sprite corruption etc
+6) Level 22 - the last level before the game crashes completely. Down the plane and it's all over!
+
+There is also a B-em save state for Level 22.
 
 The save states have invincibility enabled. To disable enter the following command in the BeebEm debugger:
 ```
@@ -50,6 +53,9 @@ c 2238 A9
 (To re-enable repeat but replace A9 with 60 (RTS))
 
 ## Changes
+
+11/01/21 Improved fix implemented, which doesn't break the double-fire feature. Binary and disk image updated with this new build.
+
 09/01/21 Added playable binary with BeebEm-format .INF file and a .SSD file containing the repaired game. These are as close to the original as possible*, so require BirdSk1 to be loaded first. Shift-Break the disk image, or replace file BirdSk2 on your Bird Strike floppy/image with the one here.
 
 \*With the exception of giving myself a little credit :D
