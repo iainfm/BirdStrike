@@ -1,6 +1,6 @@
 \ Build directives
 
-ORIGINAL = FALSE       \ Build an exact copy of the original
+ORIGINAL = TRUE       \ Build an exact copy of the original
 PRESERVE = TRUE        \ Preserve original memory locations (only when ORIGINAL = FALSE)
 
 
@@ -131,7 +131,7 @@ org     $1200          \ "P%" as per the original binary
 	    ELSE
 		    LDA     #$A4         \ Originally loaded from L3527
 			IF PRESERVE = TRUE
-		        NOP                  \ To keep memory addresses consistent with original
+		        NOP              \ To keep memory addresses consistent with original
 			ENDIF
 		ENDIF
         STA     WRCHvA
@@ -141,7 +141,7 @@ org     $1200          \ "P%" as per the original binary
 		ELSE
 		    LDA     #$E0         \ Originally loaded from L3528
 			IF PRESERVE = TRUE
-		        NOP                  \ To keep memory addresses consistent with original
+		        NOP              \ To keep memory addresses consistent with original
 			ENDIF
 		ENDIF
         STA     WRCHvB
@@ -151,7 +151,7 @@ org     $1200          \ "P%" as per the original binary
 		ELSE
 		    LDA     #$A6         \ Originally loaded from L3529
 			IF PRESERVE = TRUE
-		        NOP                  \ To keep memory addresses consistent with original
+		        NOP              \ To keep memory addresses consistent with original
 			ENDIF
 		ENDIF
         STA     EVNTvA
@@ -161,7 +161,7 @@ org     $1200          \ "P%" as per the original binary
 		ELSE
 		    LDA     #$FF         \ Originally loaded from L352A
 			IF PRESERVE = TRUE
-		        NOP                  \ To keep memory addresses consistent with original
+		        NOP              \ To keep memory addresses consistent with original
 			ENDIF
 		ENDIF
         STA     EVNTvB
@@ -331,14 +331,14 @@ org     $1200          \ "P%" as per the original binary
         EQUB    $00    \ enemy zig-zag state?
 		
 .L149C
-		LDA L14AD
-		BEQ L14A5
-		DEC L14AD
+		LDA     L14AD
+		BEQ     L14A5
+		DEC     L14AD
 		RTS
 		
-.L14A5  LDA    #$12
-        STA    L14AD
-		JMP    L297D    \ this (or another L297D) may upset the disassembly. Jury's out.
+.L14A5  LDA     #$12
+        STA     L14AD
+		JMP     L297D    \ this (or another L297D) may upset the disassembly. Jury's out.
 		
 .L14AD  EQUB   $00
 
@@ -1927,7 +1927,7 @@ L240F = L240E+1
 
         LDA     #$1B
         STA     L0083
-        STA     L240F
+        STA     L240F    \ self-modifying code? Mistake?
         LDA     #$68
         STA     L2D7C
         STA     L0080
@@ -2455,15 +2455,15 @@ L2673 = L2671+2
         RTS     \ but changes in code to &20 (JMP $28D3) .L2245/.L22E2
         EQUB    $D3,$28 \ address for JMP above
 
-.L2871  LDA     #$81
+        LDA     #$81      \ .L2871
         LDY     #$FF
-        LDX     #$BD
-        JSR     osbyte
+        LDX     #$BD      
+        JSR     osbyte    \ Read key with time limit
         INX
-        BEQ     L289E
+        BEQ     L289E     \ 
         DEY
         LDX     #$9E
-        JSR     osbyte
+        JSR     osbyte    \ Read key with time limit
         INX
         BNE     L28B4
         LDX     $2D70
@@ -2478,7 +2478,7 @@ L2673 = L2671+2
         BCS     L28B4
         DEC     $87
         BCC     L28B4
-.L289E  LDX      $2D70
+.L289E  LDX     $2D70
         CPX     #$47
         BEQ     L28B4
         INX
@@ -2628,13 +2628,17 @@ L28D7 = L28D5+2
 .L2976  RTS
                     
 .L2977  JMP     L149C
+        ADC     ($D0),Y
+.L297C  SBC     $FFA0,Y
                     
-        EQUB    $71,$D0,$F9    \ This may be code... ADC ind,Y, BNE rel, SBC abs,Y
+        \ EQUB    $71,$D0,$F9  \ This may be code... ADC ind,Y, BNE rel, SBC abs,Y
 		                       \ Can't make it fit at the moment though\
                                \.L297A  ADC     ($D0),Y          \ EQUB $71,$D0
                                \.L297D  SBC     $FFA0,Y          \ EQUB $F9
 		
-.L297D  LDY     #$FF
+\ .L297D  LDY     #$FF
+L297D = L297C + 1
+
 .L297F  INY
         INY
         INY
@@ -3052,7 +3056,7 @@ L28D7 = L28D5+2
 .L2BBD
         JMP     L146A
 		
-.L2BC0   BCC     L2BD1
+.L2BC0  BCC     L2BD1
         DEC     $7A
         LDA     $78
         SBC     #$08
