@@ -246,8 +246,8 @@ org     $1200          \ "P%" as per the original binary
 
     \ Set up osword vectors based on machine type?
 .L1426
-        LDX     #$EF
-        JSR     readMachineSubType
+        LDX     #$EF            \ Q key
+        JSR     keyboardScan
 
         BNE     L1437
 
@@ -257,8 +257,8 @@ org     $1200          \ "P%" as per the original binary
         STA     osword_redirection_D
 		
 .L1437
-        LDX     #$AE
-        JSR     readMachineSubType
+        LDX     #$AE             \ S key
+        JSR     keyboardScan
 
         BNE     L144A
         LDA     wordv_1
@@ -268,7 +268,7 @@ org     $1200          \ "P%" as per the original binary
 
 .L144A
         LDX     #$CC
-        JSR     readMachineSubType
+        JSR     keyboardScan     \ R key
         BNE     L1460
 
 .L1451
@@ -409,7 +409,7 @@ org     $1200          \ "P%" as per the original binary
         JMP     L151B
 
 .L1519
-        RTS     \ EQUB    $60
+        RTS
 
 .L151A
         EQUB    $00
@@ -808,8 +808,8 @@ L17AC = L17AB+1
         JSR     L18EB
 
 .L18CF
-        LDX     #$9D
-        JSR     readMachineSubType
+        LDX     #$9D     \ Space bar
+        JSR     keyboardScan
 
         BNE     L18CF
 
@@ -1110,7 +1110,7 @@ L18F6 = L18F4+2
 
         JSR     L2A94                       \ Enemy movement
 
-        JSR     rts_L29F7                   \ Just RTS's (data block immediately after) - next enemy?
+        JSR     rts_L29F7                   \ Self modifying code - next enemy?
 
         JSR     L286E                       \ Player movement? - either an RTS or JMP $28D3 (load skull sprite?) - changed by .L2245/.L22E2
 
@@ -1336,7 +1336,7 @@ L18F6 = L18F4+2
 
 .L1FC1
         LDA     #$20
-        STA     L2D70
+        STA     playerXpos
         LDA     #$7E
         STA     L0087
         LDA     #$90
@@ -1691,12 +1691,12 @@ L18F6 = L18F4+2
         BMI     holdLoop
         RTS
 
-.readMachineSubType           \ readMachineSubType
-        LDA     #$81
-        LDY     #$FF
-        JSR     osbyte        \ Read machine sub type?)
+.keyboardScan                 \ .L21D5
+        LDA     #$81          \ X = (CC, AE, EF)
+        LDY     #$FF          \     ( R,  S,  Q)
+        JSR     osbyte        \ keyboard scan (Y=$FF)
 
-        INX
+        INX                   \ return X=0 if scanned key pressed (for BEQ)
         RTS
 
         EQUB    $E8,$60       \ could be INX : RTS? Don't think it would ever execute though
@@ -1766,7 +1766,9 @@ L18F6 = L18F4+2
 
         LDA     #$FF
         STA     timer_L1D55
-        LDA     #$60
+		
+		\ Self-modifying code section
+        LDA     #$60           \ RTS opcode
         STA     L2C45
         STA     rts_L29F7
         STA     L286E
@@ -1855,12 +1857,12 @@ L18F6 = L18F4+2
         DEY
         BNE     L22BC
 
-.L22E2
-        LDA     #$20
+.L22E2  \ Self-modifying code calls
+        LDA     #$20        \ JSR opcode
         STA     L286E
-        LDA     #$A5
+        LDA     #$A5        \ LDA zeropage opcode
         STA     rts_L29F7
-        LDA     #$A9
+        LDA     #$A9        \ LDA# opcode
         STA     L2C45
         STA     L295E
         SEC
@@ -2372,7 +2374,7 @@ L2673 = L2671+2
         EQUB    $04,$9E,$02,$96,$00,$19,$15,$F4
         EQUB    $01,$78,$00,$19,$05,$58,$02,$64
         EQUB    $00,$19,$05,$90,$01,$5A,$00,$00
-        EQUB    $7D,$2D,$20,$13,$28,$A9,$09,$85
+        EQUB    $7D,$2D,$20,$13,$28,$A9,$09,$85    \ might be some code in here
         EQUB    $83,$A9,$F0,$85,$82,$4C,$13,$28
         EQUB    $A9,$00,$8D
 
@@ -2457,16 +2459,16 @@ L2673 = L2671+2
 
         LDA     #$81      \ .L2871
         LDY     #$FF
-        LDX     #$BD      
-        JSR     osbyte    \ Read key with time limit
+        LDX     #$BD      \ X key (INKEY value)
+        JSR     osbyte    \ Keyboard scan
         INX
-        BEQ     L289E     \ 
+        BEQ     L289E     \ X pressed
         DEY
-        LDX     #$9E
-        JSR     osbyte    \ Read key with time limit
+        LDX     #$9E      \ Z key (INKEY value)
+        JSR     osbyte    \ Keyboard scan
         INX
-        BNE     L28B4
-        LDX     $2D70
+        BNE     L28B4     \ Not Z
+        LDX     $2D70     \ X pos?
         CPX     #$01
         BEQ     L28B4
         DEX
@@ -2615,10 +2617,10 @@ L28D7 = L28D5+2
 		
 .L2960  BIT     $71
         BNE     L2976
-        LDA     #$81
+        LDA     #$81   
         LDY     #$ff
-        LDX     #$b6
-        JSR     osbyte
+        LDX     #$b6   \ Return key (INKEY value)   
+        JSR     osbyte \ Keyboard scan
         INX
         BEQ     L2977
         LDA     #$00
@@ -2661,7 +2663,7 @@ L297D = L297C + 1
         STA     ($8A),Y
         STA     $81
         INY
-        LDA     $2d70
+        LDA     $2D70
         CLC
         ADC     #$03
         STA     ($8a),Y
@@ -2745,10 +2747,10 @@ L297D = L297C + 1
         TAY
         RTS
 
-.rts_L29F7
-        RTS
+.rts_L29F7      \ Something to do with next enemy
+        RTS     \ Changed to LDA ($A5) zeropage by L22E2, back to RTS ($60) by L2245
 
-        EQUB    $72
+        EQUB    $72    \ zeropage address when .rts_L29F7 is an LDA
 		
 .L29F9  CMP     #$01
         BPL     L2A37
@@ -2982,7 +2984,7 @@ L297D = L297C + 1
 
         SEC
         LDA     L007A
-        SBC     L2D70
+        SBC     playerXpos
         STA     L0077
         LDA     #$00
         BCS     L2B60
@@ -3158,9 +3160,10 @@ L2C1E = L2C1D+1
         RTS
 
 .L2C45
-        RTS
+        RTS     \ Gets changes to $A9 (LDA#) by L22E2
 
-        EQUB    $C0,$24,$73
+        EQUB    $C0    \ Making this the value being loaded into A
+		BIT     $73    \ and this the next instruction
 		
 .L2C49  BNE     L2C91
         DEC     $73
@@ -3315,8 +3318,8 @@ L2D03 = L2D02+1
 .L2D68
         EQUB    $88,$A0,$B8,$D0,$E8,$D0,$B8,$88
 
-.L2D70  \ Something to do with player bounds?
-        EQUB    $20
+.playerXpos  \ .L2D70
+        EQUB    $20    \ Initial player X pos
 
 .useless        \ L2D71
                 \ Seems to be completely redundent. Set to $D7 here, changed to
