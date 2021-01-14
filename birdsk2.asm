@@ -283,12 +283,15 @@ org     $1200          \ "P%" as per the original binary
 .L1460
         RTS
 
-        EQUB    $C9,$07,$F0,$FB,$6C,$68,$14
+.L1461
+        CMP    #$07
+		BEQ    L1460
+		JMP    (wordv_1)
 
-.wordv_1    \ OSWORD redirection vector stored here
+.wordv_1    \ OSWORD redirection vector stored here \L1468
         EQUB    $EB
 
-.wordv_2    \ OSWORD redirection vector stored here
+.wordv_2    \ OSWORD redirection vector stored here \L1469
         EQUB    $E7
 
 .L146A
@@ -326,9 +329,18 @@ org     $1200          \ "P%" as per the original binary
 
 .L149B
         EQUB    $00    \ enemy zig-zag state?
-		EQUB    $AD,$AD,$14,$F0,$04,$CE,$AD
-        EQUB    $14,$60,$A9,$12,$8D,$AD,$14,$4C
-        EQUB    $7D,$29,$00
+		
+.L149C
+		LDA L14AD
+		BEQ L14A5
+		DEC L14AD
+		RTS
+		
+.L14A5  LDA    #$12
+        STA    L14AD
+		JMP    L297D    \ this (or another L297D) may upset the disassembly. Jury's out.
+		
+.L14AD  EQUB   $00
 
 .gameOver       \ Display Game Over message    \ L14AE
         PLA
@@ -397,7 +409,7 @@ org     $1200          \ "P%" as per the original binary
         JMP     L151B
 
 .L1519
-        EQUB    $60
+        RTS     \ EQUB    $60
 
 .L151A
         EQUB    $00
@@ -742,20 +754,20 @@ L17AC = L17AB+1
         JSR     L18EB
 
         LDA     #$1F
-        JSR     oswrch
+        JSR     oswrch        \ Move cursor to x,y
 
-        LDA     #$1A
+        LDA     #$1A          \ Restore default windows
         JSR     oswrch
 
         LDA     #$0B
-        JSR     oswrch
+        JSR     oswrch        \ Move cursor up one line
 
         LDA     L15C5
         BEQ     L18A4
 
         LDA     #$15
         LDX     #$00
-        JSR     osbyte
+        JSR     osbyte        \ Flush keyboard buffer
 
         TXA
         LDX     #$C0
@@ -1098,17 +1110,17 @@ L18F6 = L18F4+2
 
         JSR     L2A94                       \ Enemy movement
 
-        JSR     L29F7                       \ unknown
+        JSR     rts_L29F7                   \ Just RTS's (data block immediately after) - next enemy?
 
-        JSR     L286E                       \ unknown
+        JSR     L286E                       \ Player movement? - either an RTS or JMP $28D3 (load skull sprite?) - changed by .L2245/.L22E2
 
-        JSR     L28E2                       \ Player bullet
+        JSR     L28E2                       \ Bullet Y movement
 
-        JSR     L295E                       \ unknown
+        JSR     L295E                       \ Player fire - either an RTS or JMP absolute
 
         JSR     L2C98                       \ Enemy bombs
 
-        JSR     L2C45                       \ unknown
+        JSR     L2C45                       \ unknown - either an RTS or an LDA
 
         JSR     L240E                       \ Pigeon
 
@@ -1116,7 +1128,7 @@ L18F6 = L18F4+2
 
         JSR     L1FE0                       \ Gravestones plot / pigeon reset after hit
 
-        JSR     L1426                       \ 
+        JSR     L1426                       \ Check for rest (pause)?
 
         JMP     L1E27                       \ branch back around
         
@@ -1687,7 +1699,8 @@ L18F6 = L18F4+2
         INX
         RTS
 
-        EQUB    $E8,$60,$00,$00,$00,$00,$00,$00
+        EQUB    $E8,$60       \ could be INX : RTS? Don't think it would ever execute though
+		EQUB    $00,$00,$00,$00,$00,$00
         EQUB    $00,$00,$00,$00,$00,$00,$00,$00
 
 .drawStave      \ Draw stave    \ L21EE
@@ -1755,7 +1768,7 @@ L18F6 = L18F4+2
         STA     timer_L1D55
         LDA     #$60
         STA     L2C45
-        STA     L29F7
+        STA     rts_L29F7
         STA     L286E
         STA     L295E
         JSR     L28D3
@@ -1846,7 +1859,7 @@ L18F6 = L18F4+2
         LDA     #$20
         STA     L286E
         LDA     #$A5
-        STA     L29F7
+        STA     rts_L29F7
         LDA     #$A9
         STA     L2C45
         STA     L295E
@@ -2439,26 +2452,64 @@ L2673 = L2671+2
 
         BRK
 .L286E
-        EQUB    $60
+        RTS     \ but changes in code to &20 (JMP $28D3) .L2245/.L22E2
+        EQUB    $D3,$28 \ address for JMP above
 
-        EQUB    $D3,$28,$A9,$81,$A0,$FF,$A2,$BD
-        EQUB    $20,$F4,$FF,$E8,$F0,$21,$88,$A2
-        EQUB    $9E,$20,$F4,$FF,$E8,$D0,$2E,$AE
-        EQUB    $70,$2D,$E0,$01,$F0,$27,$CA,$8E
-        EQUB    $70,$2D,$38,$A5,$86,$E9,$08,$85
-        EQUB    $86,$B0,$1A,$C6,$87,$90,$16,$AE
-        EQUB    $70,$2D,$E0,$47,$F0,$0F,$E8,$8E
-        EQUB    $70,$2D,$18,$A5,$86,$69,$08,$85
-        EQUB    $86,$90,$02,$E6,$87,$38,$A9,$00
-        EQUB    $85,$78,$A0,$24,$B1,$86,$F0,$02
-        EQUB    $85,$78,$98,$E9,$08,$A8,$10,$F4
-        EQUB    $A5,$78,$F0,$08,$AD,$76,$2D,$09
-        EQUB    $20,$8D,$76,$2D
+.L2871  LDA     #$81
+        LDY     #$FF
+        LDX     #$BD
+        JSR     osbyte
+        INX
+        BEQ     L289E
+        DEY
+        LDX     #$9E
+        JSR     osbyte
+        INX
+        BNE     L28B4
+        LDX     $2D70
+        CPX     #$01
+        BEQ     L28B4
+        DEX
+        STX     $2D70
+        SEC
+        LDA     $86
+        SBC     #$08
+        STA     $86
+        BCS     L28B4
+        DEC     $87
+        BCC     L28B4
+.L289E  LDX      $2D70
+        CPX     #$47
+        BEQ     L28B4
+        INX
+        STX     $2D70
+        CLC
+        LDA     $86
+        ADC     #$08
+        STA     $86
+        BCC     L28B4
+        INC     $87
+.L28B4  SEC
+        LDA     #$00
+        STA     $78
+        LDY     #$24
+.L28BB  LDA     ($86),Y
+        BEQ     L28C1
+        STA     $78
+.L28C1  TYA
+        SBC     #$08
+        TAY
+        BPL     L28BB
+        LDA     $78
+        BEQ     L28D3
+        LDA     $2D76
+        ORA     #$20
+        STA     $2D76
 
 .L28D3
         LDY     #$27
 .L28D5
-        LDA     L1A60,Y
+        LDA     L1A60,Y    \ Load skull sprite?
 L28D6 = L28D5+1
 L28D7 = L28D5+2
         BEQ     L28DE
@@ -2557,21 +2608,70 @@ L28D7 = L28D5+2
         RTS
 
 .L295E
-        RTS
+        RTS     \ Changed in code to LDA# $01
 
-        EQUB    $01,$24,$71,$D0,$12,$A9,$81,$A0
-        EQUB    $FF,$A2,$B6,$20,$F4,$FF,$E8,$F0
-        EQUB    $07,$A9,$00,$8D,$AD,$14,$60,$60
-        EQUB    $4C,$9C,$14,$71,$D0,$F9,$A0,$FF
-        EQUB    $C8,$C8,$C8,$C8,$B1,$8A,$D0,$F8
-        EQUB    $88,$88,$A9,$9D,$91,$8A,$C8,$38
-        EQUB    $A5,$86,$E9,$6E,$91,$8A,$85,$80
-        EQUB    $C8,$A5,$87,$E9,$02,$91,$8A,$85
-        EQUB    $81,$C8,$AD,$70,$2D,$18,$69,$03
-        EQUB    $91,$8A,$20,$C3,$29,$A9,$03,$05
-        EQUB    $71,$85,$71,$A9,$01,$0D,$76,$2D
-        EQUB    $8D,$76,$2D,$A9,$07,$A0,$2D,$A2
-        EQUB    $D0,$4C,$F1,$FF
+.L295F
+        EQUB    $01    \ for when L295E changes to LDA 
+		
+.L2960  BIT     $71
+        BNE     L2976
+        LDA     #$81
+        LDY     #$ff
+        LDX     #$b6
+        JSR     osbyte
+        INX
+        BEQ     L2977
+        LDA     #$00
+        STA     $14ad
+        RTS
+                    
+.L2976  RTS
+                    
+.L2977  JMP     L149C
+                    
+        EQUB    $71,$D0,$F9    \ This may be code... ADC ind,Y, BNE rel, SBC abs,Y
+		                       \ Can't make it fit at the moment though\
+                               \.L297A  ADC     ($D0),Y          \ EQUB $71,$D0
+                               \.L297D  SBC     $FFA0,Y          \ EQUB $F9
+		
+.L297D  LDY     #$FF
+.L297F  INY
+        INY
+        INY
+        INY
+        LDA     ($8a),Y
+        BNE     L297F
+        DEY
+        DEY
+        LDA     #$9D
+        STA     ($8A),Y
+        INY
+        SEC
+        LDA     $86
+        SBC     #$6E
+        STA     ($8A),Y
+        STA     $80
+        INY
+        LDA     $87
+        SBC     #$02
+        STA     ($8A),Y
+        STA     $81
+        INY
+        LDA     $2d70
+        CLC
+        ADC     #$03
+        STA     ($8a),Y
+        JSR     L29C3
+        LDA     #$03
+        ORA     $71
+        STA     $71
+        LDA     #$01
+        ORA     $2D76
+        STA     $2D76
+        LDA     #$07    \ Play a sound
+        LDY     #$2D
+        LDX     #$D0
+        JMP     osword
 
 .L29C3  \ Bullet plotting?    \ RTSing here prevents bug
         TYA
@@ -2641,18 +2741,48 @@ L28D7 = L28D5+2
         TAY
         RTS
 
-.L29F7
+.rts_L29F7
         RTS
 
-        EQUB    $72,$C9,$01,$10,$3A,$CE,$7A,$2D
-        EQUB    $D0,$35,$AD,$7B,$2D,$8D,$7A,$2D
-        EQUB    $A5,$70,$20,$FA,$2C,$A8,$38,$E9
-        EQUB    $05,$10,$FC,$AA,$C8,$E8,$D0,$FC
-        EQUB    $88,$B1,$75,$30,$16,$A4,$70,$88
-        EQUB    $B1,$75,$30,$0F,$88,$88,$88,$88
-        EQUB    $D0,$F5,$A9,$80,$0D,$76,$2D,$8D
-        EQUB    $76,$2D,$60,$49,$80,$91,$75,$60
-
+        EQUB    $72
+		
+.L29F9  CMP     #$01
+        BPL     L2A37
+        DEC     $2d7A
+        BNE     L2A37
+        LDA     $2D7B
+        STA     $2d7A
+        LDA     $70
+        JSR     L2CFA
+        TAY
+        SEC
+.L2A0F  SBC     #$05
+        BPL     L2A0F
+        TAX
+.L2A14  INY
+        INX
+        BNE     L2A14
+        DEY
+        LDA     ($75),Y
+        BMI     L2A33
+        LDY     $70
+.L2A1F  DEY
+        LDA     ($75),Y
+        BMI     L2A33
+        DEY
+		DEY
+		DEY
+		DEY
+        BNE     L2A1F
+        LDA     #$80
+        ORA     $2D76
+        STA     $2D76
+        RTS
+                    
+.L2A33  EOR     #$80
+        STA     ($75),Y
+.L2A37  RTS		
+		
 .L2A38
         LDA     L0077
         BEQ     L2A91
@@ -2921,12 +3051,25 @@ L28D7 = L28D5+2
         STA     L0079
 .L2BBD
         JMP     L146A
-
-        EQUB    $90,$0F,$C6,$7A,$A5,$78,$E9,$08
-        EQUB    $85,$78,$B0,$15,$C6,$79,$4C,$E1
-        EQUB    $2B,$E6,$7A,$2A,$90,$0B,$18,$A5
-        EQUB    $78,$69,$08,$85,$78,$90,$02,$E6
-        EQUB    $79
+		
+.L2BC0   BCC     L2BD1
+        DEC     $7A
+        LDA     $78
+        SBC     #$08
+        STA     $78
+        BCS     L2BE1
+        DEC     $79
+        JMP     L2BE1
+                    
+.L2BD1  INC     $7A
+        ROL     A
+        BCC     L2BE1
+        CLC
+        LDA     $78
+        ADC     #$08
+        STA     $78
+        BCC     L2BE1
+        INC     $79		
 
 .L2BE1
         JSR     L2C08
@@ -3013,18 +3156,57 @@ L2C1E = L2C1D+1
 .L2C45
         RTS
 
-        EQUB    $C0,$24,$73,$D0,$46,$C6,$73,$D0
-        EQUB    $42,$A0,$FF,$C8,$C8,$C8,$C8,$C8
-        EQUB    $B1,$75,$30,$F7,$88,$88,$88,$B1
-        EQUB    $75,$29,$C0,$D0,$06,$C8,$C8,$C8
-        EQUB    $4C,$51,$2C,$C8,$18,$B1,$75,$69
-        EQUB    $9D,$85,$80,$C8,$B1,$75,$69,$02
-        EQUB    $85,$81,$20,$C3,$29,$A0,$00,$C8
-        EQUB    $C8,$B1,$8C,$D0,$FA,$A5,$81,$91
-        EQUB    $8C,$88,$A5,$80,$91,$8C,$AD,$71
-        EQUB    $2D,$85,$73,$A9,$C0,$05,$73,$85
-        EQUB    $73,$60
-
+        EQUB    $C0,$24,$73
+		
+.L2C49  BNE     L2C91
+        DEC     $73
+        BNE     L2C91
+        LDY     #$FF
+.L2C51   INY
+        INY
+        INY
+        INY
+        INY
+        LDA     ($75),Y
+        BMI     L2C51
+        DEY
+        DEY
+        DEY
+        LDA     ($75),Y
+        AND     #$C0
+        BNE     L2C69
+        INY
+        INY
+        INY
+        JMP     L2C51
+                    
+.L2C69  INY
+        CLC
+        LDA     ($75),Y
+        ADC     #$9D
+        STA     $80
+        INY
+        LDA     ($75),Y
+        ADC     #$02
+        STA     $81
+        JSR     L29C3
+        LDY     #$00
+.L2C7D  INY
+        INY
+        LDA     ($8C),Y
+        BNE     L2C7D
+        LDA     $81
+        STA     ($8C),Y
+        DEY
+        LDA     $80
+        STA     ($8C),Y
+        LDA     $2D71
+        STA     $73
+.L2C91  LDA     #$C0
+        ORA     $73
+        STA     $73
+        RTS
+		
 .L2C98
         LDY     #$00                        \ Y = 0
         LDA     (L008C),Y                   \ A = ?(&2D47+0)
@@ -3091,7 +3273,7 @@ L2C1E = L2C1D+1
 
         RTS                                 \ Return
 
-        STA     L2D03                       \ Does this ever execute?
+.L2CFA  STA     L2D03                       \ Does this ever execute? Yes, from .L29F9
 .L2CFD
         SEC
         LDA     L007C
