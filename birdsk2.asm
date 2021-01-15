@@ -1,8 +1,9 @@
 \ Build directives
 
 ORIGINAL = TRUE       \ Build an exact copy of the original
-PRESERVE = TRUE        \ Preserve original memory locations (only when ORIGINAL = FALSE)
-
+PRESERVE = TRUE       \ Preserve original memory locations (only when ORIGINAL = FALSE)
+ENCHEATS = FALSE      \ Enable cheats (not working yet): 1) Skip level
+                      \ Note: enabling cheats cannot preserve original memory locations
 
 \ BirdSk2.bin
 L0000   = $0000        \ Zero Page uses
@@ -81,48 +82,27 @@ org     $1200          \ "P%" as per the original binary
         \ First 160 bytes of code get copied to page 0 by p0copyloop
         \ These addresses are normally used by BASIC and Econet
 		\ Possibly a memory lookup table in the main for zero page addressing
-		
-        EQUB    $02,$19,$02,$19,$00,$7C,$00,$7C
-        EQUB    $72,$E7,$01,$00,$07,$32,$83,$98        
-        EQUB    $80,$77,$02,$19,$0A,$00,$43,$B4
-        EQUB    $19,$00,$07,$00,$00,$19,$00,$00
-        EQUB    $00,$FF,$FF,$FF,$00,$00,$00,$40
-        EQUB    $FF,$FF,$00,$35,$00,$00,$00,$00
-        EQUB    $8F,$00,$00,$00,$00,$00,$28,$00
-        EQUB    $07,$EE,$20,$00,$FF,$00,$00,$7F
-        EQUB    $FE,$00,$FE,$7E,$00,$00,$00,$00
-        EQUB    $00,$00,$40,$08,$05,$FF,$09,$00
-        EQUB    $00,$00,$00,$00,$00,$00,$00,$00
-        EQUB    $00,$00,$9F,$1D,$01,$01,$01,$01
-        EQUB    $79,$14,$72,$D4,$06,$00,$00,$00
-        EQUB    $40,$00,$40,$00,$00,$00,$00,$00
-        EQUB    $00,$37,$D0,$37,$20,$39,$02,$00
-        EQUB    $00,$2E,$00,$6E,$00,$02,$1B,$AA
-        EQUB    $00,$34,$00,$1C,$EF,$80,$98,$7E
-        EQUB    $A5,$64,$8D,$20,$01,$A5,$65,$8D
-        EQUB    $21,$01,$C9,$07,$F0,$03,$6C,$64
-        EQUB    $00,$60,$04,$01,$FF,$FF,$FF,$00
+		\        00  01  02  03  04  05  06  07   08  09  0A  0B  0C  0D  0E  0F
+        EQUB    $02,$19,$02,$19,$00,$7C,$00,$7C, $72,$E7,$01,$00,$07,$32,$83,$98 \ 00 
+        EQUB    $80,$77,$02,$19,$0A,$00,$43,$B4, $19,$00,$07,$00,$00,$19,$00,$00 \ 10
+        EQUB    $00,$FF,$FF,$FF,$00,$00,$00,$40, $FF,$FF,$00,$35,$00,$00,$00,$00 \ 20
+        EQUB    $8F,$00,$00,$00,$00,$00,$28,$00, $07,$EE,$20,$00,$FF,$00,$00,$7F \ 30
+        EQUB    $FE,$00,$FE,$7E,$00,$00,$00,$00, $00,$00,$40,$08,$05,$FF,$09,$00 \ 40
+        EQUB    $00,$00,$00,$00,$00,$00,$00,$00, $00,$00,$9F,$1D,$01,$01,$01,$01 \ 50
+        EQUB    $79,$14,$72,$D4,$06,$00,$00,$00, $40,$00,$40,$00,$00,$00,$00,$00 \ 60
+        EQUB    $00,$37,$D0,$37,$20,$39,$02,$00, $00,$2E,$00,$6E,$00,$02,$1B,$AA \ 70
+        EQUB    $00,$34,$00,$1C,$EF,$80,$98,$7E, $A5,$64,$8D,$20,$01,$A5,$65,$8D \ 80
+        EQUB    $21,$01,$C9,$07,$F0,$03,$6C,$64, $00,$60,$04,$01,$FF,$FF,$FF,$00 \ 90
         
-		\ The rest is padding
-        EQUB    $00,$00,$00,$00,$00,$00,$00,$00
-        EQUB    $00,$00,$00,$00,$00,$00,$00,$00
-        EQUB    $00,$00,$00,$00,$00,$00,$00,$00
-        EQUB    $00,$00,$00,$00,$00,$00,$00,$00
-        EQUB    $00,$00,$00,$00,$00,$00,$00,$00
-        EQUB    $00,$00,$00,$00,$00,$00,$00,$00
-        EQUB    $00,$00,$00,$00,$00,$00,$00,$00
-        EQUB    $00,$00,$00,$00,$00,$00,$00,$00
-        EQUB    $00,$00,$00,$00,$00,$00,$00,$00
-        EQUB    $00,$00,$00,$00,$00,$00,$00,$00
-        EQUB    $00,$00,$00,$00,$00,$00,$00,$00
-        EQUB    $00,$00,$00,$00,$00,$00,$00,$00
-
+		\ Then follows 96  bytes of padding
+        FOR Z, 1, 96
+		    EQUB $00
+	    NEXT
+		
 .entry  \ L1300
 
         \ Official code entry point. Originally needed BIRDSK1 to be loaded at page &3000 first.
         \ *possibly* an anti-tamper mechanism?
-        \
-		\ To hard-code the memory location values so this is no longer necessary see the instructions below
 
         SEI                  \ Disable interrupts
 		
@@ -225,31 +205,20 @@ org     $1200          \ "P%" as per the original binary
 
         JMP     game
 
-        EQUB    $00,$00,$00,$00,$00,$00,$00,$00
-        EQUB    $00,$00,$00,$00,$00,$00,$00,$00
-        EQUB    $00,$00,$00,$00,$00,$00,$00,$00
-        EQUB    $00,$00,$00,$00,$00,$00,$00,$00
-        EQUB    $00,$00,$00,$00,$00,$00,$00,$00
-        EQUB    $00,$00,$00,$00,$00,$00,$00,$00
-        EQUB    $00,$00,$00,$00,$00,$00,$00,$00
-        EQUB    $00,$00,$00,$00,$00,$00,$00,$00
-        EQUB    $00,$00,$00,$00,$00,$00,$00,$00
-        EQUB    $00,$00,$00,$00,$00,$00,$00,$00
-        EQUB    $00,$00,$00,$00,$00,$00,$00,$00
-        EQUB    $00,$00,$00,$00,$00,$00,$00,$00
-        EQUB    $00,$00,$00,$00,$00,$00,$00,$00
-        EQUB    $00,$00,$00,$00,$00,$00,$00,$00
-        EQUB    $00,$00,$00,$00,$00,$00,$00,$00
-        EQUB    $00,$00,$00,$00,$00,$00,$00,$00
+		\ Then follows 128 bytes of padding
+        FOR Z, 1, 128
+		    EQUB $00
+	    NEXT
         
-        EQUS    "Thanks David,Ian,Martin,Mum,Dad,Susi C"    \ Thanks and credits
+		\ Thanks and credits
+        EQUS    "Thanks David,Ian,Martin,Mum,Dad,Susi C"
 
-    \ Set up osword vectors based on machine type?
-.L1426
+        
+.L1426  \ Set up osword vectors based on machine type?
         LDX     #$EF            \ Q key
         JSR     keyboardScan
 
-        BNE     L1437
+        BNE     L1437           \ Skip if pressed
 
         LDA     #$61
         STA     osword_redirection_C
@@ -260,7 +229,7 @@ org     $1200          \ "P%" as per the original binary
         LDX     #$AE             \ S key
         JSR     keyboardScan
 
-        BNE     L144A
+        BNE     L144A            \ Skip if pressed
         LDA     wordv_1
         STA     osword_redirection_C
         LDA     wordv_2
@@ -271,7 +240,16 @@ org     $1200          \ "P%" as per the original binary
         JSR     keyboardScan     \ R key
         BNE     L1460
 
-.L1451
+IF ENCHEATS = TRUE \ Todo: move this
+    .cheatLevelSkip
+            LDX     #$CF
+		    JSR     keyboardScan     \ 1 key
+		    BNE     L1451
+		    LDA     #$80
+		    STA     gameFlags
+    ENDIF
+
+.L1451  \ De-bounce for R keypress?
         LDA     #$81
         LDY     #$01
         LDX     #$00
@@ -422,7 +400,7 @@ org     $1200          \ "P%" as per the original binary
         LDX     #$F8
         LDY     #$2D
         LDA     #$07
-        JSR     osword        \ Play a sound
+        JSR     osword        \ Play a sound (extra life)
 
         INC     L1D56
         CLC
@@ -474,7 +452,7 @@ org     $1200          \ "P%" as per the original binary
         LDX     #$E8
         LDY     #$2D
         LDA     #$07
-        JSR     osword        \ Play a sound
+        JSR     osword        \ Play a sound (bonus noise)
 
         JSR     L2054
 
@@ -487,7 +465,7 @@ org     $1200          \ "P%" as per the original binary
         LDX     #$B7
         LDY     #$15
         LDA     #$07
-        JSR     osword        \ Play a sound
+        JSR     osword        \ Play a sound (last pip of bonus noise)
 
         DEC     L15B7
         LDA     #$80
@@ -1383,7 +1361,7 @@ L18F6 = L18F4+2
         LDX     #$B7
         LDY     #$15
         LDA     #$07
-        JSR     osword        \ Play a sound
+        JSR     osword        \ Play a sound (plane winged?)
 
         SED
 .L2021
@@ -1762,7 +1740,7 @@ L18F6 = L18F4+2
         LDA     #$07
         LDY     #$2D
         LDX     #$E0
-        JSR     osword         \ Play a sound
+        JSR     osword         \ Play a sound (player hit / lightning)
 
         LDA     #$FF
         STA     timer_L1D55
@@ -2042,7 +2020,7 @@ L246C = L246B+1
         TAX
         LDA     #$07
         LDY     #$2D
-        JSR     osword        \ Play a sound
+        JSR     osword        \ Play a sound (pigeon hit)
 
         LDA     #$10
         STA     L2D7E
@@ -2095,7 +2073,7 @@ L252F = L252E+1
         LDA     #$07
         LDY     #$2D
         LDX     #$F0
-        JSR     osword        \ Play a sound
+        JSR     osword        \ Play a sound (pigeon chirp...just like pigeons do (no pun intended))
 
 .L253F
         LDX     L2D7E
@@ -2630,16 +2608,13 @@ L28D7 = L28D5+2
 .L2976  RTS
                     
 .L2977  JMP     L149C
-        ADC     ($D0),Y
-.L297C  SBC     $FFA0,Y
-                    
-        \ EQUB    $71,$D0,$F9  \ This may be code... ADC ind,Y, BNE rel, SBC abs,Y
-		                       \ Can't make it fit at the moment though\
-                               \.L297A  ADC     ($D0),Y          \ EQUB $71,$D0
-                               \.L297D  SBC     $FFA0,Y          \ EQUB $F9
-		
-\ .L297D  LDY     #$FF
-L297D = L297C + 1
+        \ ADC     ($D0),Y
+        \.L297C  SBC     $FFA0,Y
+        
+		\ L297D = L297C + 1                   
+        EQUB    $71,$D0,$F9  \ This may be code... but probably isn't. Never executes.
+
+.L297D  LDY     #$FF
 
 .L297F  INY
         INY
@@ -2674,10 +2649,10 @@ L297D = L297C + 1
         LDA     #$01
         ORA     $2D76
         STA     $2D76
-        LDA     #$07    \ Play a sound
+        LDA     #$07    
         LDY     #$2D
         LDX     #$D0
-        JMP     osword
+        JMP     osword    \ Play a sound (player fire)
 
 .L29C3  \ Bullet plotting?    \ RTSing here prevents bug
         TYA
@@ -2736,7 +2711,7 @@ L297D = L297C + 1
         BNE     L29E0
 
 .L29EB  \ triggered when bomb dropped - smooth animation as per screen memory layout
-        \ not the culprit
+        \ not the culprit, but is complicit (code address in $80)
         LDA     (L0082),Y
         EOR     (L0080),Y
         STA     (L0080),Y
