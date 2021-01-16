@@ -4,6 +4,8 @@ ORIGINAL = TRUE       \ Build an exact copy of the original
 PRESERVE = TRUE       \ Preserve original memory locations (only when ORIGINAL = FALSE)
 ENCHEATS = FALSE      \ Enable cheats (not working yet): 1) Skip level
                       \ Note: enabling cheats cannot preserve original memory locations
+					  
+\ ToDo: check references to $28D6/7, $2D7C/D and $78/79 for fixed addressing
 
 \ BirdSk2.bin
 L0000   = $0000        \ Zero Page uses
@@ -91,7 +93,10 @@ org     $1200          \ "P%" as per the original binary
         EQUB    $00,$00,$00,$00,$00,$00,$00,$00, $00,$00,$9F,$1D,$01,$01,$01,$01 \ 50
         EQUB    $79,$14,$72,$D4,$06,$00,$00,$00, $40,$00,$40,$00,$00,$00,$00,$00 \ 60
         EQUB    $00,$37,$D0,$37,$20,$39,$02,$00, $00,$2E,$00,$6E,$00,$02,$1B,$AA \ 70
-        EQUB    $00,$34,$00,$1C,$EF,$80,$98,$7E, $A5,$64,$8D,$20,$01,$A5,$65,$8D \ 80
+        EQUB    $00,$34,$00,$1C,$EF,$80,$98,$7E, $A5,$64                         \ 80
+		\                                                $8D,$20                 \ 80
+		EQUW    L208D
+		EQUB    										         $01,$A5,$65,$8D \ 80 208d lives here
         EQUB    $21,$01,$C9,$07,$F0,$03,$6C,$64, $00,$60,$04,$01,$FF,$FF,$FF,$00 \ 90
         
 		\ Then follows 96  bytes of padding
@@ -214,56 +219,57 @@ org     $1200          \ "P%" as per the original binary
         EQUS    "Thanks David,Ian,Martin,Mum,Dad,Susi C"
 
         
-.L1426  \ Set up osword vectors based on machine type?
-        LDX     #$EF            \ Q key
+.keyCheck       \ Main keyboard scan during gameplay .L1426
+        LDX     #$EF             \ Q key
         JSR     keyboardScan
 
-        BNE     L1437           \ Skip if pressed
+        BNE     checkSkey        \ Skip if pressed
 
         LDA     #$61
         STA     osword_redirection_C
         LDA     #$14
         STA     osword_redirection_D
 		
-.L1437
+.checkSkey      \ .L1437
         LDX     #$AE             \ S key
         JSR     keyboardScan
 
-        BNE     L144A            \ Skip if pressed
+        BNE     checkRkey        \ Skip if pressed
         LDA     wordv_1
         STA     osword_redirection_C
         LDA     wordv_2
         STA     osword_redirection_D
 
-.L144A
+.checkRkey      \ .L144A
         LDX     #$CC
         JSR     keyboardScan     \ R key
-        BNE     L1460
+        BNE     keyCheckComplete
 
 IF ENCHEATS = TRUE \ Todo: move this
-    .cheatLevelSkip
-            LDX     #$CF
-		    JSR     keyboardScan     \ 1 key
-		    BNE     L1451
-		    LDA     #$80
-		    STA     gameFlags
+    \.cheatLevelSkip
+    \        LDX     #$CF
+	\	    JSR     keyboardScan     \ 1 key
+	\	    BNE     keyCheckComplete
+	\	    LDA     #$80
+	\	    STA     gameFlags
+	NOP
     ENDIF
 
-.L1451  \ De-bounce for R keypress?
+.debounceRkey   \ .L1451  \ De-bounce for R keypress?
         LDA     #$81
         LDY     #$01
         LDX     #$00
         JSR     osbyte    \ Read key with timeout
-        BCS     L1451     \ No key detected
+        BCS     debounceRkey     \ No key detected
         CPX     #$52      \ INKEY value of R
-        BEQ     L1451
+        BEQ     debounceRkey
 
-.L1460
+.keyCheckComplete    \.L1460
         RTS
 
 .L1461
         CMP    #$07
-		BEQ    L1460
+		BEQ    keyCheckComplete
 		JMP    (wordv_1)
 
 .wordv_1    \ OSWORD redirection vector stored here \L1468
@@ -308,7 +314,7 @@ IF ENCHEATS = TRUE \ Todo: move this
 .L149B
         EQUB    $00    \ enemy zig-zag state?
 		
-.L149C
+.L149C  \ Triggered when bullet fired
 		LDA     L14AD
 		BEQ     L14A5
 		DEC     L14AD
@@ -345,7 +351,7 @@ IF ENCHEATS = TRUE \ Todo: move this
         EQUB    $1F,$05,$0F,$11,$01        \ Red text, centred on screen
         EQUS    "GAME OVER"
 
-.L14D8
+.L14D8  \ Enemy has reached bottom of the screen
         RTS
 
 .L14D9
@@ -883,12 +889,14 @@ L18F6 = L18F4+2
 .L1A0C  
         EQUB    $FF,$FF,$FF,$FF
 		\ Life lost animation sprites
-		EQUB    $00,$04,$00,$04
+.L1A10  EQUB    $00,$04,$00,$04                    \ Label added by iainfm
         EQUB    $28,$04,$00,$04,$00,$00,$00,$00
         EQUB    $28,$00,$00,$00,$28,$00,$28,$00
         EQUB    $28,$00,$00,$00,$00,$04,$00,$04
         EQUB    $28,$04,$00,$04,$00,$00,$00,$00
-        EQUB    $28,$00,$00,$00,$00,$00,$00,$00
+        EQUB    $28,$00,$00,$00
+		
+.L1A38  EQUB    $00,$00,$00,$00                    \ Label added by iainfm
         EQUB    $00,$00,$04,$2C,$00,$00,$00,$00
         EQUB    $00,$00,$14,$28,$00,$00,$00,$00
         EQUB    $00,$00,$14,$28,$00,$00,$00,$00
@@ -927,7 +935,7 @@ L18F6 = L18F4+2
         
         EQUS    "LDASTAJSRRTSBNE"                    \ BASIC/keyboard/source artefacts?
         EQUS    "P.~!&"
-        EQUS $16,$34,$13
+        EQUS    $16,$34,$13  \\ Should be EQUB?
         EQUS    "12000L."
         EQUB    $0E
         EQUB    $0D
@@ -942,7 +950,7 @@ L18F6 = L18F4+2
         EQUB    $00,$00,$3C,$2D,$22,$00,$00,$00
         EQUB    $00,$00,$00,$14,$3C,$00,$14,$00
         EQUB    $00,$00,$00,$00,$00,$00,$00,$00
-        EQUB    $00,$00,$00,$00,$14,$00,$00,$00
+.L1B70  EQUB    $00,$00,$00,$00,$14,$00,$00,$00    \ Label added by iainfm - hit pigeon
         EQUB    $00,$05,$00,$28,$00,$01,$00,$14
         EQUB    $00,$00,$00,$28,$14,$00,$00,$00
         EQUB    $00,$00,$3C,$1E,$01,$00,$00,$00
@@ -1088,17 +1096,17 @@ L18F6 = L18F4+2
 
         JSR     L2A94                       \ Enemy movement
 
-        JSR     rts_L29F7                   \ Self modifying code - next enemy?
+        JSR     smc_L29F7                   \ Self modifying code - next enemy?
 
-        JSR     L286E                       \ Player movement? - either an RTS or JMP $28D3 (load skull sprite?) - changed by .L2245/.L22E2
+        JSR     smc_L286E                       \ Player movement? - either an RTS or JMP $28D3 (load skull sprite?) - changed by .L2245/.L22E2
 
         JSR     L28E2                       \ Bullet Y movement
 
-        JSR     L295E                       \ Player fire - either an RTS or JMP absolute
+        JSR     smc_L295E                       \ Player fire - either an RTS or JMP absolute
 
         JSR     L2C98                       \ Enemy bombs
 
-        JSR     L2C45                       \ unknown - either an RTS or an LDA
+        JSR     smc_L2C45                       \ unknown - either an RTS or an LDA
 
         JSR     L240E                       \ Pigeon
 
@@ -1106,7 +1114,7 @@ L18F6 = L18F4+2
 
         JSR     L1FE0                       \ Gravestones plot / pigeon reset after hit
 
-        JSR     L1426                       \ Check for rest (pause)?
+        JSR     keyCheck                       \ Check for rest (pause)?
 
         JMP     L1E27                       \ branch back around
         
@@ -1138,24 +1146,37 @@ L18F6 = L18F4+2
         CLC
         LDA     #$20
         STA     L2D79
+		
         LDA     #$03
         STA     L2D7A
         LDA     #$2A
         STA     L2D7B
         LDA     #$02
         STA     L0071
-        LDA     #$2D
-        STA     L008B
-        STA     L008D
-        STA     L0076
-        LDA     #$47
-        STA     L008C
-        LDA     #$0A
-        STA     L008A
-        LDA     #$13
-        STA     L0075
+		
+		\ Zero page memory lookups
+        \ LDA     #$2D \ L2D0A_high
+
+		LDA     #HI(L2D47)
+        STA     L008B    \ ($8B) = $472D (check)
+        STA     L008D    \ ($8C) = $2D47
+        STA     L0076    \ ($75) = $2D13
+		
+        \ LDA     #$47
+		LDA     #LO(L2D47)
+        STA     L008C    \ ($8C) = $2D47
+        
+		\ LDA     #$0A
+		LDA     #LO(L2D0A)
+        STA     L008A    \ ($8A) = $2D0A
+        \ LDA     #$13
+		LDA     #LO(L2D13)
+        STA     L0075    \ ($75) = $2D13
+		
         LDX     #$0F
         LDY     #$07
+
+		
 .L1EC6
         JSR     L281D    \ Set palette
 
@@ -1319,9 +1340,9 @@ L18F6 = L18F4+2
         STA     L0087
         LDA     #$90
         STA     L0086
-        LDA     #$23
+        LDA     #$23       \ Possible memory reference
         STA     L28D7
-        LDA     #$58
+        LDA     #$58       \ Possible memory reference
         STA     L28D6
         JSR     L28D3
 
@@ -1431,7 +1452,7 @@ L18F6 = L18F4+2
         LDA     #$00
         JMP     L285A
 
-.L208D
+.L208D                       \ aka ($8A),#0
         STA     L1A0A
         TYA
         PHA
@@ -1677,7 +1698,7 @@ L18F6 = L18F4+2
         INX                   \ return X=0 if scanned key pressed (for BEQ)
         RTS
 
-        EQUB    $E8,$60       \ could be INX : RTS? Don't think it would ever execute though
+        EQUB    $E8,$60       \ could be INX : RTS? Don't think it will ever execute though
 		EQUB    $00,$00,$00,$00,$00,$00
         EQUB    $00,$00,$00,$00,$00,$00,$00,$00
 
@@ -1747,15 +1768,15 @@ L18F6 = L18F4+2
 		
 		\ Self-modifying code section
         LDA     #$60           \ RTS opcode
-        STA     L2C45
-        STA     rts_L29F7
-        STA     L286E
-        STA     L295E
+        STA     smc_L2C45
+        STA     smc_L29F7
+        STA     smc_L286E
+        STA     smc_L295E
         JSR     L28D3
 
-        LDA     #$1A
+        LDA     #HI(L1A10) \#$1A     \ Possible memory reference (sprite area)
         STA     L28D7
-        LDA     #$10
+        LDA     #LO(L1A10) \#$10     \ Possible memory reference (lost life sprite 1)
         STA     L28D6
         JMP     L28D3
 
@@ -1775,7 +1796,7 @@ L18F6 = L18F4+2
 
         JSR     L28D3
 
-        LDA     #$38
+        LDA     #LO(L1A38) \ #$38    \ Possible memory reference (lost life sprite 2)
         STA     L28D6
         JMP     L28D3
 
@@ -1785,7 +1806,7 @@ L18F6 = L18F4+2
 
         JSR     L28D3
 
-        LDA     #$60
+        LDA     #LO(L1A60) \ #$60 \ Possible memory reference (Skull sprite)
         STA     L28D6
         JMP     L28D3
 
@@ -1837,19 +1858,19 @@ L18F6 = L18F4+2
 
 .L22E2  \ Self-modifying code calls
         LDA     #$20        \ JSR opcode
-        STA     L286E
+        STA     smc_L286E
         LDA     #$A5        \ LDA zeropage opcode
-        STA     rts_L29F7
+        STA     smc_L29F7
         LDA     #$A9        \ LDA# opcode
-        STA     L2C45
-        STA     L295E
+        STA     smc_L2C45
+        STA     smc_L295E
         SEC
         LDA     L1D57
         SBC     #$18
         STA     L1D57
         JMP     L2223
 
-        EQUB    $00,$00,$00,$00,$00,$14,$3C,$3C    \ Musical notes and player sprite
+        EQUB    $00,$00,$00,$00,$00,$14,$3C,$3C    \ $2300 Musical notes and player sprite
         EQUB    $38,$38,$38,$38,$38,$38,$38,$20
         EQUB    $00,$00,$00,$00,$00,$14,$38,$3C
         EQUB    $38,$38,$38,$38,$38,$38,$38,$00
@@ -1860,7 +1881,7 @@ L18F6 = L18F4+2
         EQUB    $00,$00,$00,$00,$00,$3C,$3C,$10
         EQUB    $00,$00,$00,$00,$00,$38,$38,$30
         EQUB    $01,$04,$04,$01,$01,$01,$00,$00
-        EQUB    $00,$04,$04,$04,$2C,$04,$04,$04
+        EQUB    $00,$04,$04,$04,$2C,$04,$04,$04    \ $2358
         EQUB    $00,$00,$00,$14,$3C,$14,$14,$00
         EQUB    $28,$28,$28,$3D,$3E,$3E,$3C,$28
         EQUB    $00,$04,$04,$04,$2C,$04,$04,$04
@@ -2029,10 +2050,10 @@ L246C = L246B+1
         STA     L2D7D
         JSR     L2581
 
-.L24FE
-        LDA     #$1B
+.L24FE  \ hit pigeon sprite plot
+        LDA     #HI(L1B70) \ #$1B    \ Possible memory address
         STA     L0083
-        LDA     #$70
+        LDA     #LO(L1B70) \ #$70    \ Possible memory address
         STA     L0082
         JMP     L2581
 
@@ -2213,12 +2234,12 @@ L252F = L252E+1
         EQUB    $00
 
 .L261A
-        LDA     #$44
+        LDA     #$44     \ screen memory - cloud start address
         STA     L0079
         LDA     #$FF
         LDX     #$05
 .L2622
-        LDY     #$00
+        LDY     #$00     \ screen memory - cloud start address
         STY     L0078
 .L2626
         STA     (L0078),Y
@@ -2431,7 +2452,7 @@ L2673 = L2671+2
         RTS
 
         BRK
-.L286E
+.smc_L286E
         RTS     \ but changes in code to &20 (JMP $28D3) .L2245/.L22E2
         EQUB    $D3,$28 \ address for JMP above
 
@@ -2446,11 +2467,11 @@ L2673 = L2671+2
         JSR     osbyte    \ Keyboard scan
         INX
         BNE     L28B4     \ Not Z
-        LDX     $2D70     \ X pos?
+        LDX     playerXpos     \ $2D70     \ X pos?
         CPX     #$01
         BEQ     L28B4
         DEX
-        STX     $2D70
+        STX     playerXpos     \ $2D70
         SEC
         LDA     $86
         SBC     #$08
@@ -2458,33 +2479,33 @@ L2673 = L2671+2
         BCS     L28B4
         DEC     $87
         BCC     L28B4
-.L289E  LDX     $2D70
+.L289E  LDX     playerXpos     \ $2D70
         CPX     #$47
         BEQ     L28B4
         INX
-        STX     $2D70
+        STX     playerXpos     \ $2D70
         CLC
-        LDA     $86
+        LDA     L0086          \ $86
         ADC     #$08
-        STA     $86
+        STA     L0086          \ $86
         BCC     L28B4
-        INC     $87
+        INC     L0087          \ $87
 .L28B4  SEC
         LDA     #$00
-        STA     $78
+        STA     L0078          \ $78
         LDY     #$24
-.L28BB  LDA     ($86),Y
+.L28BB  LDA     (L0086),Y      \ $86
         BEQ     L28C1
-        STA     $78
+        STA     L0078          \ $78
 .L28C1  TYA
         SBC     #$08
         TAY
         BPL     L28BB
-        LDA     $78
+        LDA     L0078          \ $78
         BEQ     L28D3
-        LDA     $2D76
+        LDA     gameFlags  \ $2D76
         ORA     #$20
-        STA     $2D76
+        STA     gameFlags  \ $2D76
 
 .L28D3
         LDY     #$27
@@ -2587,22 +2608,22 @@ L28D7 = L28D5+2
 
         RTS
 
-.L295E
+.smc_L295E
         RTS     \ Changed in code to LDA# $01
 
 .L295F
-        EQUB    $01    \ for when L295E changes to LDA 
+        EQUB    $01    \ for when smc_L295E changes to LDA 
 		
-.L2960  BIT     $71
+.L2960  BIT     L0071  \ $71
         BNE     L2976
         LDA     #$81   
-        LDY     #$ff
-        LDX     #$b6   \ Return key (INKEY value)   
+        LDY     #$FF
+        LDX     #$B6   \ Return key (INKEY value)   
         JSR     osbyte \ Keyboard scan
         INX
         BEQ     L2977
         LDA     #$00
-        STA     $14ad
+        STA     L14AD  \ $14AD
         RTS
                     
 .L2976  RTS
@@ -2620,35 +2641,35 @@ L28D7 = L28D5+2
         INY
         INY
         INY
-        LDA     ($8a),Y
+        LDA     (L008A),Y    \ $8A
         BNE     L297F
         DEY
         DEY
         LDA     #$9D
-        STA     ($8A),Y
+        STA     (L008A),Y    \ $8A
         INY
         SEC
-        LDA     $86
+        LDA     L0086        \ $86
         SBC     #$6E
-        STA     ($8A),Y
-        STA     $80
+        STA     (L008A),Y    \ $8A
+        STA     L0080        \ $80
         INY
-        LDA     $87
+        LDA     L0087        \ $87
         SBC     #$02
-        STA     ($8A),Y
-        STA     $81
+        STA     (L008A),Y    \ $8A
+        STA     L0081        \ $81
         INY
-        LDA     $2D70
+        LDA     playerXpos     \ $2D70
         CLC
         ADC     #$03
-        STA     ($8a),Y
+        STA     (L008A),Y    \ $8A
         JSR     L29C3
         LDA     #$03
-        ORA     $71
-        STA     $71
+        ORA     L0071        \ $71
+        STA     L0071        \ $71
         LDA     #$01
-        ORA     $2D76
-        STA     $2D76
+        ORA     gameFlags      \ $2D76
+        STA     gameFlags      \ $2D76
         LDA     #$07    
         LDY     #$2D
         LDX     #$D0
@@ -2722,18 +2743,18 @@ L28D7 = L28D5+2
         TAY
         RTS
 
-.rts_L29F7      \ Something to do with next enemy
-        RTS     \ Changed to LDA ($A5) zeropage by L22E2, back to RTS ($60) by L2245
+.smc_L29F7      \ Something to do with next enemy
+        RTS     \ Changed to LDA (opcode $A5) zeropage by L22E2, back to RTS (opcode $60) by L2245
 
-        EQUB    $72    \ zeropage address when .rts_L29F7 is an LDA
+        EQUB    L0072    \ $72    \ zeropage address when .smc_L29F7 is an LDA
 		
 .L29F9  CMP     #$01
         BPL     L2A37
-        DEC     $2d7A
+        DEC     L2D7A  \ $2D7A
         BNE     L2A37
-        LDA     $2D7B
-        STA     $2d7A
-        LDA     $70
+        LDA     L2D7B  \ $2D7B
+        STA     L2D7A  \ $2d7A
+        LDA     L0070  \ $70
         JSR     L2CFA
         TAY
         SEC
@@ -2744,11 +2765,11 @@ L28D7 = L28D5+2
         INX
         BNE     L2A14
         DEY
-        LDA     ($75),Y
+        LDA     (L0075),Y    \ $75
         BMI     L2A33
-        LDY     $70
+        LDY     L0070        \ $70
 .L2A1F  DEY
-        LDA     ($75),Y
+        LDA     (L0075),Y    \ $75
         BMI     L2A33
         DEY
 		DEY
@@ -2756,12 +2777,12 @@ L28D7 = L28D5+2
 		DEY
         BNE     L2A1F
         LDA     #$80
-        ORA     $2D76
-        STA     $2D76
+        ORA     gameFlags    \ $2D76
+        STA     gameFlags    \ $2D76
         RTS
                     
 .L2A33  EOR     #$80
-        STA     ($75),Y
+        STA     (L0075),Y    \ $75
 .L2A37  RTS		
 		
 .L2A38
@@ -3034,23 +3055,23 @@ L28D7 = L28D5+2
         JMP     L146A
 		
 .L2BC0  BCC     L2BD1
-        DEC     $7A
-        LDA     $78
+        DEC     L007A    \ $7A
+        LDA     L0078    \ $78
         SBC     #$08
-        STA     $78
+        STA     L0078    \ $78
         BCS     L2BE1
-        DEC     $79
+        DEC     L0079    \ $79
         JMP     L2BE1
                     
-.L2BD1  INC     $7A
+.L2BD1  INC     L007A    \ $7A
         ROL     A
         BCC     L2BE1
         CLC
-        LDA     $78
+        LDA     L0078    \ $78
         ADC     #$08
-        STA     $78
+        STA     L0078    \ $78
         BCC     L2BE1
-        INC     $79		
+        INC     L0079    \ $79		
 
 .L2BE1
         JSR     L2C08
@@ -3134,27 +3155,27 @@ L2C1E = L2C1D+1
         TAY
         RTS
 
-.L2C45
-        RTS     \ Gets changes to $A9 (LDA#) by L22E2
+.smc_L2C45
+        RTS     \ Gets changed to $A9 (LDA#) by L22E2
 
         EQUB    $C0    \ Making this the value being loaded into A
-		BIT     $73    \ and this the next instruction
+		BIT     L0073  \ $73    \ and this the next instruction
 		
 .L2C49  BNE     L2C91
-        DEC     $73
+        DEC     L0073  \ $73
         BNE     L2C91
         LDY     #$FF
-.L2C51   INY
+.L2C51  INY
         INY
         INY
         INY
         INY
-        LDA     ($75),Y
+        LDA     (L0075),Y    \ $75
         BMI     L2C51
         DEY
         DEY
         DEY
-        LDA     ($75),Y
+        LDA     (L0075),Y    \ $75
         AND     #$C0
         BNE     L2C69
         INY
@@ -3164,29 +3185,29 @@ L2C1E = L2C1D+1
                     
 .L2C69  INY
         CLC
-        LDA     ($75),Y
+        LDA     (L0075),Y    \ $75
         ADC     #$9D
-        STA     $80
+        STA     L0080        \ $80
         INY
-        LDA     ($75),Y
+        LDA     (L0075),Y    \ $75
         ADC     #$02
-        STA     $81
+        STA     L0081        \ $81
         JSR     L29C3
         LDY     #$00
 .L2C7D  INY
         INY
-        LDA     ($8C),Y
+        LDA     (L008C),Y    \ $8C
         BNE     L2C7D
-        LDA     $81
-        STA     ($8C),Y
+        LDA     L0081        \ $81
+        STA     (L008C),Y    \ $8C
         DEY
-        LDA     $80
-        STA     ($8C),Y
-        LDA     $2D71
-        STA     $73
+        LDA     L0080        \ $80
+        STA     (L008C),Y    \ $8C
+        LDA     useless      \ $2D71
+        STA     L0073        \ $73
 .L2C91  LDA     #$C0
-        ORA     $73
-        STA     $73
+        ORA     L0073        \ $73
+        STA     L0073        \ $73
         RTS
 		
 .L2C98
@@ -3300,6 +3321,7 @@ L2D03 = L2D02+1
                 \ Seems to be completely redundent. Set to $D7 here, changed to
                 \ $F0 by L1EC6 (at the beginning of a new game), then decremented
 				\ once by L1EE3. Possibly a removed or planned feature?
+				\ Update - probably not useless. Used by .L2C7D (STA'd to $73)
         EQUB    $D7
 
 .L2D72  \ Bullet 'sprite'
@@ -3332,10 +3354,10 @@ L2D03 = L2D02+1
 .L2D7B
         EQUB    $42
 
-.L2D7C
+.L2D7C  \ aka ($80)
         EQUB    $00
 
-.L2D7D  \ Pigeon position
+.L2D7D  \ aka ($81) Pigeon position
         EQUB    $00
 
 .L2D7E
