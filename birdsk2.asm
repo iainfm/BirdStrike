@@ -2,11 +2,11 @@
 
 ORIGINAL = TRUE       \ Build an exact copy of the original
 PRESERVE = TRUE       \ Preserve original memory locations (only when ORIGINAL = FALSE)
-ENCHEATS = FALSE      \ Enable cheats (not working yet): 1) Skip level
+ENMODS   = FALSE       \ Enable mods (not working yet): 1) Skip level
                       \ Note: enabling cheats cannot preserve original memory locations
 					  
-\ ToDo: check references to $28D6/7, $2D7C/D and $78/79 for fixed addressing
-
+\ ToDo: check references to $28D6/7 (player sprite pointer), $2D7C/D and $78/79 for fixed addressing (L2BB0)
+\ L2d68 as well
 \ BirdSk2.bin
 L0000   = $0000        \ Zero Page uses
 L0008   = $0008
@@ -28,21 +28,21 @@ L007A   = $007A
 L007B   = $007B
 L007C   = $007C
 L007D   = $007D
-L007E   = $007E
-L007F   = $007F
-L0080   = $0080
-L0081   = $0081
-L0082   = $0082
-L0083   = $0083
-L0084   = $0084
-L0085   = $0085
+L007E   = $007E    \ Only used in .L25B8
+L007F   = $007F    \ Only used in .L25B8
+L0080   = $0080    \ Score screen memory location low byte
+L0081   = $0081    \ Score screen memory location high byte
+L0082   = $0082    \ Sprite pointer low byte (digits, notes, pigeons etc)
+L0083   = $0083    \ Sprite pointer high byte
+L0084   = $0084    \ Something to do with enemy position / plotting
+L0085   = $0085    \ Something to do with enemy position / plotting
 L0086   = $0086
 L0087   = $0087
 enemySpriteAddrLow   = $0088        \ L0088 \ Enemy sprite address low byte (0 = level 1 aircraft, add $40 per level)
 enemySpriteAddrHigh  = $0089        \ L0089 \ Enemy sprite address high byte
 L008A   = $008A
 L008B   = $008B
-L008C   = $008C
+L008C   = $008C    \ Something to do with enemy bomb y-position
 L008D   = $008D
 L008E   = $008E
 
@@ -93,10 +93,11 @@ org     $1200          \ "P%" as per the original binary
         EQUB    $00,$00,$00,$00,$00,$00,$00,$00, $00,$00,$9F,$1D,$01,$01,$01,$01 \ 50
         EQUB    $79,$14,$72,$D4,$06,$00,$00,$00, $40,$00,$40,$00,$00,$00,$00,$00 \ 60
         EQUB    $00,$37,$D0,$37,$20,$39,$02,$00, $00,$2E,$00,$6E,$00,$02,$1B,$AA \ 70
-        EQUB    $00,$34,$00,$1C,$EF,$80,$98,$7E, $A5,$64                         \ 80
-		\                                                $8D,$20                 \ 80
-		EQUW    L208D
-		EQUB    										         $01,$A5,$65,$8D \ 80 208d lives here
+        EQUB    $00,$34                                                          \ 80
+		EQUW             L1C00                                                   \ 80
+		EQUB                    $EF,$80,$98,$7E, $A5,$64                         \ 80
+		EQUW                                              L208D
+		EQUB    										         $01,$A5,$65,$8D \ 80
         EQUB    $21,$01,$C9,$07,$F0,$03,$6C,$64, $00,$60,$04,$01,$FF,$FF,$FF,$00 \ 90
         
 		\ Then follows 96  bytes of padding
@@ -239,21 +240,21 @@ org     $1200          \ "P%" as per the original binary
         STA     osword_redirection_C
         LDA     wordv_2
         STA     osword_redirection_D
+		
+IF ENMODS = TRUE \ Testing
+    \.cheatLevelSkip
+    \       LDX     #$CF
+	\	    JSR     keyboardScan     \ 1 key
+	\	    BNE     keyCheckComplete
+	\	    LDA     #$80
+	\	    STA     gameFlags
+	\ NOP
+    ENDIF
 
 .checkRkey      \ .L144A
         LDX     #$CC
         JSR     keyboardScan     \ R key
         BNE     keyCheckComplete
-
-IF ENCHEATS = TRUE \ Todo: move this
-    \.cheatLevelSkip
-    \        LDX     #$CF
-	\	    JSR     keyboardScan     \ 1 key
-	\	    BNE     keyCheckComplete
-	\	    LDA     #$80
-	\	    STA     gameFlags
-	NOP
-    ENDIF
 
 .debounceRkey   \ .L1451  \ De-bounce for R keypress?
         LDA     #$81
@@ -267,7 +268,8 @@ IF ENCHEATS = TRUE \ Todo: move this
 .keyCheckComplete    \.L1460
         RTS
 
-.L1461
+\ .L1461 Label not used 
+
         CMP    #$07
 		BEQ    keyCheckComplete
 		JMP    (wordv_1)
@@ -278,7 +280,7 @@ IF ENCHEATS = TRUE \ Todo: move this
 .wordv_2    \ OSWORD redirection vector stored here \L1469
         EQUB    $E7
 
-.L146A
+.L146A  \ Move enemy / check left bound
         LDA     L149B
         BEQ     L1490
 
@@ -295,7 +297,7 @@ IF ENCHEATS = TRUE \ Todo: move this
         DEC     L0079
         JMP     L1490
 
-.L1483
+.L1483  \ Check right bound
         INC     L007A
         CLC
         LDA     L0078
@@ -841,38 +843,51 @@ L18F6 = L18F4+2
 .L1907
         JMP     L1907                              \ Infinite loop alert
 
-        EQUB    $00,$00,$05,$00,$00,$00,$00,$08    \ Lives icon, RAF(?) logo, explosion sprites
-        EQUB    $08,$1C,$08,$08,$08,$00,$28,$28
-        EQUB    $28,$3E,$28,$28,$00,$00,$00,$08
-        EQUB    $08,$08,$08,$08,$08,$00,$00,$10
-        EQUB    $10,$35,$35,$10,$10,$00,$30,$30
-        EQUB    $3F,$03,$03,$3F,$30,$30,$00,$20
-        EQUB    $20,$3A,$3A,$20,$20,$00,$00,$00
-        EQUB    $00,$05,$00,$00,$00,$00,$00,$00
-        EQUB    $00,$00,$00,$00,$00,$00,$00,$00
-        EQUB    $00,$00,$2A,$00,$00,$00,$00,$00
-        EQUB    $0A,$02,$15,$0A,$00,$00,$00,$00
-        EQUB    $2A,$15,$00,$2A,$00,$00,$00,$00
-        EQUB    $0A,$00,$02,$0A,$00,$00,$00,$00
-        EQUB    $00,$2A,$00,$00,$00,$00,$00,$00
-        EQUB    $00,$00,$05,$00,$00,$00,$00,$00
-        EQUB    $00,$00,$00,$00,$00,$00,$1A,$05
-        EQUB    $00,$C0,$05,$0A,$30,$05,$40,$00
-        EQUB    $4A,$15,$00,$2A,$0F,$10,$00,$4A
-        EQUB    $15,$00,$00,$48,$80,$20,$0A,$4A
-        EQUB    $10,$00,$00,$40,$2A,$0A,$10,$0A
-        EQUB    $40,$15,$00,$2A,$85,$30,$80,$25
-        EQUB    $0A,$40,$25,$90,$1A,$05,$0A,$00
-        EQUB    $20,$40,$00,$0A,$00,$00,$00,$05
-        EQUB    $00,$00,$00,$00,$00,$00,$00,$00
-        EQUB    $00,$80,$00,$00,$08,$00,$00,$00
-        EQUB    $00,$00,$00,$00,$00,$00,$0A,$00
-        EQUB    $00,$00,$00,$00,$00,$40,$00,$00
-        EQUB    $00,$00,$05,$00,$00,$00,$08,$00
-        EQUB    $00,$00,$00,$00,$00,$00,$00,$00
-        EQUB    $00,$00,$00,$00,$15,$08,$00,$80
-        EQUB    $00,$00,$05,$00,$00,$00,$2A,$2A
-        EQUB    $2A,$2A,$2A,$2A,$2A,$2A
+        \ Table below seems to be offset by 2 (ie STA &30002 for correct alignment)
+		
+        EQUB    $00,$00,$05,$00,$00,$00            \ Yellow dot? Probably junk
+		
+		EQUB    $00,$08,$08,$1C,$08,$08,$08,$00    \ Player lives
+		EQUB    $28,$28,$28,$3E,$28,$28,$00,$00
+		EQUB    $00,$08,$08,$08,$08,$08,$08,$00 
+		
+		EQUB    $00,$10,$10,$35,$35,$10,$10,$00    \ 'RAF' logo? Seems to be unused.
+		EQUB    $30,$30,$3F,$03,$03,$3F,$30,$30
+		EQUB    $00,$20,$20,$3A,$3A,$20,$20,$00
+		
+		EQUB    $00,$00,$00,$05,$00,$00,$00,$00    \ Enemy explosion 1 (L)
+		EQUB    $00,$00,$00,$00,$00,$00,$00,$00
+		EQUB    $00,$00,$00,$00,$2A,$00,$00,$00
+		
+		EQUB    $00,$00,$0A,$02,$15,$0A,$00,$00    \ Enemy explosion 1 (M)
+		EQUB    $00,$00,$2A,$15,$00,$2A,$00,$00
+		EQUB    $00,$00,$0A,$00,$02,$0A,$00,$00
+		
+		EQUB    $00,$00,$00,$2A,$00,$00,$00,$00    \ Enemy explosion 1 (R)
+		EQUB    $00,$00,$00,$00,$05,$00,$00,$00
+		EQUB    $00,$00,$00,$00,$00,$00,$00,$00
+
+		EQUB    $1A,$05,$00,$C0,$05,$0A,$30,$05    \ Enemy explosion 2 (L)
+		EQUB    $40,$00,$4A,$15,$00,$2A,$0F,$10
+		EQUB    $00,$4A,$15,$00,$00,$48,$80,$20
+		
+		EQUB    $0A,$4A,$10,$00,$00,$40,$2A,$0A    \ Enemy explosion 2 (R)
+		EQUB    $10,$0A,$40,$15,$00,$2A,$85,$30
+		EQUB    $80,$25,$0A,$40,$25,$90,$1A,$05
+		
+		EQUB    $0A,$00,$20,$40,$00,$0A,$00,$00    \ Enemy explosion 3 (L)
+		EQUB    $00,$05,$00,$00,$00,$00,$00,$00
+		EQUB    $00,$00,$00,$80,$00,$00,$08,$00
+		
+		EQUB    $00,$00,$00,$00,$00,$00,$00,$00    \ Enemy explosion 3 (M)
+		EQUB    $0A,$00,$00,$00,$00,$00,$00,$40
+		EQUB    $00,$00,$00,$00,$05,$00,$00,$00
+		
+		EQUB    $08,$00,$00,$00,$00,$00,$00,$00    \ Enemy explosion 3 (R)
+		EQUB    $00,$00,$00,$00,$00,$00,$15,$08
+		EQUB    $00,$80,$00,$00,$05,$00,$00,$00
+		
+		EQUB    $2A,$2A,$2A,$2A,$2A,$2A,$2A,$2A    \ White vertical line (padding?)
 
 .L1A08
         EQUB    $FF
@@ -968,7 +983,7 @@ L18F6 = L18F4+2
         EQUB    $00,$00,$3C,$1E,$01,$00,$00,$00
         EQUB    $14,$3C,$38,$3C,$16,$00,$00,$00
         EQUB    $28,$00,$00,$00,$28,$3C,$00,$00
-        EQUB    $3C,$38,$38,$38,$38,$38,$3C,$10
+.L1C00  EQUB    $3C,$38,$38,$38,$38,$38,$3C,$10    \ label added by iainfm
         EQUB    $38,$38,$38,$38,$38,$38,$38,$30
         EQUB    $14,$3C,$34,$14,$14,$14,$3C,$10
         EQUB    $20,$20,$20,$20,$20,$20,$38,$30
@@ -1098,15 +1113,15 @@ L18F6 = L18F4+2
 
         JSR     smc_L29F7                   \ Self modifying code - next enemy?
 
-        JSR     smc_L286E                       \ Player movement? - either an RTS or JMP $28D3 (load skull sprite?) - changed by .L2245/.L22E2
+        JSR     smc_L286E                   \ Player movement? - either an RTS or JMP $28D3 (load skull sprite?) - changed by .L2245/.L22E2
 
         JSR     L28E2                       \ Bullet Y movement
 
-        JSR     smc_L295E                       \ Player fire - either an RTS or JMP absolute
+        JSR     smc_L295E                   \ Player fire - either an RTS or JMP absolute
 
         JSR     L2C98                       \ Enemy bombs
 
-        JSR     smc_L2C45                       \ unknown - either an RTS or an LDA
+        JSR     smc_L2C45                   \ Drop a bomb? - either an RTS or an LDA
 
         JSR     L240E                       \ Pigeon
 
@@ -1114,7 +1129,7 @@ L18F6 = L18F4+2
 
         JSR     L1FE0                       \ Gravestones plot / pigeon reset after hit
 
-        JSR     keyCheck                       \ Check for rest (pause)?
+        JSR     keyCheck                    \ Keyboard scan
 
         JMP     L1E27                       \ branch back around
         
@@ -1138,11 +1153,16 @@ L18F6 = L18F4+2
         STA     L151A      
         STA     L008E
         STA     level                 \ Reset level
-        STA     unused_L1D54          \ Unused
+        STA     unused_L1D54          \ Unused? Perhaps not.
         STA     timer_L1D55           \ 'Lightning' effect timer
         STA     score_low_byte        \ Reset score
         STA     score_high_byte       \ Reset score
+		
+		IF ENMODS = TRUE
+		    LDA #(enemySpriteAddrLow AND $FF)    \ Get address dynamically
+			ENDIF
         STA     enemySpriteAddrLow    \ Reset enemey aircraft to level 1 biplane
+		                              \ (This messes up relocation)
         CLC
         LDA     #$20
         STA     L2D79
@@ -1157,20 +1177,20 @@ L18F6 = L18F4+2
 		\ Zero page memory lookups
         \ LDA     #$2D \ L2D0A_high
 
-		LDA     #HI(L2D47)
+		LDA     #L2D47 DIV 256 \ #HI(L2D47)
         STA     L008B    \ ($8B) = $472D (check)
         STA     L008D    \ ($8C) = $2D47
         STA     L0076    \ ($75) = $2D13
 		
         \ LDA     #$47
-		LDA     #LO(L2D47)
+		LDA     #L2D47 MOD 256 \ #LO(L2D47)
         STA     L008C    \ ($8C) = $2D47
         
 		\ LDA     #$0A
-		LDA     #LO(L2D0A)
+		LDA     #L2D0A MOD 256 \ #LO(L2D0A)
         STA     L008A    \ ($8A) = $2D0A
         \ LDA     #$13
-		LDA     #LO(L2D13)
+		LDA     #L2D13 MOD 256 \ #LO(L2D13)
         STA     L0075    \ ($75) = $2D13
 		
         LDX     #$0F
@@ -1228,7 +1248,7 @@ L18F6 = L18F4+2
 
         JSR     L261A    \ Draw clouds - not culprit
 
-        JSR     L25C9    \ Draw scenery - not culprit
+        JSR     drawLineArt    \ Draw scenery - not culprit
 
         JSR     drawStave \ not culprit
 
@@ -1283,7 +1303,7 @@ L18F6 = L18F4+2
         LDA     #$3A
         STA     L0081
         LDA     #$81
-        STA     L0082
+        STA     L0082   \ need changing to #LO(something)?
         LDX     #$01
         LDY     #$08
 .L1F76
@@ -1340,9 +1360,9 @@ L18F6 = L18F4+2
         STA     L0087
         LDA     #$90
         STA     L0086
-        LDA     #$23       \ Possible memory reference
+        LDA     #HI(L2358) \ $23       \ Possible memory reference
         STA     L28D7
-        LDA     #$58       \ Possible memory reference
+        LDA     #LO(L2358) \ $58       \ Possible memory reference
         STA     L28D6
         JSR     L28D3
 
@@ -1419,12 +1439,12 @@ L18F6 = L18F4+2
         RTS
 
 .L2054
-        LDA     #$34
+        LDA     #$34    \ Score screen memory location high byte
         STA     L0081
-        LDA     #$B0
+        LDA     #$B0    \ Score screen memory location low byte
         STA     L0080
-        LDA     #$1C
-        STA     L0083
+        LDA     #HI(L1C00)  \ $1C    \ Possible memory reference (score digits pointer)
+        STA     L0083   \ need changing to #HI(something)
         LDA     #$F0
         AND     score_high_byte
         JSR     L285A
@@ -1544,7 +1564,7 @@ L18F6 = L18F4+2
         ADC     L1D5A
         STA     L0081
         LDA     #$23
-        STA     L0083
+        STA     L0083    \ need changing to #HI(something)
         JSR     L213E
 
         CLC
@@ -1568,7 +1588,7 @@ L18F6 = L18F4+2
         CLC
         LDA     L0082
         ADC     #$08
-        STA     L0082
+        STA     L0082    \ Score sprite pointer low byte
         BCC     L2136
 
         INC     L0083
@@ -1584,8 +1604,8 @@ L18F6 = L18F4+2
         BIT     L0070
         BEQ     L2149
 
-        LDA     #$00
-        STA     L0082
+        LDA     #LO(L1C00) \ $00   \ Reset digit sprite pointer - Possible memory reference
+        STA     L0082  \ Needs changing to LDA #LO(L1C00)?
         RTS
 
 .L2149
@@ -1594,7 +1614,7 @@ L18F6 = L18F4+2
         BEQ     L2153
 
         LDA     #$10
-        STA     L0082
+        STA     L0082  \ need changing to #LO(L1C00)+$10?
         RTS
 
 .L2153
@@ -1603,7 +1623,7 @@ L18F6 = L18F4+2
         BEQ     L215D
 
         LDA     #$20
-        STA     L0082
+        STA     L0082  \ need changing to #LO(L1C00)+$20?
         RTS
 
 .L215D	\ Something to do with the plotting of dots on the stave
@@ -1612,7 +1632,7 @@ L18F6 = L18F4+2
         BEQ     L2167
 
         LDA     #$30
-        STA     L0082
+        STA     L0082  \ need changing to #LO(L1C00)+$30?
         RTS
 
 .L2167
@@ -1620,7 +1640,7 @@ L18F6 = L18F4+2
         BIT     L0070
         BEQ     L2171
 
-        LDA     #$40
+        LDA     #$40   \ need changing to #LO(L1C00)+$40?
         STA     L0082
 .L2171
         RTS
@@ -1733,9 +1753,9 @@ L18F6 = L18F4+2
 
 .L2223  \ not the culprit
         LDA     #$10
-        STA     L0082
+        STA     L0082    \ need changing to #LO(L1C00)+$10?
         LDA     #$19
-        STA     L0083
+        STA     L0083    \ need changing to #HI(something)
         LDA     L1D57
         STA     L0080
         LDA     L1D58
@@ -1880,8 +1900,8 @@ L18F6 = L18F4+2
         EQUB    $00,$00,$00,$00,$00,$00,$00,$00
         EQUB    $00,$00,$00,$00,$00,$3C,$3C,$10
         EQUB    $00,$00,$00,$00,$00,$38,$38,$30
-        EQUB    $01,$04,$04,$01,$01,$01,$00,$00
-        EQUB    $00,$04,$04,$04,$2C,$04,$04,$04    \ $2358
+        EQUB    $01,$04,$04,$01,$01,$01,$00,$00    \ Enemy bullet
+.L2358  EQUB    $00,$04,$04,$04,$2C,$04,$04,$04    \ Player sprite label added by iainfm
         EQUB    $00,$00,$00,$14,$3C,$14,$14,$00
         EQUB    $28,$28,$28,$3D,$3E,$3E,$3C,$28
         EQUB    $00,$04,$04,$04,$2C,$04,$04,$04
@@ -1914,7 +1934,7 @@ L18F6 = L18F4+2
 .L240E
         LDA     #$1B
 L240F = L240E+1
-        STA     L0083
+        STA     L0083    \ need changing to #HI(something)
         LDA     L2D7D
         BNE     L248E
 
@@ -1927,7 +1947,7 @@ L240F = L240E+1
         BEQ     L2444
 
         LDA     #$1B
-        STA     L0083
+        STA     L0083    \ need changing to #HI(something)
         STA     L240F    \ self-modifying code? Mistake?
         LDA     #$68
         STA     L2D7C
@@ -1942,7 +1962,7 @@ L240F = L240E+1
 
 .L2444
         LDA     #$1A
-        STA     L0083
+        STA     L0083    \ need changing to #HI(something)
         STA     L240F
         LDA     #$00
         STA     L2D7C
@@ -1978,7 +1998,7 @@ L246C = L246B+1
         LDX     #$02
         STX     L2D7E
         LDA     L2D68,X
-        STA     L0082
+        STA     L0082     \ ooft
         JMP     L2581
 
 .L248D
@@ -2008,7 +2028,7 @@ L246C = L246B+1
         AND     #$7F
         TAX
         LDA     L2D68,X
-        STA     L0082
+        STA     L0082     \ ooft
         LDY     #$00
         LDA     (L008A),Y
         STA     L0070
@@ -2105,7 +2125,7 @@ L252F = L252E+1
 .L2547
         STX     L2D7E
         LDA     L2D68,X
-        STA     L0082
+        STA     L0082    \ ooft
         LDA     L252F
         BEQ     L256C
 
@@ -2171,7 +2191,7 @@ L252F = L252E+1
 .L25B7
         RTS
 
-.L25B8
+.L25B8  \ Doesn't seem to do much other than ROL 7d/e/f. RNG?
         LDA     L007D
         AND     #$48
         ADC     #$38
@@ -2180,17 +2200,17 @@ L252F = L252E+1
         ROL     L007F
         ROL     L007E
         ROL     L007D
-        LDA     L007D
+        LDA     L007D    \ Why?
         RTS
 
-.L25C9
+.drawLineArt        \ .L25 C9
         LDY     #$00
-.L25CB
-        LDA     L26B0,Y
+.drawLineArtLoop    \ .L25CB
+        LDA     sceneryLineArt,Y
         JSR     oswrch
 
         INY
-        BNE     L25CB
+        BNE     drawLineArtLoop
 
         LDA     enemySpriteAddrLow
         STA     L0082
@@ -2257,7 +2277,7 @@ L252F = L252E+1
         DEY
         BPL     L2632
 
-        LDA     #$2E
+        LDA     #$2E    \ Possible memory reference
         STA     L007B
         LDA     #$20
         STA     L0078
@@ -2340,7 +2360,7 @@ L2673 = L2671+2
         STA     L2673
         RTS
 
-.L26B0
+.sceneryLineArt  \  .L26B0 Scenery line art VDU calls, used by .L25CB
         EQUB    $12,$00,$06,$19,$04,$00,$00,$13
         EQUB    $00,$19,$05,$04,$01,$17,$00,$19
         EQUB    $05,$2C,$01,$3C,$00,$19,$04,$7E
@@ -2373,8 +2393,13 @@ L2673 = L2671+2
         EQUB    $04,$9E,$02,$96,$00,$19,$15,$F4
         EQUB    $01,$78,$00,$19,$05,$58,$02,$64
         EQUB    $00,$19,$05,$90,$01,$5A,$00,$00
-        EQUB    $7D,$2D,$20,$13,$28,$A9,$09,$85    \ might be some code in here
+		
+.L27B0  EQUB    $7D,$2D,$20,$13    \ label added by iainfm
+		
+		EQUB    $28,$A9,$09,$85    \ might be some code in here
         EQUB    $83,$A9,$F0,$85,$82,$4C,$13,$28
+		
+		
         EQUB    $A9,$00,$8D
 
 .L27C3
@@ -2385,7 +2410,8 @@ L2673 = L2671+2
         EQUB    $75,$E0,$1C,$13,$7B,$4A,$7B,$60
         EQUB    $7B,$C4,$7A,$00,$1D,$B0,$78,$20
         EQUB    $78,$5C,$78,$20,$1D,$00,$78,$88
-        EQUB    $76,$60,$1D,$60,$70,$80,$1D,$E0
+        EQUB    $76,$60,$1D,$60,$70
+.L2800  EQUB    $80,$1D,$E0                        \ label added by iainfm castle
         EQUB    $72,$60,$75,$E0,$77,$80,$7A,$A0
         EQUB    $7A,$DC,$7A,$A0,$1D,$60,$7A,$30
         EQUB    $7B,$C0,$1D,$08,$79,$E0,$1D,$28
@@ -2437,7 +2463,7 @@ L2673 = L2671+2
         RTS
 
 .L285A
-        STA     L0082
+        STA     L0082    \ ooft
         LDY     #$0F
 .L285E  \ not the culprit
         LDA     (L0082),Y
@@ -2530,7 +2556,7 @@ L28D7 = L28D5+2
         LDA     L2D72
         STA     L0082
         LDA     L2D73
-        STA     L0083
+        STA     L0083    \ need changing to #HI(something)
 .L28F2
         INY
         LDA     (L008A),Y
@@ -2785,7 +2811,7 @@ L28D7 = L28D5+2
         STA     (L0075),Y    \ $75
 .L2A37  RTS		
 		
-.L2A38
+.L2A38  \ Enemy explosion
         LDA     L0077
         BEQ     L2A91
 
@@ -2952,8 +2978,8 @@ L28D7 = L28D5+2
 
         PLA
         TAY
-        LDA     L0073
-        AND     #$BF
+        LDA     L0073    \ $3F/$FF makes all the planes descend at once
+        AND     #$BF     
         STA     L0073
         INC     L0072
         JSR     L2C08
@@ -3155,14 +3181,14 @@ L2C1E = L2C1D+1
         TAY
         RTS
 
-.smc_L2C45
+.smc_L2C45      \ Drop a bomb if $2C49!=$60
         RTS     \ Gets changed to $A9 (LDA#) by L22E2
 
         EQUB    $C0    \ Making this the value being loaded into A
-		BIT     L0073  \ $73    \ and this the next instruction
+		BIT     L0073  \ and this the next instruction
 		
 .L2C49  BNE     L2C91
-        DEC     L0073  \ $73
+        DEC     L0073
         BNE     L2C91
         LDY     #$FF
 .L2C51  INY
@@ -3384,32 +3410,34 @@ L2D03 = L2D02+1
 .L2DFC
         EQUB    $49,$00
 
-.L2DFE  \ Sprites
-        EQUB    $0F,$00,$FF,$FF,$FF,$FF,$FF,$FF    \ Cloud part
-        EQUB    $FF,$FF,$FF,$FF,$FF,$FF,$FF,$AA
-        EQUB    $AA,$00,$55,$AA,$FF,$AA,$55,$55
-        EQUB    $00,$00,$FF,$FF,$55,$FF,$FF,$FF
-        EQUB    $FF,$00,$FF,$FF,$FF,$FF,$FF,$FF
-        EQUB    $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
-        EQUB    $FF,$AA,$FF,$FF,$FF,$FF,$FF,$AA
-        EQUB    $55,$00,$FF,$FF,$FF,$55,$FF,$FF
-        EQUB    $FF,$55,$FF,$FF,$FF,$FF,$FF,$FF
-        EQUB    $FF,$AA,$FF,$FF,$FF,$FF,$FF,$FF
-        EQUB    $AA,$00,$FF,$FF,$FF,$AA,$FF,$55
-        EQUB    $00,$00,$FF,$55,$FF,$FF,$FF,$FF
-        EQUB    $FF,$00,$FF,$FF,$FF,$FF,$FF,$FF
-        EQUB    $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
-        EQUB    $FF,$AA,$FF,$FF,$FF,$FF,$FF,$AA
-        EQUB    $55,$00,$FF,$FF,$FF,$FF,$55,$FF
-        EQUB    $FF,$FF,$AA,$FF,$FF,$FF,$FF,$FF
-        EQUB    $FF,$AA,$FF,$55,$AA,$FF,$FF,$AA
-        EQUB    $00,$00,$FF,$FF,$FF,$55,$AA,$00
-        EQUB    $00,$00,$FF,$FF,$FF,$FF,$FF,$00
-        EQUB    $00,$00,$FF,$FF,$FF,$FF,$FF,$FF
-        EQUB    $55,$00,$FF,$FF,$FF,$FF,$FF,$FF
-        EQUB    $FF,$55,$FF,$FF,$FF,$FF,$FF,$FF
-        EQUB    $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
-        EQUB    $FF,$00
+.L2DFE  \ ?
+        EQUB    $0F,$00
+		
+.L2E00  \ Sprites (label added by iainfm)
+		EQUB    $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF    \ Clouds
+		EQUB    $FF,$FF,$FF,$FF,$FF,$AA,$AA,$00
+		EQUB    $55,$AA,$FF,$AA,$55,$55,$00,$00
+		EQUB    $FF,$FF,$55,$FF,$FF,$FF,$FF,$00
+		EQUB    $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
+		EQUB    $FF,$FF,$FF,$FF,$FF,$FF,$FF,$AA
+		EQUB    $FF,$FF,$FF,$FF,$FF,$AA,$55,$00
+		EQUB    $FF,$FF,$FF,$55,$FF,$FF,$FF,$55
+		EQUB    $FF,$FF,$FF,$FF,$FF,$FF,$FF,$AA
+		EQUB    $FF,$FF,$FF,$FF,$FF,$FF,$AA,$00
+		EQUB    $FF,$FF,$FF,$AA,$FF,$55,$00,$00
+		EQUB    $FF,$55,$FF,$FF,$FF,$FF,$FF,$00
+		EQUB    $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
+		EQUB    $FF,$FF,$FF,$FF,$FF,$FF,$FF,$AA
+		EQUB    $FF,$FF,$FF,$FF,$FF,$AA,$55,$00
+		EQUB    $FF,$FF,$FF,$FF,$55,$FF,$FF,$FF
+		EQUB    $AA,$FF,$FF,$FF,$FF,$FF,$FF,$AA
+		EQUB    $FF,$55,$AA,$FF,$FF,$AA,$00,$00
+		EQUB    $FF,$FF,$FF,$55,$AA,$00,$00,$00
+		EQUB    $FF,$FF,$FF,$FF,$FF,$00,$00,$00
+		EQUB    $FF,$FF,$FF,$FF,$FF,$FF,$55,$00
+		EQUB    $FF,$FF,$FF,$FF,$FF,$FF,$FF,$55
+		EQUB    $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
+		EQUB    $FF,$FF,$FF,$FF,$FF,$FF,$FF,$00
 
 .L2EC0  \ Sprites
         EQUB    $FF,$FF,$FF,$FF,$FF,$FF,$AA,$55    \ Cloud part
@@ -3417,12 +3445,14 @@ L2D03 = L2D02+1
         EQUB    $55,$FF,$FF,$FF,$FF,$FF,$FF,$AA
         EQUB    $FF,$FF,$AA,$AA,$AA,$00,$00,$00
 
+.test   \ NOP
+
 .L2EE0 \ Sprites for clouds and enemy aircraft
         EQUB    $FF,$FF,$55,$55,$55,$00,$00,$00    \ Cloud part
         EQUB    $FF,$FF,$FF,$FF,$FF,$FF,$FF,$00
         EQUB    $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
         EQUB    $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
-        EQUB    $00,$05,$00,$00,$00,$00,$05,$00    \ Wave 1 aircraft sprite
+.L2F00   EQUB    $00,$05,$00,$00,$00,$00,$05,$00    \ Wave 1 aircraft sprite - label added
         EQUB    $00,$0F,$0A,$0A,$0A,$0A,$0F,$00
         EQUB    $00,$0F,$00,$00,$00,$00,$0F,$15
         EQUB    $00,$0F,$05,$15,$0F,$05,$0F,$00
@@ -3456,5 +3486,5 @@ L2D03 = L2D02+1
         EQUB    $20,$00,$00,$00,$3C,$00,$00,$3A
 
 .BeebDisEndAddr
-SAVE "birdsk2.bin",p0data,BeebDisEndAddr
+SAVE "$.BirdSk2",p0data,BeebDisEndAddr
 
