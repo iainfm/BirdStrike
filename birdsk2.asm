@@ -88,11 +88,11 @@ org     $1200          \ "P%" as per the original binary
         EQUB    $02,$19,$02,$19,$00,$7C,$00,$7C, $72,$E7,$01,$00,$07,$32,$83,$98 \ 00 
         EQUB    $80,$77,$02,$19,$0A,$00,$43,$B4, $19,$00,$07,$00,$00,$19,$00,$00 \ 10
         EQUB    $00,$FF,$FF,$FF,$00,$00,$00,$40, $FF,$FF,$00,$35,$00,$00,$00,$00 \ 20
-        EQUB    $8F,$00,$00,$00,$00,$00,$28,$00, $07,$EE,$20,$00,$FF,$00,$00,$7F \ 30
+        EQUB    $8F,$00,$00,$00,$00,$00,$28,$00, $07,$EE,$20,$00,$FF,$00,$00,$7F \ 30 $2800 - castle tower
         EQUB    $FE,$00,$FE,$7E,$00,$00,$00,$00, $00,$00,$40,$08,$05,$FF,$09,$00 \ 40
         EQUB    $00,$00,$00,$00,$00,$00,$00,$00, $00,$00,$9F,$1D,$01,$01,$01,$01 \ 50
         EQUB    $79,$14,$72,$D4,$06,$00,$00,$00, $40,$00,$40,$00,$00,$00,$00,$00 \ 60
-        EQUB    $00,$37,$D0,$37,$20,$39,$02,$00, $00,$2E,$00,$6E,$00,$02,$1B,$AA \ 70
+        EQUB    $00,$37,$D0,$37,$20,$39,$02,$00, $00,$2E,$00,$6E,$00,$02,$1B,$AA \ 70 $2E00 - clouds etc
         EQUB    $00,$34                                                          \ 80
 		EQUW             L1C00                                                   \ 80
 		EQUB                    $EF,$80,$98,$7E, $A5,$64                         \ 80
@@ -322,7 +322,8 @@ IF ENMODS = TRUE \ Testing
 		DEC     L14AD
 		RTS
 		
-.L14A5  LDA     #$12
+.L14A5  \ Player bullet fired
+        LDA     #$12     \ 2nd bullet fire delay?
         STA     L14AD
 		JMP     L297D    \ this (or another L297D) may upset the disassembly. Jury's out.
 		
@@ -633,9 +634,9 @@ L17AC = L17AB+1
         STA     L1A08
         LDA     #$00
         STA     level
-        LDA     #$26
+        LDA     #$26    \ Possible memory address
         STA     L1A0C
-        LDA     #$88
+        LDA     #$88    \ Possible memory address
         STA     L1A0B
 .L17D1
         CLC
@@ -845,49 +846,49 @@ L18F6 = L18F4+2
 
         \ Table below seems to be offset by 2 (ie STA &30002 for correct alignment)
 		
-        EQUB    $00,$00,$05,$00,$00,$00            \ Yellow dot? Probably junk
+.L190A  EQUB    $00,$00,$05,$00,$00,$00            \ Yellow dot? Probably junk
 		
-		EQUB    $00,$08,$08,$1C,$08,$08,$08,$00    \ Player lives
+.L1910  EQUB    $00,$08,$08,$1C,$08,$08,$08,$00    \ Player lives
 		EQUB    $28,$28,$28,$3E,$28,$28,$00,$00
 		EQUB    $00,$08,$08,$08,$08,$08,$08,$00 
 		
-		EQUB    $00,$10,$10,$35,$35,$10,$10,$00    \ 'RAF' logo? Seems to be unused.
+.L1928  EQUB    $00,$10,$10,$35,$35,$10,$10,$00    \ 'RAF' logo? Seems to be unused.
 		EQUB    $30,$30,$3F,$03,$03,$3F,$30,$30
 		EQUB    $00,$20,$20,$3A,$3A,$20,$20,$00
 		
-		EQUB    $00,$00,$00,$05,$00,$00,$00,$00    \ Enemy explosion 1 (L)
+.L1940	EQUB    $00,$00,$00,$05,$00,$00,$00,$00    \ Enemy explosion 1 (L)
 		EQUB    $00,$00,$00,$00,$00,$00,$00,$00
 		EQUB    $00,$00,$00,$00,$2A,$00,$00,$00
 		
-		EQUB    $00,$00,$0A,$02,$15,$0A,$00,$00    \ Enemy explosion 1 (M)
+.L1958	EQUB    $00,$00,$0A,$02,$15,$0A,$00,$00    \ Enemy explosion 1 (M)
 		EQUB    $00,$00,$2A,$15,$00,$2A,$00,$00
 		EQUB    $00,$00,$0A,$00,$02,$0A,$00,$00
 		
-		EQUB    $00,$00,$00,$2A,$00,$00,$00,$00    \ Enemy explosion 1 (R)
+.L1970	EQUB    $00,$00,$00,$2A,$00,$00,$00,$00    \ Enemy explosion 1 (R)
 		EQUB    $00,$00,$00,$00,$05,$00,$00,$00
 		EQUB    $00,$00,$00,$00,$00,$00,$00,$00
 
-		EQUB    $1A,$05,$00,$C0,$05,$0A,$30,$05    \ Enemy explosion 2 (L)
+.L1988	EQUB    $1A,$05,$00,$C0,$05,$0A,$30,$05    \ Enemy explosion 2 (L)
 		EQUB    $40,$00,$4A,$15,$00,$2A,$0F,$10
 		EQUB    $00,$4A,$15,$00,$00,$48,$80,$20
 		
-		EQUB    $0A,$4A,$10,$00,$00,$40,$2A,$0A    \ Enemy explosion 2 (R)
+.L19A0	EQUB    $0A,$4A,$10,$00,$00,$40,$2A,$0A    \ Enemy explosion 2 (R)
 		EQUB    $10,$0A,$40,$15,$00,$2A,$85,$30
 		EQUB    $80,$25,$0A,$40,$25,$90,$1A,$05
 		
-		EQUB    $0A,$00,$20,$40,$00,$0A,$00,$00    \ Enemy explosion 3 (L)
+.L19B8	EQUB    $0A,$00,$20,$40,$00,$0A,$00,$00    \ Enemy explosion 3 (L)
 		EQUB    $00,$05,$00,$00,$00,$00,$00,$00
 		EQUB    $00,$00,$00,$80,$00,$00,$08,$00
 		
-		EQUB    $00,$00,$00,$00,$00,$00,$00,$00    \ Enemy explosion 3 (M)
+.L19D0	EQUB    $00,$00,$00,$00,$00,$00,$00,$00    \ Enemy explosion 3 (M)
 		EQUB    $0A,$00,$00,$00,$00,$00,$00,$40
 		EQUB    $00,$00,$00,$00,$05,$00,$00,$00
 		
-		EQUB    $08,$00,$00,$00,$00,$00,$00,$00    \ Enemy explosion 3 (R)
+.L19E8	EQUB    $08,$00,$00,$00,$00,$00,$00,$00    \ Enemy explosion 3 (R)
 		EQUB    $00,$00,$00,$00,$00,$00,$15,$08
 		EQUB    $00,$80,$00,$00,$05,$00,$00,$00
 		
-		EQUB    $2A,$2A,$2A,$2A,$2A,$2A,$2A,$2A    \ White vertical line (padding?)
+.L1A00	EQUB    $2A,$2A,$2A,$2A,$2A,$2A,$2A,$2A    \ White vertical line (padding?)
 
 .L1A08
         EQUB    $FF
@@ -904,53 +905,55 @@ L18F6 = L18F4+2
 .L1A0C  
         EQUB    $FF,$FF,$FF,$FF
 		\ Life lost animation sprites
-.L1A10  EQUB    $00,$04,$00,$04                    \ Label added by iainfm
-        EQUB    $28,$04,$00,$04,$00,$00,$00,$00
-        EQUB    $28,$00,$00,$00,$28,$00,$28,$00
-        EQUB    $28,$00,$00,$00,$00,$04,$00,$04
-        EQUB    $28,$04,$00,$04,$00,$00,$00,$00
-        EQUB    $28,$00,$00,$00
+.L1A10  \ Label added by iainfm
+        EQUB    $00,$04,$00,$04,$28,$04,$00,$04 \ Player hit 1
+        EQUB    $00,$00,$00,$00,$28,$00,$00,$00
+        EQUB    $28,$00,$28,$00,$28,$00,$00,$00
+        EQUB    $00,$04,$00,$04,$28,$04,$00,$04
+        EQUB    $00,$00,$00,$00,$28,$00,$00,$00
 		
-.L1A38  EQUB    $00,$00,$00,$00                    \ Label added by iainfm
-        EQUB    $00,$00,$04,$2C,$00,$00,$00,$00
-        EQUB    $00,$00,$14,$28,$00,$00,$00,$00
-        EQUB    $00,$00,$14,$28,$00,$00,$00,$00
-        EQUB    $00,$00,$04,$2C,$00,$00,$00,$00
-        EQUB    $00,$00,$00,$28
+.L1A38  \ Label added by iainfm
+        EQUB    $00,$00,$00,$00,$00,$00,$04,$2C \ Player hit 2
+        EQUB    $00,$00,$00,$00,$00,$00,$14,$28
+        EQUB    $00,$00,$00,$00,$00,$00,$14,$28
+        EQUB    $00,$00,$00,$00,$00,$00,$04,$2C
+        EQUB    $00,$00,$00,$00,$00,$00,$00,$28
 
-.L1A60  \ Skull
-        EQUB    $00,$00,$00,$00,$00,$40,$00,$40
+.L1A60
+        EQUB    $00,$00,$00,$00,$00,$40,$00,$40 \ Skull
         EQUB    $40,$80,$80,$40,$40,$40,$80,$00
         EQUB    $C0,$80,$80,$40,$C0,$40,$80,$00
         EQUB    $00,$80,$80,$00,$00,$40,$80,$40
-		\ Pigeon sprite ($1A80)
-        EQUB    $00,$00,$00,$00,$00,$00,$00,$00
-        EQUB    $00,$00,$00,$14,$3C,$00,$00,$00
+		
+.L1A80  EQUB    $00,$00,$00,$00,$00,$00,$00,$00
+
+.L1A88  EQUB    $00,$00,$00,$14,$3C,$00,$00,$00 \ Pigeon L-R 1
         EQUB    $00,$00,$00,$3C,$3C,$34,$3C,$28
         EQUB    $00,$00,$3C,$2D,$22,$00,$00,$00
-		\ Pigeon sprite ($1AA0) s, pigeon, numbers, some scenery sprites
-        EQUB    $00,$00,$00,$14,$3C,$00,$14,$00
+
+.L1AA0  EQUB    $00,$00,$00,$14,$3C,$00,$14,$00 \ Pigeon L-R 2
         EQUB    $00,$00,$00,$3C,$3C,$34,$28,$00
         EQUB    $00,$00,$3C,$2D,$22,$00,$00,$00
-        EQUB    $00,$00,$00,$14,$3C,$00,$00,$00
-		\ Pigeon TBC
+		
+.L1AB8  EQUB    $00,$00,$00,$14,$3C,$00,$00,$00 \ Pigeon L-R 3
         EQUB    $00,$00,$00,$3C,$39,$00,$00,$00
         EQUB    $00,$00,$3C,$2D,$22,$00,$00,$00
-        EQUB    $00,$00,$00,$00,$14,$3C,$00,$00
-        EQUB    $00,$3C,$34,$3C,$39,$00,$00,$00
 		
+.L1AD0  EQUB    $00,$00,$00,$00,$14,$3C,$00,$00 \ Pigeon L-R 4
+        EQUB    $00,$3C,$34,$3C,$39,$00,$00,$00
         EQUB    $00,$00,$3C,$2D,$22,$00,$00,$00
-        EQUB    $14,$00,$00,$00,$14,$3C,$00,$00
+		
+.L1AE8  EQUB    $14,$00,$00,$00,$14,$3C,$00,$00 \ Pigeon L-R 5
         EQUB    $28,$3C,$34,$3C,$39,$00,$00,$00
         EQUB    $00,$00,$3C,$2D,$22,$00,$00,$00
         
-        EQUB    $30,$24,$10,$13,$16,$19,$1C,$34            
+.L1B00  EQUB    $30,$24,$10,$13,$16,$19,$1C,$34            
         EQUB    $41,$1F,$48,$48,$48,$48,$48,$48
         EQUB    $48
         
         EQUS    "LDASTAJSRRTSBNE"                    \ BASIC/keyboard/source artefacts?
         EQUS    "P.~!&"
-        EQUS    $16,$34,$13  \\ Should be EQUB?
+        EQUB    $16,$34,$13
         EQUS    "12000L."
         EQUB    $0E
         EQUB    $0D
@@ -960,73 +963,91 @@ L18F6 = L18F4+2
         EQUB    $00,$00
         EQUS    "CALLQ%"
         
-        EQUB    $0D,$00,$00,$14,$3C,$00,$00,$00
+        EQUB    $0D,$00,$00,$14,$3C,$00,$00,$00    \ Part pigeon? Possibly corrupt 
         EQUB    $00,$00,$00,$3C,$3C,$34,$3C,$28
-        EQUB    $00,$00,$3C,$2D,$22,$00,$00,$00
+		
+        EQUB    $00,$00,$3C,$2D,$22,$00,$00,$00    \ Part pigeon? Possibly corrupt
         EQUB    $00,$00,$00,$14,$3C,$00,$14,$00
         EQUB    $00,$00,$00,$00,$00,$00,$00,$00
+		
 .L1B70  EQUB    $00,$00,$00,$00,$14,$00,$00,$00    \ Label added by iainfm - hit pigeon
         EQUB    $00,$05,$00,$28,$00,$01,$00,$14
         EQUB    $00,$00,$00,$28,$14,$00,$00,$00
-        EQUB    $00,$00,$3C,$1E,$01,$00,$00,$00
+		
+.L1BB8  EQUB    $00,$00,$3C,$1E,$01,$00,$00,$00    \ Pigeon R-L 1
         EQUB    $00,$00,$00,$3C,$3C,$38,$3C,$14
         EQUB    $00,$00,$00,$28,$3C,$00,$00,$00
-        EQUB    $00,$00,$3C,$1E,$01,$00,$00,$00
+		
+.L1BD0  EQUB    $00,$00,$3C,$1E,$01,$00,$00,$00    \ Pigeon R-L L2
         EQUB    $00,$00,$00,$3C,$3C,$38,$14,$00
         EQUB    $00,$00,$00,$28,$3C,$00,$28,$00
-        EQUB    $00,$00,$3C,$1E,$01,$00,$00,$00
+		
+.L1BE8  EQUB    $00,$00,$3C,$1E,$01,$00,$00,$00    \ Pigeon R-L 3
         EQUB    $00,$00,$00,$3C,$16,$00,$00,$00
         EQUB    $00,$00,$00,$28,$3C,$00,$00,$00
-        EQUB    $00,$00,$3C,$1E,$01,$00,$00,$00
+		
+        EQUB    $00,$00,$3C,$1E,$01,$00,$00,$00    \ Pigeon R-L 4
         EQUB    $00,$3C,$38,$3C,$16,$00,$00,$00
         EQUB    $00,$00,$00,$00,$28,$3C,$00,$00
-        EQUB    $00,$00,$3C,$1E,$01,$00,$00,$00
+		
+        EQUB    $00,$00,$3C,$1E,$01,$00,$00,$00    \ Pigeon R-L 5
         EQUB    $14,$3C,$38,$3C,$16,$00,$00,$00
         EQUB    $28,$00,$00,$00,$28,$3C,$00,$00
-.L1C00  EQUB    $3C,$38,$38,$38,$38,$38,$3C,$10    \ label added by iainfm
+		
+.L1C00  EQUB    $3C,$38,$38,$38,$38,$38,$3C,$10    \ Number 0 label added by iainfm
         EQUB    $38,$38,$38,$38,$38,$38,$38,$30
-        EQUB    $14,$3C,$34,$14,$14,$14,$3C,$10
+.L1C10  EQUB    $14,$3C,$34,$14,$14,$14,$3C,$10    \ Number 1
         EQUB    $20,$20,$20,$20,$20,$20,$38,$30
-        EQUB    $3C,$30,$00,$3C,$38,$28,$3C,$10
+		
+.L1C20  EQUB    $3C,$30,$00,$3C,$38,$28,$3C,$10    \ Number 2
         EQUB    $38,$38,$38,$38,$30,$00,$28,$30
-        EQUB    $3C,$30,$00,$3C,$30,$00,$3C,$10
+.L1C30  EQUB    $3C,$30,$00,$3C,$30,$00,$3C,$10    \ Number 3
         EQUB    $38,$38,$38,$38,$38,$38,$38,$30
-        EQUB    $38,$38,$38,$3C,$10,$00,$00,$00
+		
+.L1C40  EQUB    $38,$38,$38,$3C,$10,$00,$00,$00    \ Number 4
         EQUB    $38,$38,$38,$38,$38,$38,$38,$30
-        EQUB    $3C,$38,$28,$3C,$10,$00,$3C,$10
+        EQUB    $3C,$38,$28,$3C,$10,$00,$3C,$10    \ Number 5
         EQUB    $38,$30,$00,$38,$38,$38,$38,$30
-        EQUB    $3C,$38,$28,$3C,$38,$28,$3C,$10
+		
+.L1C60  EQUB    $3C,$38,$28,$3C,$38,$28,$3C,$10    \ Number 6
         EQUB    $38,$30,$00,$28,$38,$38,$38,$30
-        EQUB    $3C,$30,$00,$14,$14,$14,$14,$10
+        EQUB    $3C,$30,$00,$14,$14,$14,$14,$10    \ Number 7
         EQUB    $38,$38,$38,$30,$20,$20,$20,$20
-        EQUB    $3C,$38,$28,$3C,$38,$28,$3C,$10
+		
+.L1C80  EQUB    $3C,$38,$28,$3C,$38,$28,$3C,$10    \ Number 8
         EQUB    $38,$38,$38,$38,$38,$38,$38,$30
-        EQUB    $3C,$38,$28,$3C,$10,$00,$3C,$10
+        EQUB    $3C,$38,$28,$3C,$10,$00,$3C,$10    \ Number 9
         EQUB    $38,$38,$38,$38,$38,$38,$38,$30
-        EQUB    $00,$00,$00,$00,$00,$00,$00,$00
+		
+.L1CA0  EQUB    $00,$00,$00,$00,$00,$00,$00,$00    \ Tree top
         EQUB    $00,$00,$04,$00,$0C,$00,$04,$0C
         EQUB    $08,$08,$06,$08,$06,$0C,$06,$06
         EQUB    $00,$00,$00,$00,$08,$00,$00,$08
-        EQUB    $00,$04,$08,$04,$00,$00,$08,$04
+		
+.L1CC0  EQUB    $00,$04,$08,$04,$00,$00,$08,$04    \ Tree middle
         EQUB    $0C,$04,$08,$0C,$02,$04,$0C,$08
         EQUB    $06,$0C,$06,$08,$06,$06,$0C,$06
         EQUB    $08,$04,$08,$0C,$00,$08,$04,$08
-        EQUB    $00,$04,$00,$00,$00,$00,$08,$04
+		
+.L1CE0  EQUB    $00,$04,$00,$00,$00,$00,$08,$04    \ Tree base
         EQUB    $08,$09,$04,$00,$00,$08,$08,$0C
         EQUB    $02,$0C,$02,$02,$02,$02,$02,$07
         EQUB    $08,$04,$00,$00,$04,$04,$01,$09
-        EQUB    $15,$01,$09,$06,$09,$06,$09,$06
+		
+.L1D00  EQUB    $15,$01,$09,$06,$09,$06,$09,$06    \ 1st House roof
         EQUB    $00,$00,$09,$06,$09,$06,$09,$06
         EQUB    $00,$00,$09,$06,$09,$06,$09,$06
         EQUB    $00,$00,$09,$06,$09,$06,$09,$06
-        EQUB    $00,$00,$00,$07,$08,$06,$09,$06
+		
+.L1D20  EQUB    $00,$00,$00,$07,$08,$06,$09,$06    \ 2nd House roof
         EQUB    $00,$00,$00,$0F,$20,$0F,$08,$02
         EQUB    $00,$00,$00,$05,$00,$0E,$01,$0E
         EQUB    $00,$00,$01,$0E,$09,$06,$09,$06
 
-.L1D40
-        EQUB    $31,$7A,$D9,$7C,$C9,$77,$12,$7A
-        EQUB    $C8,$7C,$BA,$77,$51,$7A,$B8,$7C
+.L1D40  \ Screen memory locations
+        EQUB    $31,$7A,$D9,$7C,$C9,$77,$12,$7A   \ Gravestone locations
+        EQUB    $C8,$7C
+		EQUB    $BA,$77,$51,$7A,$B8,$7C           \ Unknown - unused player graves?
         EQUB    $20,$7A,$42,$7A
 
 .unused_L1D54   \ Unused?
@@ -1057,27 +1078,36 @@ L18F6 = L18F4+2
         EQUB    $00
 
 .L1D5D  \ Game data?
-        EQUB    $00,$00,$00,$28,$3C,$0D,$2D
-        EQUB    $2D,$0D,$3C,$2C,$28,$0F,$31,$31
-        EQUB    $35,$30,$1A,$0F,$28,$0F,$30,$30
-        EQUB    $33,$30,$25,$1E,$34,$1C,$1E,$0E
-        EQUB    $36,$1E,$2C,$1C,$3C,$1C,$2C,$3C
-        EQUB    $34,$1C,$2C,$1C,$1C,$3C,$28,$20
-        EQUB    $28,$0C,$3C,$34,$34,$2C,$2C,$1C
-        EQUB    $3C,$38,$3C,$1C,$1C,$2C,$3C,$34
-        EQUB    $2C,$3C,$1C,$2C,$3C,$38,$2C,$1C
-        EQUB    $2C,$38,$1C,$38,$2C,$1C,$39,$33
-        EQUB    $33,$27,$33,$33,$3C,$38,$14,$11
-        EQUB    $11,$11,$11,$11,$1C,$1C,$2C,$24
-        EQUB    $3C,$2C,$1C,$1C,$20,$35,$30,$20
-        EQUB    $20,$30,$30,$18,$38,$10,$30,$10
-        EQUB    $38,$30,$30,$18,$3A,$10,$30,$10
-        EQUB    $10,$30,$1A,$1A,$3D,$00,$30,$30
-        EQUB    $28,$00,$30,$30,$20,$20,$30,$30
-        EQUB    $20,$20,$30,$30,$04,$04,$0D,$24
-        EQUB    $30,$38,$30,$18,$04,$08,$00,$00
-        EQUB    $20,$20,$30,$30,$00,$08,$04,$04
-        EQUB    $30,$3A,$30,$30
+        EQUB    $00,$00,$00
+
+\ .test   NOP
+		
+.L1D60  \ Building features
+        EQUB    $28,$3C,$0D,$2D,$2D,$0D,$3C,$2C    \ Castle clock
+        EQUB    $28,$0F,$31,$31,$35,$30,$1A,$0F
+        EQUB    $28,$0F,$30,$30,$33,$30,$25,$1E
+        EQUB    $34,$1C,$1E,$0E,$36,$1E,$2C,$1C
+		
+.L1D80  EQUB    $3C,$1C,$2C,$3C,$34,$1C,$2C,$1C    \ Castle tower
+        EQUB    $1C,$3C,$28,$20,$28,$0C,$3C,$34
+        EQUB    $34,$2C,$2C,$1C,$3C,$38,$3C,$1C
+        EQUB    $1C,$2C,$3C,$34,$2C,$3C,$1C,$2C
+		
+.L1DA0  EQUB    $3C,$38,$2C,$1C,$2C,$38,$1C,$38    \ Castle/house door
+        EQUB    $2C,$1C,$39,$33,$33,$27,$33,$33
+        EQUB    $3C,$38,$14,$11,$11,$11,$11,$11
+        EQUB    $1C,$1C,$2C,$24,$3C,$2C,$1C,$1C
+		
+.L1DC0  EQUB    $20,$35,$30,$20,$20,$30,$30,$18    \ Blue house LH wall
+        EQUB    $38,$10,$30,$10,$38,$30,$30,$18
+        EQUB    $3A,$10,$30,$10,$10,$30,$1A,$1A
+        EQUB    $3D,$00,$30,$30,$28,$00,$30,$30
+        
+.L1DE0  EQUB    $20,$20,$30,$30,$20,$20,$30,$30    \ Blue house RH wall
+        EQUB    $04,$04,$0D,$24,$30,$38,$30,$18
+        EQUB    $04,$08,$00,$00,$20,$20,$30,$30
+        EQUB    $00,$08,$04,$04,$30,$3A,$30,$30
+
 
 .game   \L1E00
         \ Game can be run by starting execution here
@@ -1167,9 +1197,9 @@ L18F6 = L18F4+2
         LDA     #$20
         STA     L2D79
 		
-        LDA     #$03
+        LDA     #$03     \ Possible memory address
         STA     L2D7A
-        LDA     #$2A
+        LDA     #$2A     \ Possible memory address
         STA     L2D7B
         LDA     #$02
         STA     L0071
@@ -1205,9 +1235,9 @@ L18F6 = L18F4+2
         BNE     L1EC6
 
         STX     L007D
-        LDA     #$03
+        LDA     #$03    \ Lives
         STA     L1D56
-        LDA     #$2F                 
+        LDA     #HI(L2F00)    \ #$2F                 
         STA     enemySpriteAddrHigh
         LDA     #$F0
         STA     useless
@@ -1279,7 +1309,7 @@ L18F6 = L18F4+2
 		
         LDA     #$06
         STA     L2D0A
-        LDA     #$1E
+        LDA     #$1E         \ Probably not a memory pointer
         STA     L2D13
         LDA     #$30
         STA     L1D5A
@@ -1444,7 +1474,7 @@ L18F6 = L18F4+2
         LDA     #$B0    \ Score screen memory location low byte
         STA     L0080
         LDA     #HI(L1C00)  \ $1C    \ Possible memory reference (score digits pointer)
-        STA     L0083   \ need changing to #HI(something)
+        STA     L0083
         LDA     #$F0
         AND     score_high_byte
         JSR     L285A
@@ -1563,8 +1593,8 @@ L18F6 = L18F4+2
 .L2103
         ADC     L1D5A
         STA     L0081
-        LDA     #$23
-        STA     L0083    \ need changing to #HI(something)
+        LDA     #HI(L2300)    \ #$23     \ Note sprite pointer
+        STA     L0083
         JSR     L213E
 
         CLC
@@ -1605,7 +1635,7 @@ L18F6 = L18F4+2
         BEQ     L2149
 
         LDA     #LO(L1C00) \ $00   \ Reset digit sprite pointer - Possible memory reference
-        STA     L0082  \ Needs changing to LDA #LO(L1C00)?
+        STA     L0082
         RTS
 
 .L2149
@@ -1613,8 +1643,8 @@ L18F6 = L18F4+2
         BIT     L0070
         BEQ     L2153
 
-        LDA     #$10
-        STA     L0082  \ need changing to #LO(L1C00)+$10?
+        LDA     #LO(L1C10) \ #$10
+        STA     L0082  \ need changing to #LO(L1C00)+$10? (done)
         RTS
 
 .L2153
@@ -1622,8 +1652,8 @@ L18F6 = L18F4+2
         BIT     L0070
         BEQ     L215D
 
-        LDA     #$20
-        STA     L0082  \ need changing to #LO(L1C00)+$20?
+        LDA     #LO(L1C20) \ #$20
+        STA     L0082  \ need changing to #LO(L1C00)+$20? (done)
         RTS
 
 .L215D	\ Something to do with the plotting of dots on the stave
@@ -1631,8 +1661,8 @@ L18F6 = L18F4+2
         BIT     L0070
         BEQ     L2167
 
-        LDA     #$30
-        STA     L0082  \ need changing to #LO(L1C00)+$30?
+        LDA     #LO(L1C30) \ #$30
+        STA     L0082  \ need changing to #LO(L1C00)+$30? (done?)
         RTS
 
 .L2167
@@ -1640,7 +1670,7 @@ L18F6 = L18F4+2
         BIT     L0070
         BEQ     L2171
 
-        LDA     #$40   \ need changing to #LO(L1C00)+$40?
+        LDA     #LO(L1C40) \ #$40   \ need changing to #LO(L1C00)+$40? (done)
         STA     L0082
 .L2171
         RTS
@@ -1752,10 +1782,10 @@ L18F6 = L18F4+2
         EQUB    $00,$00,$FD,$F0,$FF
 
 .L2223  \ not the culprit
-        LDA     #$10
-        STA     L0082    \ need changing to #LO(L1C00)+$10?
-        LDA     #$19
-        STA     L0083    \ need changing to #HI(something)
+        LDA     #LO(L1910) \ #$10
+        STA     L0082
+        LDA     #HI(L1910) \ #$19
+        STA     L0083
         LDA     L1D57
         STA     L0080
         LDA     L1D58
@@ -1890,22 +1920,30 @@ L18F6 = L18F4+2
         STA     L1D57
         JMP     L2223
 
-        EQUB    $00,$00,$00,$00,$00,$14,$3C,$3C    \ $2300 Musical notes and player sprite
+.L2300  \ $2300 Musical notes and other sprites
+        EQUB    $00,$00,$00,$00,$00,$14,$3C,$3C    \ Crotchet
         EQUB    $38,$38,$38,$38,$38,$38,$38,$20
-        EQUB    $00,$00,$00,$00,$00,$14,$38,$3C
+		
+.L2310  EQUB    $00,$00,$00,$00,$00,$14,$38,$3C    \ Minim
         EQUB    $38,$38,$38,$38,$38,$38,$38,$00
-        EQUB    $00,$00,$00,$00,$00,$14,$38,$3C
+		
+.L2320  EQUB    $00,$00,$00,$00,$00,$14,$38,$3C    \ Semibreve
         EQUB    $00,$00,$00,$00,$00,$38,$38,$20
-        EQUB    $00,$00,$00,$00,$00,$38,$38,$30
+		
+.L2330  EQUB    $00,$00,$00,$00,$00,$38,$38,$30    \ Dot
         EQUB    $00,$00,$00,$00,$00,$00,$00,$00
-        EQUB    $00,$00,$00,$00,$00,$3C,$3C,$10
+		
+.L2340  EQUB    $00,$00,$00,$00,$00,$3C,$3C,$10    \ Rest
         EQUB    $00,$00,$00,$00,$00,$38,$38,$30
-        EQUB    $01,$04,$04,$01,$01,$01,$00,$00    \ Enemy bullet
+		
+.L2350  EQUB    $01,$04,$04,$01,$01,$01,$00,$00    \ Enemy bomb
+		
 .L2358  EQUB    $00,$04,$04,$04,$2C,$04,$04,$04    \ Player sprite label added by iainfm
-        EQUB    $00,$00,$00,$14,$3C,$14,$14,$00
-        EQUB    $28,$28,$28,$3D,$3E,$3E,$3C,$28
+        EQUB    $00,$00,$00,$14,$3C,$14,$14,$00		
+        EQUB    $28,$28,$28,$3D,$3E,$3E,$3C,$28    
         EQUB    $00,$04,$04,$04,$2C,$04,$04,$04
         EQUB    $00,$00,$00,$00,$28,$00,$00,$00
+		
         EQUB    $00,$00
 
 .L2382
@@ -1932,7 +1970,7 @@ L18F6 = L18F4+2
         EQUB    $14,$00,$14,$00
 
 .L240E
-        LDA     #$1B
+        LDA     #$1B     \ Not sure what this is for, or if it's a memory pointer
 L240F = L240E+1
         STA     L0083    \ need changing to #HI(something)
         LDA     L2D7D
@@ -1945,8 +1983,9 @@ L240F = L240E+1
         LDA     #$02
         BIT     L02FC
         BEQ     L2444
-
-        LDA     #$1B
+		
+        \ Wing hit? Send R-L pigeon
+        LDA     #HI(L1BB8)    \ #$1B     \ Pigeon R-L sprite pointer
         STA     L0083    \ need changing to #HI(something)
         STA     L240F    \ self-modifying code? Mistake?
         LDA     #$68
@@ -1960,9 +1999,9 @@ L240F = L240E+1
         STA     L246C
         BNE     L245F
 
-.L2444
-        LDA     #$1A
-        STA     L0083    \ need changing to #HI(something)
+.L2444  \ Wing hit? Send L-R pigeon
+        LDA     #HI(L1A88)    \ #$1A     \ Pigeon L-R sprite pointer
+        STA     L0083    \ need changing to #HI(something) (done)
         STA     L240F
         LDA     #$00
         STA     L2D7C
@@ -2216,7 +2255,7 @@ L252F = L252E+1
         STA     L0082
         LDA     enemySpriteAddrHigh
         STA     L0083
-        LDA     #$1F
+        LDA     #$1F    \ Something to do with scenery sprite plotting. Possible memory location
         STA     L2C1E
         LDA     #$E0
         STA     L0070
@@ -2277,9 +2316,9 @@ L252F = L252E+1
         DEY
         BPL     L2632
 
-        LDA     #$2E    \ Possible memory reference
+        LDA     #HI(L2EE0)    \ $2E    \ Possible memory reference - clouds
         STA     L007B
-        LDA     #$20
+        LDA     #LO(L2E20)    \ #$20
         STA     L0078
         LDX     #$08
 .L2644
@@ -2394,7 +2433,7 @@ L2673 = L2671+2
         EQUB    $01,$78,$00,$19,$05,$58,$02,$64
         EQUB    $00,$19,$05,$90,$01,$5A,$00,$00
 		
-.L27B0  EQUB    $7D,$2D,$20,$13    \ label added by iainfm
+.L27B0  EQUB    $7D,$2D,$20,$13    \ label added by iainfm. Seems unused
 		
 		EQUB    $28,$A9,$09,$85    \ might be some code in here
         EQUB    $83,$A9,$F0,$85,$82,$4C,$13,$28
@@ -2402,19 +2441,39 @@ L2673 = L2671+2
 		
         EQUB    $A9,$00,$8D
 
-.L27C3
-        EQUB    $58,$A0,$1C,$93,$73,$49,$71,$60
+.L27C3  
+        EQUB    $58
+		EQUW    L1CA0    \ EQUB    $A0,$1C         \ Tree top
+		EQUB    $93,$73,$49,$71,$60                \ Screen memory plot locations
         EQUB    $76,$99,$75,$44,$73,$C9,$78,$B4
-        EQUB    $76,$C0,$1C,$13,$76,$93,$78,$C9
+        EQUB    $76
+		EQUW    L1CC0    \ EQUB $C0,$1C            \ Tree middle
+		EQUB    $13,$76,$93,$78,$C9
         EQUB    $73,$49,$76,$E0,$78,$44,$78,$C4
-        EQUB    $75,$E0,$1C,$13,$7B,$4A,$7B,$60
-        EQUB    $7B,$C4,$7A,$00,$1D,$B0,$78,$20
-        EQUB    $78,$5C,$78,$20,$1D,$00,$78,$88
-        EQUB    $76,$60,$1D,$60,$70
-.L2800  EQUB    $80,$1D,$E0                        \ label added by iainfm castle
+        EQUB    $75
+		EQUW    L1CE0    \ EQUB    $E0,$1C         \ Tree middle
+		EQUB    $13,$7B,$4A,$7B,$60
+        EQUB    $7B,$C4,$7A
+		EQUW    L1D00    \ EQUB    $00,$1D         \ 1st house roof
+		EQUB    $B0,$78,$20
+        EQUB    $78,$5C,$78
+		EQUW    L1D20    \ EQUB    $20,$1D         \ 2nd house roof
+		EQUB    $00,$78,$88
+        EQUB    $76
+		EQUW    L1D60    \ EQUB    $60,$1D         \ Castle clock
+		EQUB    $60,$70
+		
+.L2800  EQUW    L1D80    \ EQUB    $80,$1D         \ Castle tower
+        EQUB    $E0
         EQUB    $72,$60,$75,$E0,$77,$80,$7A,$A0
-        EQUB    $7A,$DC,$7A,$A0,$1D,$60,$7A,$30
-        EQUB    $7B,$C0,$1D,$08,$79,$E0,$1D,$28
+        EQUB    $7A,$DC,$7A
+		EQUW    L1DA0    \ EQUB    $A0,$1D         \ Castle/house door
+		EQUB    $60,$7A,$30
+        EQUB    $7B
+		EQUW    L1DC0    \ EQUB    $C0,$1D         \ Blue house LH wall
+		EQUB    $08,$79
+		EQUW    L1DE0    \ EQUB    $E0,$1D         \ Blue house RH wall
+		EQUB    $28
         EQUB    $79,$00
 
 .L281D  \ PLOT X, Y, 00 ?
@@ -2555,7 +2614,7 @@ L28D7 = L28D5+2
         STA     L0070
         LDA     L2D72
         STA     L0082
-        LDA     L2D73
+        LDA     bulletSprite
         STA     L0083    \ need changing to #HI(something)
 .L28F2
         INY
@@ -2815,7 +2874,7 @@ L28D7 = L28D5+2
         LDA     L0077
         BEQ     L2A91
 
-        LDX     #$19
+        LDX     #HI(L1910)   \ #$19
         STX     enemySpriteAddrHigh
         LDA     enemySpriteAddrLow
         PHA
@@ -2823,7 +2882,7 @@ L28D7 = L28D5+2
         CMP     #$15
         BNE     L2A53
 
-        LDA     #$40
+        LDA     #LO(L2F40)    \ #$40
         STA     enemySpriteAddrLow
         JSR     L2C08
 
@@ -2833,11 +2892,11 @@ L28D7 = L28D5+2
         CMP     #$0C
         BNE     L2A68
 
-        LDA     #$40
+        LDA     #LO(L2F40)    \ #$40
         STA     enemySpriteAddrLow
         JSR     L2C08
 
-        LDA     #$80
+        LDA     #LO(L2F80)    \ #$80
         STA     enemySpriteAddrLow
         JSR     L2C08
 
@@ -2847,11 +2906,11 @@ L28D7 = L28D5+2
         CMP     #$06
         BNE     L2A7D
 
-        LDA     #$80
+        LDA     #LO(L2F80)    \ #$80
         STA     enemySpriteAddrLow
         JSR     L2C08
 
-        LDA     #$C0
+        LDA     #LO(L2FC0)    \ #$C0
         STA     enemySpriteAddrLow
         JSR     L2C08
 
@@ -2861,12 +2920,12 @@ L28D7 = L28D5+2
         CMP     #$01
         BNE     L2A88
 
-        LDA     #$C0
+        LDA     #LO(L2FC0)    \ #$C0
         STA     enemySpriteAddrLow
         JSR     L2C08
 
 .L2A88
-        LDA     #$2F
+        LDA     #HI(L2F00)    \ #$2F
         STA     enemySpriteAddrHigh
         PLA
         STA     enemySpriteAddrLow
@@ -2948,8 +3007,8 @@ L28D7 = L28D5+2
         STA     (L008A),Y
         BNE     L2B21
 
-.L2AFE
-        LDA     #$19
+.L2AFE  \ Enemy critical hit
+        LDA     #HI(L1940)    \#$19    \ possible memory reference (L19xx) - enemy explosion
         STA     L0077
         LDA     #$D8
         STA     (L008A),Y
@@ -3353,14 +3412,14 @@ L2D03 = L2D02+1
 .L2D72  \ Bullet 'sprite'
         EQUB    $00
 
-.L2D73
-        EQUB    $1A
+.bulletSprite   \ L2D73
+        EQUB    $1A  \ player bullet 'sprite'
 
 .L2D74
-        EQUB    $50
+        EQUB    LO(L2350)    \ $50     \ Enemy bomb sprite low
 
 .L2D75
-        EQUB    $23
+        EQUB    HI(L2350)    \ $23     \ Enemy bomb sprite high
 
 .gameFlags      \ L2D76 \ Game flags
         EQUB    $00		\ pigeon flying, 10 = add notes (use for bonus cheat), 80 = end level (c 2d76 80)
@@ -3418,7 +3477,7 @@ L2D03 = L2D02+1
 		EQUB    $FF,$FF,$FF,$FF,$FF,$AA,$AA,$00
 		EQUB    $55,$AA,$FF,$AA,$55,$55,$00,$00
 		EQUB    $FF,$FF,$55,$FF,$FF,$FF,$FF,$00
-		EQUB    $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
+.L2E20	EQUB    $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
 		EQUB    $FF,$FF,$FF,$FF,$FF,$FF,$FF,$AA
 		EQUB    $FF,$FF,$FF,$FF,$FF,$AA,$55,$00
 		EQUB    $FF,$FF,$FF,$55,$FF,$FF,$FF,$55
@@ -3445,14 +3504,14 @@ L2D03 = L2D02+1
         EQUB    $55,$FF,$FF,$FF,$FF,$FF,$FF,$AA
         EQUB    $FF,$FF,$AA,$AA,$AA,$00,$00,$00
 
-.test   \ NOP
+\ .test   \ NOP
 
 .L2EE0 \ Sprites for clouds and enemy aircraft
         EQUB    $FF,$FF,$55,$55,$55,$00,$00,$00    \ Cloud part
         EQUB    $FF,$FF,$FF,$FF,$FF,$FF,$FF,$00
         EQUB    $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
         EQUB    $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
-.L2F00   EQUB    $00,$05,$00,$00,$00,$00,$05,$00    \ Wave 1 aircraft sprite - label added
+.L2F00  EQUB    $00,$05,$00,$00,$00,$00,$05,$00    \ Wave 1 aircraft sprite - label added
         EQUB    $00,$0F,$0A,$0A,$0A,$0A,$0F,$00
         EQUB    $00,$0F,$00,$00,$00,$00,$0F,$15
         EQUB    $00,$0F,$05,$15,$0F,$05,$0F,$00
@@ -3460,7 +3519,7 @@ L2D03 = L2D02+1
         EQUB    $00,$0F,$00,$00,$0A,$00,$0F,$15
         EQUB    $00,$0F,$00,$00,$00,$00,$0F,$00
         EQUB    $00,$0F,$0A,$0A,$0A,$0A,$0F,$00
-        EQUB    $00,$04,$00,$00,$00,$00,$00,$00    \ Wave 2 aircraft sprite
+.L2F40  EQUB    $00,$04,$00,$00,$00,$00,$00,$00    \ Wave 2 aircraft sprite
         EQUB    $00,$0C,$04,$00,$00,$00,$00,$00
         EQUB    $00,$0C,$00,$08,$04,$00,$05,$05
         EQUB    $00,$0D,$15,$04,$04,$08,$00,$00
@@ -3468,7 +3527,7 @@ L2D03 = L2D02+1
         EQUB    $00,$0C,$00,$00,$04,$08,$05,$05
         EQUB    $00,$0C,$04,$08,$00,$00,$00,$00
         EQUB    $00,$0C,$00,$00,$00,$00,$00,$00
-        EQUB    $00,$00,$00,$14,$14,$00,$00,$00    \ Wave 3 aircraft
+.L2F80  EQUB    $00,$00,$00,$14,$14,$00,$00,$00    \ Wave 3 aircraft
         EQUB    $00,$00,$00,$00,$28,$3C,$00,$00
         EQUB    $00,$00,$00,$00,$00,$3C,$0A,$00
         EQUB    $28,$14,$00,$00,$14,$29,$14,$00
@@ -3476,7 +3535,7 @@ L2D03 = L2D02+1
         EQUB    $28,$00,$00,$00,$00,$3C,$00,$00
         EQUB    $00,$00,$00,$00,$00,$3C,$0A,$00
         EQUB    $00,$00,$00,$14,$3C,$28,$00,$00
-        EQUB    $00,$00,$00,$00,$14,$00,$00,$00    \ Wave 4 aircraft
+.L2FC0  EQUB    $00,$00,$00,$00,$14,$00,$00,$00    \ Wave 4 aircraft
         EQUB    $30,$00,$00,$10,$3C,$10,$00,$00
         EQUB    $38,$28,$28,$3E,$14,$3C,$30,$00
         EQUB    $30,$00,$00,$20,$3C,$20,$00,$00
