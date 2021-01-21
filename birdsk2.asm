@@ -1,12 +1,16 @@
 \ Build directives
 
-ORIGINAL = TRUE       \ Build an exact copy of the original
-PRESERVE = TRUE       \ Preserve original memory locations (only when ORIGINAL = FALSE)
+ORIGINAL = TRUE        \ Build an exact copy of the original
+PRESERVE = FALSE       \ Preserve original memory locations (only when ORIGINAL = FALSE)
 ENMODS   = FALSE       \ Enable mods (not working yet): 1) Skip level
                       \ Note: enabling cheats cannot preserve original memory locations
 					  
 \ ToDo: check references to $28D6/7 (player sprite pointer), $2D7C/D and $78/79 for fixed addressing (L2BB0)
 \ L2d68 as well
+\ 75/76 (&2D13)
+\ 7A/7B (&2E00)
+\ 88
+
 \ BirdSk2.bin
 L0000   = $0000        \ Zero Page uses
 L0008   = $0008
@@ -516,7 +520,8 @@ IF ENMODS = TRUE \ Testing
        \ MODE 7 Title Screen
 	   
         EQUB    $16,$07,$17,$00,$0A,$20,$00,$00
-        EQUB    $00,$00,$00,$00,$9A,$94,$68,$3F
+        EQUB    $00,$00,$00,$00
+.L15D4	EQUB    $9A,$94,$68,$3F
         EQUB    $6F,$34,$20,$20,$20,$20,$20,$20
         EQUB    $20,$20,$FF,$20,$20,$5F,$7E,$2F
         EQUB    $6D,$20,$78,$20,$20,$20,$20,$20
@@ -557,7 +562,8 @@ IF ENMODS = TRUE \ Testing
 		ENDIF
 		
         EQUB    $00
-		EQUB    $1F,$0E,$0E   \ Move text cursor
+
+.L16BD  EQUB    $1F,$0E,$0E   \ Move text cursor
 		EQUB    $8D,$83       \ Double-height / yellow
         EQUS    "Keys"        \ Double height line 1
         EQUB    $1F,$0E,$0F   \ Move text cursor
@@ -579,7 +585,7 @@ IF ENMODS = TRUE \ Testing
 		EQUB    $86           \ Cyan
         EQUS    "R ................. rest"
         EQUB    $00
-		EQUB    $1F,$07,$18   \ Move text cursor
+.L175C  EQUB    $1F,$07,$18   \ Move text cursor
 		EQUB    $81,$88       \ Red / flash
         EQUS    "Press space to play."
         EQUB    $00,$00,$00
@@ -710,8 +716,8 @@ L17AC = L17AB+1
         LDA     #$07
         JSR     oswrch
 
-        LDX     #$D4
-        LDY     #$15
+        LDX     #LO(L15D4)          \ #$D4 self-modifying code
+        LDY     #HI(L15D4)          \ #$15 self-modifying code
         JSR     L18EB
 
         LDA     #$1F
@@ -732,12 +738,12 @@ L17AC = L17AB+1
         LDA     #$30
         JSR     oswrch
 
-        LDX     #$A0
-        LDY     #$16
+        LDX     #LO(highScoreDots) \ #$A0 self-modifying code
+        LDY     #HI(highScoreDots) \ #$16 self-modifying code
         JSR     L18EB
 
-        LDX     #$BD
-        LDY     #$16
+        LDX     #LO(L16BD)         \ #$BD self-modifying code
+        LDY     #HI(L16BD)         \ #$16 self-modifying code
         JSR     L18EB
 
         LDA     #$1F
@@ -768,7 +774,7 @@ L17AC = L17AB+1
 .L18A6
         INY
         LDA     keysText,Y    \ read and
-        JSR     osasci        \ print instructions text
+        JSR     osasci        \ print high score text etc
 
         CMP     #$20
         BPL     L18A6
@@ -790,11 +796,11 @@ L17AC = L17AB+1
         LDA     #$1A
         JSR     oswrch
 
-        LDX     #$5C
-        LDY     #$17
+        LDX     #LO(L175C)       \ #$5C self-modifying code
+        LDY     #HI(L175C)       \ #$17 self-modifying code
         JSR     L18EB
 
-.L18CF
+.L18CF  \ Wait for spacebar to begin game
         LDX     #$9D     \ Space bar
         JSR     keyboardScan
 
@@ -819,8 +825,8 @@ L17AC = L17AB+1
         JMP     osasci    \ with implied RTS
 
 .L18EB
-        STX     L18F5
-        STY     L18F6
+        STX     L18F5    \ naughtly self-modifying code
+        STY     L18F6    \ naughtly self-modifying code
         LDY     #$FF
 .L18F3
         INY
@@ -828,6 +834,7 @@ L17AC = L17AB+1
         LDA     highScoreDots,Y
 L18F5 = L18F4+1
 L18F6 = L18F4+2
+
         JSR     osasci            \ Print the dots in the high score 'table'
 
         CMP     #$00
@@ -1131,7 +1138,7 @@ L18F6 = L18F4+2
 .L1E21
         JSR     L1819                       \ Display title screen/high score/controls
 
-        JSR     newGame                    \ Start game on spacebar from title screen
+        JSR     newGame                     \ Start game on spacebar from title screen
 
 .L1E27    \ Main game loop
 
@@ -1189,7 +1196,7 @@ L18F6 = L18F4+2
         STA     score_high_byte       \ Reset score
 		
 		IF ENMODS = TRUE
-		    LDA #(enemySpriteAddrLow AND $FF)    \ Get address dynamically
+		    LDA #(L2F00 AND $FF)      \ Get address dynamically
 			ENDIF
         STA     enemySpriteAddrLow    \ Reset enemey aircraft to level 1 biplane
 		                              \ (This messes up relocation)
@@ -1197,9 +1204,9 @@ L18F6 = L18F4+2
         LDA     #$20
         STA     L2D79
 		
-        LDA     #$03     \ Possible memory address
+        LDA     #$03     \ Lives? Possible memory address
         STA     L2D7A
-        LDA     #$2A     \ Possible memory address
+        LDA     #$2A     \ Initial x position? Possible memory address
         STA     L2D7B
         LDA     #$02
         STA     L0071
@@ -1781,7 +1788,7 @@ L18F6 = L18F4+2
         EQUB    $03,$19,$01,$00,$03,$00,$00,$19
         EQUB    $00,$00,$FD,$F0,$FF
 
-.L2223  \ not the culprit
+.L2223  \ not the culprit - load player lives address
         LDA     #LO(L1910) \ #$10
         STA     L0082
         LDA     #HI(L1910) \ #$19
@@ -2257,7 +2264,7 @@ L252F = L252E+1
         STA     L0083
         LDA     #$1F    \ Something to do with scenery sprite plotting. Possible memory location
         STA     L2C1E
-        LDA     #$E0
+        LDA     #$E0    \ Possible memory location
         STA     L0070
         LDY     #$00
 .L25E7
@@ -3504,7 +3511,7 @@ L2D03 = L2D02+1
         EQUB    $55,$FF,$FF,$FF,$FF,$FF,$FF,$AA
         EQUB    $FF,$FF,$AA,$AA,$AA,$00,$00,$00
 
-\ .test   \ NOP
+ \ .test  NOP
 
 .L2EE0 \ Sprites for clouds and enemy aircraft
         EQUB    $FF,$FF,$55,$55,$55,$00,$00,$00    \ Cloud part
