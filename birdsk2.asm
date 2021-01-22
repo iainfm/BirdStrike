@@ -11,6 +11,32 @@ ENMODS   = FALSE       \ Enable mods (not working yet): 1) Skip level
 \ 7A/7B (&2E00)
 \ 88
 
+\ Possible SMC locations to investigate:
+\ L17A0
+\ L17AC
+
+\ L18F5
+\ L18F6
+
+\ L240F - Pigeon sprite pointer - changes for L-R / R-L flyer
+\ L246C - Pigeon start position?
+\ L252F - Pigeon end position?
+
+\ L266F - Screen memory addresses for cloud plotting
+\ L2670 - Screen memory addresses for cloud plotting
+
+\ L2672 - Screen memory addresses for cloud plotting
+\ L2673 - Screen memory addresses for cloud plotting
+
+\ L28D6 - Player sprite / hit / skull
+\ L28D7 - Player sprite / hit / skull
+
+\ L2C1E - Number of 8x8 sprites to plot? 3F (64 bytes for planes?)
+\ L2D03 - variable SBC for something
+
+\ Check what updates L008A
+\ Check possible SMC @ L2C1E
+
 \ BirdSk2.bin
 L0000   = $0000        \ Zero Page uses
 L0008   = $0008
@@ -486,7 +512,7 @@ IF ENMODS = TRUE \ Testing
         STA     gameFlags
         RTS
 
-.L159E
+.L159E  \ Display bonus text
         LDY     #$00
 .L15A0
         LDA     bonusText,Y
@@ -503,8 +529,9 @@ IF ENMODS = TRUE \ Testing
         EQUB    $11,$06,$1F,$07,$0F        \ Cyan text, centred
         EQUS    "BONUS!"
 
-.L15B7
-        EQUB    $12,$00,$FF,$FF,$00,$00,$00,$00
+.L15B7  \ Something to do with the bonus routine
+        EQUB    $12 \ (just this byte, the rest is padding?)
+		EQUB    $00,$FF,$FF,$00,$00,$00,$00
         EQUB    $FF,$B4,$16,$08,$20,$7F
 
 .L15C5
@@ -600,9 +627,9 @@ IF ENMODS = TRUE \ Testing
         BPL     vduLoop
 
         LDA     #$80
-        STA     L17A0
+        STA     L17A0      \ SMC
         LDA     #$00
-        STA     L17AC
+        STA     L17AC      \ SMC
         LDA     #$04
         STA     L0070
 .L1791
@@ -617,7 +644,7 @@ IF ENMODS = TRUE \ Testing
         SEC
 .L179F
         LDA     #$00
-L17A0 = L179F+1
+L17A0 = L179F+1            \ SMC
         SBC     #$80
         STA     L17A0
         PHP
@@ -626,7 +653,7 @@ L17A0 = L179F+1
         PLP
 .L17AB
         LDA     #$00
-L17AC = L17AB+1
+L17AC = L17AB+1            \ SMC
         SBC     #$00
         STA     L17AC
         JSR     oswrch
@@ -677,17 +704,17 @@ L17AC = L17AB+1
         LDA     #$1A
         JMP     oswrch \ Restore default windows and then RTS
 
-.vduCallsTable         \ VDU calls    \ L180E
+.vduCallsTable         \ VDU calls    \ L180E - executed top-to-bottom
         EQUB    $10    \ Clear graphics area
-		EQUB    $03    \ Disable printer
-		EQUB    $FF    \ terminator character?
-		EQUB    $04    \ Write text at text cursor
-		EQUB    $0F    \ Paged mode off
-		EQUB    $02    \ Enable printer
-		EQUB    $0F    \ Paged mode off
-		EQUB    $00    \ nada
-        EQUB    $F0    \ ?
-		EQUB    $18    \ Define graphics colour
+		EQUB    $03    \ 
+		EQUB    $FF    \ 
+		EQUB    $04    \ 
+		EQUB    $0F    \ 
+		EQUB    $02    \ 
+		EQUB    $0F    \ 
+		EQUB    $00    \ 
+        EQUB    $F0    \ 
+		EQUB    $18    \ Define graphics window
 		EQUB    $1A    \ Restore default windows
 
 .L1819
@@ -781,7 +808,7 @@ L17AC = L17AB+1
 
 .L18B1
         LDY     #$02
-.L18B3
+.L18B3  \ Title screen loop
         LDA     titleScreen,Y
         JSR     oswrch
 
@@ -832,8 +859,8 @@ L17AC = L17AB+1
         INY
 .L18F4
         LDA     highScoreDots,Y
-L18F5 = L18F4+1
-L18F6 = L18F4+2
+L18F5 = L18F4+1          \ SMC?
+L18F6 = L18F4+2          \ SMC?
 
         JSR     osasci            \ Print the dots in the high score 'table'
 
@@ -1142,7 +1169,7 @@ L18F6 = L18F4+2
 
 .L1E27    \ Main game loop
 
-        JSR     L25B8                       \ unknown
+        JSR     L25B8                       \ unknown, possibly pseudo random number generator?
 
         JSR     L284A                       \ Delay? - plays at high speed when disabled. Also clears an interrupt(?)
 
@@ -1173,9 +1200,9 @@ L18F6 = L18F4+2
         EQUS    "(c)A.E.Frigaard 1984 Hello!"
 
 .newGame        \ L1E6C    \ Set up new game
-        LDA     #$05
+        LDA     #$05       \ Possible memory address for envelope
         STA     L0070
-        JSR     L2835
+        JSR     L2835      \ Define envelope routine
 
         LDA     #$49       \ New game tune
         JSR     playTune
@@ -1397,9 +1424,9 @@ L18F6 = L18F4+2
         STA     L0087
         LDA     #$90
         STA     L0086
-        LDA     #HI(L2358) \ $23       \ Possible memory reference
+        LDA     #HI(L2358) \ $23       \ Memory reference - player sprite pointer
         STA     L28D7
-        LDA     #LO(L2358) \ $58       \ Possible memory reference
+        LDA     #LO(L2358) \ $58       \ Memory reference - player sprite pointer
         STA     L28D6
         JSR     L28D3
 
@@ -1831,9 +1858,9 @@ L18F6 = L18F4+2
         STA     smc_L295E
         JSR     L28D3
 
-        LDA     #HI(L1A10) \#$1A     \ Possible memory reference (sprite area)
+        LDA     #HI(L1A10) \#$1A     \ Memory reference (lost life sprite 1)
         STA     L28D7
-        LDA     #LO(L1A10) \#$10     \ Possible memory reference (lost life sprite 1)
+        LDA     #LO(L1A10) \#$10     \ Memory reference (lost life sprite 1)
         STA     L28D6
         JMP     L28D3
 
@@ -1853,7 +1880,7 @@ L18F6 = L18F4+2
 
         JSR     L28D3
 
-        LDA     #LO(L1A38) \ #$38    \ Possible memory reference (lost life sprite 2)
+        LDA     #LO(L1A38) \ #$38    \ Memory reference (lost life sprite 2)
         STA     L28D6
         JMP     L28D3
 
@@ -1863,7 +1890,7 @@ L18F6 = L18F4+2
 
         JSR     L28D3
 
-        LDA     #LO(L1A60) \ #$60 \ Possible memory reference (Skull sprite)
+        LDA     #LO(L1A60) \ #$60    \ Memory reference (Skull sprite)
         STA     L28D6
         JMP     L28D3
 
@@ -1977,9 +2004,9 @@ L18F6 = L18F4+2
         EQUB    $14,$00,$14,$00
 
 .L240E
-        LDA     #$1B     \ Not sure what this is for, or if it's a memory pointer
-L240F = L240E+1
-        STA     L0083    \ need changing to #HI(something)
+        LDA     #$1B     \ Pigeon sprite memory pointer
+L240F = L240E+1          \ SMC - $1A = L-R $1B = R-L
+        STA     L0083
         LDA     L2D7D
         BNE     L248E
 
@@ -1993,12 +2020,12 @@ L240F = L240E+1
 		
         \ Wing hit? Send R-L pigeon
         LDA     #HI(L1BB8)    \ #$1B     \ Pigeon R-L sprite pointer
-        STA     L0083    \ need changing to #HI(something)
-        STA     L240F    \ self-modifying code? Mistake?
+        STA     L0083
+        STA     L240F    \ self-modifying code
         LDA     #$68
         STA     L2D7C
         STA     L0080
-        LDA     #$00
+        LDA     #$00     \ Pigeon end position?
         STA     L252F
         LDA     #$4C
         STA     L2D7F
@@ -2014,7 +2041,7 @@ L240F = L240E+1
         STA     L2D7C
         STA     L0080
         STA     L2D7F
-        LDA     #$4C
+        LDA     #$4C    \ Pigeon end position?
         STA     L252F
         LDA     #$49
         STA     L246C
@@ -2151,7 +2178,7 @@ L246C = L246B+1
         LDA     L2D7F
 .L252E
         CMP     #$00
-L252F = L252E+1
+L252F = L252E+1               \ SMC?
         BEQ     L2509
 
         AND     #$1F
@@ -2365,12 +2392,12 @@ L252F = L252E+1
         \ Cloud drawing routines? I think this maybe mirrors them top-to-bottom and/or left-to-right?
 		
         LDA     L4900,Y
-L266F = L266E+1
-L2670 = L266E+2
+L266F = L266E+1            \ SMC - Cloud screen memory address
+L2670 = L266E+2            \ SMC - Cloud screen memory address
 .L2671
         STA     L4180,X
-L2672 = L2671+1
-L2673 = L2671+2
+L2672 = L2671+1            \ SMC - Cloud screen memory address
+L2673 = L2671+2            \ SMC - Cloud screen memory address
         INY
         DEX
         BPL     L266E
@@ -2500,21 +2527,54 @@ L2673 = L2671+2
 
         JMP     oswrch    \ with implied RTS
 
-.L2835
-        LDA     L0070
-        ASL     A
-        ASL     A
-        ASL     A
-        ASL     A
-        ADC     #$70
-        TAX
-        LDA     #$08
-        LDY     #$2D
-        JSR     osword        \ Define an envelope
+.L2835  \ Define envelopes
+        \ Need to recode this for relocation
+		\ Memory locations used (in order) are:
+		\ $2DC0, $2DB0, $2DA0, $2D90, $2D80
+		IF ENMODS = FALSE
+            LDA     L0070     \ A = 5
+            ASL     A         \ A = 5 * 2
+            ASL     A         \ * 2
+            ASL     A         \ * 2
+            ASL     A         \ * 2
+            ADC     #$70      \ + $70 (112)
+            TAX               \ If A was 5 on entry, X is now $C0
+            LDA     #$08
+            LDY     #$2D          \ Possible memory address
+            JSR     osword        \ Define an envelope
+            DEC     L0070
+            BNE     L2835
+		ELSE
+		    \ Could make this either a beebasm loop or an assembler loop
+			\ Currently this breaks more than it fixes
+		    LDA     #$08
+		    LDX     #LO(L2DC0)
+			LDY     #HI(L2DC0)
+			JSR     osword
+			
+			LDA     #$08
+		    LDX     #LO(L2DB0)
+			LDY     #HI(L2DB0)
+			JSR     osword
+			
+			LDA     #$08
+		    LDX     #LO(L2DA0)
+			LDY     #HI(L2DA0)
+			JSR     osword
+			
+			LDA     #$08
+		    LDX     #LO(L2D90)
+			LDY     #HI(L2D90)
+            JSR     osword			
+			
+			LDA     #$08
+			LDX     #LO(L2D80)
+			LDY     #HI(L2D80)
+			JSR     osword
 
-        DEC     L0070
-        BNE     L2835
-
+            LDA #$00
+			STA L0070
+        ENDIF
         RTS
 
 .L284A
@@ -2539,12 +2599,12 @@ L2673 = L2671+2
 
         CLC
         LDA     L0080
-        ADC     #$10
+        ADC     #$10    \ screen memory - score area?
         STA     L0080
         RTS
 
         BRK
-.smc_L286E
+.smc_L286E      \ ZX key processing
         RTS     \ but changes in code to &20 (JMP $28D3) .L2245/.L22E2
         EQUB    $D3,$28 \ address for JMP above
 
@@ -2560,7 +2620,7 @@ L2673 = L2671+2
         INX
         BNE     L28B4     \ Not Z
         LDX     playerXpos     \ $2D70     \ X pos?
-        CPX     #$01
+        CPX     #$01           \ Player min X bound
         BEQ     L28B4
         DEX
         STX     playerXpos     \ $2D70
@@ -2572,7 +2632,7 @@ L2673 = L2671+2
         DEC     $87
         BCC     L28B4
 .L289E  LDX     playerXpos     \ $2D70
-        CPX     #$47
+        CPX     #$47           \ player max X bound
         BEQ     L28B4
         INX
         STX     playerXpos     \ $2D70
@@ -2603,8 +2663,8 @@ L2673 = L2671+2
         LDY     #$27
 .L28D5
         LDA     L1A60,Y    \ Load skull sprite?
-L28D6 = L28D5+1
-L28D7 = L28D5+2
+L28D6 = L28D5+1            \ SMC - player sprite / hit / skull
+L28D7 = L28D5+2            \ SMC - player sprite / hit / skull
         BEQ     L28DE
 
         EOR     (L0086),Y
@@ -2622,7 +2682,7 @@ L28D7 = L28D5+2
         LDA     L2D72
         STA     L0082
         LDA     bulletSprite
-        STA     L0083    \ need changing to #HI(something)
+        STA     L0083
 .L28F2
         INY
         LDA     (L008A),Y
@@ -2672,6 +2732,7 @@ L28D7 = L28D5+2
         LDA     L0081
         SBC     #$02
         STA     L0081
+		
 .L2939
         SEC
         LDA     L0077
@@ -2700,7 +2761,7 @@ L28D7 = L28D5+2
 
         RTS
 
-.smc_L295E
+.smc_L295E      \ Check for fire press
         RTS     \ Changed in code to LDA# $01
 
 .L295F
@@ -3017,7 +3078,7 @@ L28D7 = L28D5+2
 .L2AFE  \ Enemy critical hit
         LDA     #HI(L1940)    \#$19    \ possible memory reference (L19xx) - enemy explosion
         STA     L0077
-        LDA     #$D8
+        LDA     #$D8     \ what is this?
         STA     (L008A),Y
         TAX
         LDA     #$07
@@ -3061,7 +3122,7 @@ L28D7 = L28D5+2
         LDA     L0079
         SBC     #$48
         STA     L0079
-        LDA     #$C0
+        LDA     #$C0  \ what is this?
         STA     L007B
         JSR     L14D9
 
@@ -3375,7 +3436,7 @@ L2C1E = L2C1D+1
         AND     #$7F
 .L2D02
         SBC     #$10
-L2D03 = L2D02+1
+L2D03 = L2D02+1             \ SMC?
         BPL     L2D02
 
         ADC     L2D03
@@ -3416,7 +3477,7 @@ L2D03 = L2D02+1
 				\ Update - probably not useless. Used by .L2C7D (STA'd to $73)
         EQUB    $D7
 
-.L2D72  \ Bullet 'sprite'
+.L2D72 
         EQUB    $00
 
 .bulletSprite   \ L2D73
@@ -3456,16 +3517,28 @@ L2D03 = L2D02+1
         EQUB    $06
 
 .L2D7F
-        EQUB    $00,$01,$81,$FD,$00,$00,$28,$00
-        EQUB    $00,$3C,$06,$CE,$CE,$3B,$7E,$00
-        EQUB    $00,$02,$83,$00,$00,$00,$00,$00
-        EQUB    $00,$7F,$FF,$FE,$FF,$7E,$78,$00
-        EQUB    $00,$03,$86,$FF,$00,$01,$02,$01
-        EQUB    $01,$7F,$FF,$FD,$FD,$7E,$78,$00
-        EQUB    $00,$04,$81,$FB,$E6,$FE,$10,$01
-        EQUB    $5A,$7F,$FE,$E2,$9C,$7E,$00,$00
-        EQUB    $00,$05,$0A,$00,$00,$00,$01,$0C
-        EQUB    $00,$7F,$F5,$00,$E2,$7E,$00,$00
+        EQUB    $00
+		
+.L2D80  EQUB    $01,$81,$FD,$00,$00,$28,$00         \ 14 bytes of envelope data
+        EQUB    $00,$3C,$06,$CE,$CE,$3B,$7E
+		EQUB    $00,$00 \ padding?
+		
+.L2D90  EQUB    $02,$83,$00,$00,$00,$00,$00         \ 14 bytes of envelope data
+        EQUB    $00,$7F,$FF,$FE,$FF,$7E,$78
+        EQUB    $00,$00 \ padding?
+		
+.L2DA0  EQUB    $03,$86,$FF,$00,$01,$02,$01         \ 14 bytes of envelope data
+        EQUB    $01,$7F,$FF,$FD,$FD,$7E,$78
+        EQUB    $00,$00 \ padding?
+		
+.L2DB0  EQUB    $04,$81,$FB,$E6,$FE,$10,$01         \ 14 bytes of envelope data
+        EQUB    $5A,$7F,$FE,$E2,$9C,$7E,$00
+        EQUB    $00,$00 \ padding?
+		
+.L2DC0  EQUB    $05,$0A,$00,$00,$00,$01,$0C         \ 14 bytes of envelope data
+        EQUB    $00,$7F,$F5,$00,$E2,$7E,$00		
+		EQUB    $00
+		
         EQUB    $00,$12,$00,$04,$00,$50,$00,$14
         EQUB    $00,$10,$00,$02,$00,$06,$00,$A0
         EQUB    $00,$10,$00,$03,$00,$07,$00,$C8
