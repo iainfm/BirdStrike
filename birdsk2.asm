@@ -1,8 +1,8 @@
 \ Build directives
 
-ORIGINAL = TRUE        \ Build an exact copy of the original
-PRESERVE = FALSE       \ Preserve original memory locations (only when ORIGINAL = FALSE)
-ENMODS   = FALSE       \ Enable mods (not working yet): 1) Skip level
+ORIGINAL = TRUE       \ Build an exact copy of the original
+PRESERVE = TRUE        \ Preserve original memory locations (only when ORIGINAL = FALSE)
+ENMODS   = FALSE        \ Enable mods (not working yet): 1) Skip level
                       \ Note: enabling cheats cannot preserve original memory locations
 					  
 \ ToDo: check references to $28D6/7 (player sprite pointer), $2D7C/D and $78/79 for fixed addressing (L2BB0)
@@ -88,8 +88,9 @@ WRCHvB  = $020F        \ WRCH vector B
 EVNTvA  = $0220        \ EVNT vector A
 EVNTvB  = $0221        \ EVNT vector B
 
-L02FC   = $02FC
-L3527   = $3527
+L02FC   = $02FC        \ Busy buffer flag
+
+L3527   = $3527        \ Screen memory locations
 L3528   = $3528
 L3529   = $3529
 L352A   = $352A
@@ -122,7 +123,9 @@ org     $1200          \ "P%" as per the original binary
         EQUB    $FE,$00,$FE,$7E,$00,$00,$00,$00, $00,$00,$40,$08,$05,$FF,$09,$00 \ 40
         EQUB    $00,$00,$00,$00,$00,$00,$00,$00, $00,$00,$9F,$1D,$01,$01,$01,$01 \ 50
         EQUB    $79,$14,$72,$D4,$06,$00,$00,$00, $40,$00,$40,$00,$00,$00,$00,$00 \ 60
-        EQUB    $00,$37,$D0,$37,$20,$39,$02,$00, $00,$2E,$00,$6E,$00,$02,$1B,$AA \ 70 $2E00 - clouds etc
+        EQUB    $00,$37,$D0,$37,$20,$39,$02,$00                                  \ 70
+		EQUW                                      L2E00                          \ 70
+		EQUB                                             $00,$6E,$00,$02,$1B,$AA \ 70 $2E00 - clouds etc
         EQUB    $00,$34                                                          \ 80
 		EQUW             L1C00                                                   \ 80
 		EQUB                    $EF,$80,$98,$7E, $A5,$64                         \ 80
@@ -256,10 +259,10 @@ org     $1200          \ "P%" as per the original binary
 
         BNE     checkSkey        \ Skip if pressed
 
-        LDA     #$61
-        STA     osword_redirection_C
-        LDA     #$14
-        STA     osword_redirection_D
+        LDA     #LO(L1461)       \ #$61
+        STA     osword_redirection_C      \ Mess with vectors to disable sounds
+        LDA     #HI(L1461)       \ #$14
+        STA     osword_redirection_D      \ Mess with vectors to disable sounds
 		
 .checkSkey      \ .L1437
         LDX     #$AE             \ S key
@@ -267,9 +270,9 @@ org     $1200          \ "P%" as per the original binary
 
         BNE     checkRkey        \ Skip if pressed
         LDA     wordv_1
-        STA     osword_redirection_C
+        STA     osword_redirection_C      \ Restore default vectors to enable sounds
         LDA     wordv_2
-        STA     osword_redirection_D
+        STA     osword_redirection_D      \ Restore default vectors to enable sounds
 		
 IF ENMODS = TRUE \ Testing
     \.cheatLevelSkip
@@ -298,7 +301,7 @@ IF ENMODS = TRUE \ Testing
 .keyCheckComplete    \.L1460
         RTS
 
-\ .L1461 Label not used 
+.L1461  \ Disable sounds - Address used by .keyCheck (osword_redirection_C/D)
 
         CMP    #$07
 		BEQ    keyCheckComplete
@@ -1167,7 +1170,7 @@ L18F6 = L18F4+2          \ SMC?
 
         JSR     newGame                     \ Start game on spacebar from title screen
 
-.L1E27    \ Main game loop
+.gameLoop       \ L1E27    \ Main game loop
 
         JSR     L25B8                       \ unknown, possibly pseudo random number generator?
 
@@ -1195,14 +1198,14 @@ L18F6 = L18F4+2          \ SMC?
 
         JSR     keyCheck                    \ Keyboard scan
 
-        JMP     L1E27                       \ branch back around
+        JMP     gameLoop                    \ branch back around
         
         EQUS    "(c)A.E.Frigaard 1984 Hello!"
 
 .newGame        \ L1E6C    \ Set up new game
-        LDA     #$05       \ Possible memory address for envelope
+        LDA     #$05       \ Used to calculate address locations of sound envelopes
         STA     L0070
-        JSR     L2835      \ Define envelope routine
+        JSR     L2835      \ Define-envelope routine
 
         LDA     #$49       \ New game tune
         JSR     playTune
@@ -2350,7 +2353,7 @@ L252F = L252E+1               \ SMC?
         DEY
         BPL     L2632
 
-        LDA     #HI(L2EE0)    \ $2E    \ Possible memory reference - clouds
+        LDA     #HI(L2E20)    \ $2E    \ Possible memory reference - clouds was L2EE0
         STA     L007B
         LDA     #LO(L2E20)    \ #$20
         STA     L0078
@@ -2531,6 +2534,8 @@ L2673 = L2671+2            \ SMC - Cloud screen memory address
         \ Need to recode this for relocation
 		\ Memory locations used (in order) are:
 		\ $2DC0, $2DB0, $2DA0, $2D90, $2D80
+		\ (AddressLO = (A * 16) + $70) (5 >= A > 0)  
+		\ (AddressHI = $2D)
 		IF ENMODS = FALSE
             LDA     L0070     \ A = 5
             ASL     A         \ A = 5 * 2
@@ -2540,34 +2545,29 @@ L2673 = L2671+2            \ SMC - Cloud screen memory address
             ADC     #$70      \ + $70 (112)
             TAX               \ If A was 5 on entry, X is now $C0
             LDA     #$08
-            LDY     #$2D          \ Possible memory address
+            LDY     #$2D          \ Memory HI address
             JSR     osword        \ Define an envelope
             DEC     L0070
             BNE     L2835
 		ELSE
-		    \ Could make this either a beebasm loop or an assembler loop
 			\ Currently this breaks more than it fixes
 		    LDA     #$08
 		    LDX     #LO(L2DC0)
 			LDY     #HI(L2DC0)
 			JSR     osword
 			
-			LDA     #$08
 		    LDX     #LO(L2DB0)
 			LDY     #HI(L2DB0)
 			JSR     osword
 			
-			LDA     #$08
 		    LDX     #LO(L2DA0)
 			LDY     #HI(L2DA0)
 			JSR     osword
 			
-			LDA     #$08
 		    LDX     #LO(L2D90)
 			LDY     #HI(L2D90)
             JSR     osword			
 			
-			LDA     #$08
 			LDX     #LO(L2D80)
 			LDY     #HI(L2D80)
 			JSR     osword
@@ -3079,7 +3079,7 @@ L28D7 = L28D5+2            \ SMC - player sprite / hit / skull
         LDA     #HI(L1940)    \#$19    \ possible memory reference (L19xx) - enemy explosion
         STA     L0077
         LDA     #$D8     \ what is this?
-        STA     (L008A),Y
+        STA     (L008A),Y \ ?(2D0A+8)
         TAX
         LDA     #$07
         LDY     #$2D
@@ -3625,5 +3625,10 @@ L2D03 = L2D02+1             \ SMC?
         EQUB    $20,$00,$00,$00,$3C,$00,$00,$3A
 
 .BeebDisEndAddr
+
+IF BeebDisEndAddr > &3000
+    PRINT "WARNING: Code over-run by", BeebDisEndAddr-&3000,"bytes."
+ENDIF
+
 SAVE "$.BirdSk2",p0data,BeebDisEndAddr
 
