@@ -1,7 +1,7 @@
 \ Build directives
-
+TEST     = FALSE
 ORIGINAL = TRUE       \ Build an exact copy of the original
-PRESERVE = TRUE        \ Preserve original memory locations (only when ORIGINAL = FALSE)
+PRESERVE = FALSE      \ Preserve original memory locations (only when ORIGINAL = FALSE)
 ENMODS   = FALSE        \ Enable mods (not working yet): 1) Skip level
                       \ Note: enabling cheats cannot preserve original memory locations
 					  
@@ -97,8 +97,8 @@ L352A   = $352A
 L4180   = $4180
 L4900   = $4900
 
-LFE4D   = $FE4D        \ VIA interrupt address
-LFE4E   = $FE4E        \ Something to do with light pens, according to the AUG
+LFE4D   = $FE4D        \ Interrupt Flag Register
+LFE4E   = $FE4E        \ Interrupt Enable Register
 
 vector_table_low_byte    = $FFB7    \ Vector table address low byte
 vector_table_high_byte   = $FFB8    \ Vector table address high byte
@@ -670,9 +670,9 @@ L17AC = L17AB+1            \ SMC
         STA     L1A08
         LDA     #$00
         STA     level
-        LDA     #$26    \ Possible memory address
+        LDA     #$26    \ Possible memory address - purpose unknown
         STA     L1A0C
-        LDA     #$88    \ Possible memory address
+        LDA     #$88    \ Possible memory address - purpose unknown
         STA     L1A0B
 .L17D1
         CLC
@@ -1174,7 +1174,7 @@ L18F6 = L18F4+2          \ SMC?
 
         JSR     L25B8                       \ unknown, possibly pseudo random number generator?
 
-        JSR     L284A                       \ Delay? - plays at high speed when disabled. Also clears an interrupt(?)
+        JSR     vsyncWait                   \ Wait for vsync
 
         JSR     L2A94                       \ Enemy movement
 
@@ -1479,10 +1479,10 @@ L18F6 = L18F4+2          \ SMC?
 
         CLC
         LDA     #$0A
-        ADC     score_low_byte    \ Wing hit?
+        ADC     score_low_byte    \ Wing hit - 10 points
         STA     score_low_byte
         LDA     score_high_byte
-        ADC     #$00
+        ADC     #$00              \ Add carry to high byte
         STA     score_high_byte
         CLD
         JSR     L20DE
@@ -1544,7 +1544,7 @@ L18F6 = L18F4+2          \ SMC?
         TYA
         PHA
 .L2092
-        JSR     L284A
+        JSR     vsyncWait
 
         DEC     L1A0A
         BNE     L2092
@@ -1560,6 +1560,7 @@ L18F6 = L18F4+2          \ SMC?
         LDA     enemySpriteAddrLow        \ Enemy sprite address
         ADC     #$40                      \ Add $40 to get new aircraft
         STA     enemySpriteAddrLow        \ Store it back
+		                                  \ Need an adc on the high byte here eventually
         LDA     #$64
         JSR     L208D
 
@@ -1640,7 +1641,7 @@ L18F6 = L18F4+2          \ SMC?
         STA     L1D59
         BCC     L211D
 
-        INC     L1D5A
+        INC     L1D5A    \ Deal with page boundaries
 .L211D
         JSR     L2172
 
@@ -1650,15 +1651,15 @@ L18F6 = L18F4+2          \ SMC?
         STA     L0080
         BCC     L212B
 
-        INC     L0081
+        INC     L0081    \ Deal with page boundaries
 .L212B
         CLC
         LDA     L0082
-        ADC     #$08
+        ADC     #$08     \ Note sprite offset
         STA     L0082    \ Score sprite pointer low byte
         BCC     L2136
 
-        INC     L0083
+        INC     L0083    \ Deal with page boundaries
 .L2136
         JSR     L2172
 
@@ -1671,7 +1672,7 @@ L18F6 = L18F4+2          \ SMC?
         BIT     L0070
         BEQ     L2149
 
-        LDA     #LO(L1C00) \ $00   \ Reset digit sprite pointer - Possible memory reference
+        LDA     #LO(L1C00) \ $00   \ Number 0 sprite
         STA     L0082
         RTS
 
@@ -1681,7 +1682,7 @@ L18F6 = L18F4+2          \ SMC?
         BEQ     L2153
 
         LDA     #LO(L1C10) \ #$10
-        STA     L0082  \ need changing to #LO(L1C00)+$10? (done)
+        STA     L0082  \ Number 1 sprite
         RTS
 
 .L2153
@@ -1690,7 +1691,7 @@ L18F6 = L18F4+2          \ SMC?
         BEQ     L215D
 
         LDA     #LO(L1C20) \ #$20
-        STA     L0082  \ need changing to #LO(L1C00)+$20? (done)
+        STA     L0082  \ Number 2 sprite
         RTS
 
 .L215D	\ Something to do with the plotting of dots on the stave
@@ -1699,7 +1700,7 @@ L18F6 = L18F4+2          \ SMC?
         BEQ     L2167
 
         LDA     #LO(L1C30) \ #$30
-        STA     L0082  \ need changing to #LO(L1C00)+$30? (done?)
+        STA     L0082  \ Number 3 sprite
         RTS
 
 .L2167
@@ -1707,7 +1708,7 @@ L18F6 = L18F4+2          \ SMC?
         BIT     L0070
         BEQ     L2171
 
-        LDA     #LO(L1C40) \ #$40   \ need changing to #LO(L1C00)+$40? (done)
+        LDA     #LO(L1C40) \ #$40   \ Number 4 sprite
         STA     L0082
 .L2171
         RTS
@@ -1733,7 +1734,7 @@ L18F6 = L18F4+2          \ SMC?
 .L218F
         LDA     (L0082),Y
         ORA     (L0084),Y
-        STA     (L0084),Y
+        STA     (L0084),Y    \ Draw note top(?) half
         DEY
         CPY     L0074
         BNE     L218F
@@ -1741,7 +1742,7 @@ L18F6 = L18F4+2          \ SMC?
 .L219A  \ not the culprit
         LDA     (L0082),Y
         ORA     (L0080),Y
-        STA     (L0080),Y
+        STA     (L0080),Y    \ Draw note bottom(?) half
         DEY
         BPL     L219A
 
@@ -2007,7 +2008,7 @@ L18F6 = L18F4+2          \ SMC?
         EQUB    $14,$00,$14,$00
 
 .L240E
-        LDA     #$1B     \ Pigeon sprite memory pointer
+        LDA     #HI(L1BB8)    \ #$1B     \ Pigeon sprite memory pointer
 L240F = L240E+1          \ SMC - $1A = L-R $1B = R-L
         STA     L0083
         LDA     L2D7D
@@ -2233,7 +2234,7 @@ L252F = L252E+1               \ SMC?
 .L2583 \ not the culprit
         LDA     (L0082),Y
         EOR     (L0080),Y
-        STA     (L0080),Y
+        STA     (L0080),Y    \ Draw pigeon
         DEY
         BPL     L2583
 
@@ -2254,16 +2255,16 @@ L252F = L252E+1               \ SMC?
         LDY     #$04
         LDA     #$55
 .L25A7  \ not the culprit
-        STA     (L0080),Y
+        STA     (L0080),Y    \ Draw gravestone element
         DEY
         BPL     L25A7    \ not the culprit
 
         LDY     #$09
         ASL     A
-        STA     (L0080),Y
+        STA     (L0080),Y    \ Draw gravestone element
         LDY     #$01
         LDA     #$FF
-        STA     (L0080),Y
+        STA     (L0080),Y    \ Draw gravestone element
 .L25B7
         RTS
 
@@ -2275,7 +2276,7 @@ L252F = L252E+1               \ SMC?
         ASL     A
         ROL     L007F
         ROL     L007E
-        ROL     L007D
+        ROL     L007D    \ Randomise pigeon height?
         LDA     L007D    \ Why?
         RTS
 
@@ -2536,56 +2537,34 @@ L2673 = L2671+2            \ SMC - Cloud screen memory address
 		\ $2DC0, $2DB0, $2DA0, $2D90, $2D80
 		\ (AddressLO = (A * 16) + $70) (5 >= A > 0)  
 		\ (AddressHI = $2D)
-		IF ENMODS = FALSE
             LDA     L0070     \ A = 5
             ASL     A         \ A = 5 * 2
             ASL     A         \ * 2
             ASL     A         \ * 2
             ASL     A         \ * 2
-            ADC     #$70      \ + $70 (112)
+            ADC     #LO(L2D80 - &10) \ #$70      \ + $70 (112)
             TAX               \ If A was 5 on entry, X is now $C0
             LDA     #$08
-            LDY     #$2D          \ Memory HI address
-            JSR     osword        \ Define an envelope
+            LDY     #HI(L2D80 - &10) \#$2D          \ Memory HI address
+		IF TEST = TRUE
+			BCC     pageOK
+			INY
+		ENDIF
+.pageOK     JSR     osword        \ Define an envelope
             DEC     L0070
             BNE     L2835
-		ELSE
-			\ Currently this breaks more than it fixes
-		    LDA     #$08
-		    LDX     #LO(L2DC0)
-			LDY     #HI(L2DC0)
-			JSR     osword
-			
-		    LDX     #LO(L2DB0)
-			LDY     #HI(L2DB0)
-			JSR     osword
-			
-		    LDX     #LO(L2DA0)
-			LDY     #HI(L2DA0)
-			JSR     osword
-			
-		    LDX     #LO(L2D90)
-			LDY     #HI(L2D90)
-            JSR     osword			
-			
-			LDX     #LO(L2D80)
-			LDY     #HI(L2D80)
-			JSR     osword
-
-            LDA #$00
-			STA L0070
-        ENDIF
         RTS
 
-.L284A
-        LDA     #$02
-        STA     LFE4E         \ Clear interrupt?
-.L284F
+.vsyncWait      \ L284A
+        LDA     #$02          \ https://tobylobster.github.io/mos/mos/S-s3.html
+        STA     LFE4E         \ Enable vsync interrupt
+		
+.vsyncLoop      \ L284F
         BIT     LFE4D
-        BEQ     L284F
+        BEQ     vsyncLoop     \ Wait for vsync
 
         LDA     #$82
-        STA     LFE4E
+        STA     LFE4E         \ Disable vsync interrupt
         RTS
 
 .L285A
@@ -2593,7 +2572,7 @@ L2673 = L2671+2            \ SMC - Cloud screen memory address
         LDY     #$0F
 .L285E  \ not the culprit
         LDA     (L0082),Y
-        STA     (L0080),Y
+        STA     (L0080),Y    \ Draw player score
         DEY
         BPL     L285E
 
@@ -2743,7 +2722,7 @@ L28D7 = L28D5+2            \ SMC - player sprite / hit / skull
 
         JSR     L29C3
 
-.L2947
+.L2947  \ Player bullet plotting?
         DEY
         DEY
         DEY
@@ -2785,8 +2764,9 @@ L28D7 = L28D5+2            \ SMC - player sprite / hit / skull
         \ ADC     ($D0),Y
         \.L297C  SBC     $FFA0,Y
         
-		\ L297D = L297C + 1                   
+		\ L297D = L297C + 1	
         EQUB    $71,$D0,$F9  \ This may be code... but probably isn't. Never executes.
+
 
 .L297D  LDY     #$FF
 
@@ -2887,8 +2867,8 @@ L28D7 = L28D5+2            \ SMC - player sprite / hit / skull
 .L29EB  \ triggered when bomb dropped - smooth animation as per screen memory layout
         \ not the culprit, but is complicit (code address in $80)
         LDA     (L0082),Y
-        EOR     (L0080),Y
-        STA     (L0080),Y
+        EOR     (L0080),Y    \ Un-draw bomb?
+        STA     (L0080),Y    \ Draw bomb
         DEY
         BPL     L29EB
 
@@ -3363,14 +3343,14 @@ L2C1E = L2C1D+1
         STA     L0073        \ $73
         RTS
 		
-.L2C98
+.L2C98                                      \ Something to do with enemy bomb plotting
         LDY     #$00                        \ Y = 0
         LDA     (L008C),Y                   \ A = ?(&2D47+0)
         STA     L0070                       \ ?&70 = A                (=?&2D47)
         LDA     L2D74                       \ ?&2D74 = A              (seems pointless!)
-        STA     L0082                       \ ?&82 = A                (=?&2D47)
+        STA     L0082 \ Store bomb sprite LO\ ?&82 = A                (=?&2D47)
         LDA     L2D75                       \ A = ?&2D75
-        STA     L0083                       \ ?&83 = A                (=?&2D75)
+        STA     L0083 \ Store bomb sprite HI\ ?&83 = A                (=?&2D75)
 .L2CA8
         INY                                 \ Y = Y + 1               (Y = 1)
         LDA     (L008C),Y                   \ A = ?(&2D47+1)          (A = ?&2D48)
@@ -3520,24 +3500,29 @@ L2D03 = L2D02+1             \ SMC?
         EQUB    $00
 		
 .L2D80  EQUB    $01,$81,$FD,$00,$00,$28,$00         \ 14 bytes of envelope data
-        EQUB    $00,$3C,$06,$CE,$CE,$3B,$7E
+        EQUB    $00,$3C,$06,$CE,$CE,$3B,$7E         \ Pigeon 'tweet' / hit
 		EQUB    $00,$00 \ padding?
 		
 .L2D90  EQUB    $02,$83,$00,$00,$00,$00,$00         \ 14 bytes of envelope data
-        EQUB    $00,$7F,$FF,$FE,$FF,$7E,$78
+        EQUB    $00,$7F,$FF,$FE,$FF,$7E,$78         \ Enemy explosion
         EQUB    $00,$00 \ padding?
-		
+
+
 .L2DA0  EQUB    $03,$86,$FF,$00,$01,$02,$01         \ 14 bytes of envelope data
-        EQUB    $01,$7F,$FF,$FD,$FD,$7E,$78
+        EQUB    $01,$7F,$FF,$FD,$FD,$7E,$78         \ Player explosion
         EQUB    $00,$00 \ padding?
-		
+
+			
 .L2DB0  EQUB    $04,$81,$FB,$E6,$FE,$10,$01         \ 14 bytes of envelope data
-        EQUB    $5A,$7F,$FE,$E2,$9C,$7E,$00
+        EQUB    $5A,$7F,$FE,$E2,$9C,$7E,$00         \ Player fire noise
         EQUB    $00,$00 \ padding?
-		
+
+
 .L2DC0  EQUB    $05,$0A,$00,$00,$00,$01,$0C         \ 14 bytes of envelope data
-        EQUB    $00,$7F,$F5,$00,$E2,$7E,$00		
+        EQUB    $00,$7F,$F5,$00,$E2,$7E,$00		    \ Tune voice
+
 		EQUB    $00
+\.L2DC0  EQUB    5,1,16,12,200,3,1,5,26,0,0,-126,126,126    \ Testing
 		
         EQUB    $00,$12,$00,$04,$00,$50,$00,$14
         EQUB    $00,$10,$00,$02,$00,$06,$00,$A0
