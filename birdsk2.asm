@@ -1303,6 +1303,9 @@ L18F6 = L18F4+2          \ SMC?
 		\ To fix the bug comment out the INCs
 		\ To fix the bug and maintain addresses consistent with the original comment the INCs and uncomment the NOPs
 		\ This is all deprecated. See .zeroLoop (L1F2E)
+		\ Now this is deprecated. .zeroLoop fix affects difficulty (# of enemy bombs)
+		\ Need something that caps L1A09 to < = $19
+		\ Probably need to jsr, do the deed and rts
 		
         INC     L1A09    \ J'accuse! NOP this out (x3 to keep addresses consistent for fix) - Changed to NOPping the STA 24d7 out
         INC     L1A09    \ J'accuse! NOP this out (x3 to keep addresses consistent for fix) - Changed to NOPping the STA 24d7 out
@@ -3348,8 +3351,10 @@ L2C1E = L2C1D+1
         LDY     #$00                        \ Y = 0
         LDA     (L008C),Y                   \ A = ?(&2D47+0)
 		
-		\ NOPping the following line out may be the best glitch-fix option?
+		\ NOPping the following line out may be the best glitch-fix option? No - bombs!
         STA     L0070                       \ ?&70 = A                (=?&2D47)
+		
+		\ Use this space to AND L0070 with, say, $10?
 		
         LDA     L2D74                       \ ?&2D74 = A              (seems pointless!)
         STA     L0082 \ Store bomb sprite LO\ ?&82 = A                (=?&2D47)
@@ -3444,9 +3449,10 @@ L2D03 = L2D02+1             \ SMC?
         EQUB    $00,$00,$00,$00,$00,$00,$00,$00
         EQUB    $00,$00,$00,$00
 
-.L2D47
-        EQUB    $02,$D6,$00,$00,$00,$00,$00,$00    \ First byte is copied from 1A09
-        EQUB    $00,$00,$00,$00,$00,$00,$00,$00
+.L2D47  \ aka ($8C)
+        EQUB    $02                                \ First byte is copied from 1A09
+		EQUB    $D6,$00,$00,$00,$00,$00,$00        \ Screen memory pairs of bomb positions
+        EQUB    $00,$00,$00,$00,$00,$00,$00,$00    \ Unknown how many are used for this (at least 3 pairs)
         EQUB    $00,$00,$00,$00,$00,$00,$00,$00    \ Last byte is $2D5E ($2D0A + $54)
 
 .L2D5F
@@ -3531,7 +3537,6 @@ L2D03 = L2D02+1             \ SMC?
         EQUB    $00,$7F,$F5,$00,$E2,$7E,$00		    \ Tune voice
 
 		EQUB    $00
-\.L2DC0  EQUB    5,1,16,12,200,3,1,5,26,0,0,-126,126,126    \ Testing
 		
         EQUB    $00,$12,$00,$04,$00,$50,$00,$14
         EQUB    $00,$10,$00,$02,$00,$06,$00,$A0
