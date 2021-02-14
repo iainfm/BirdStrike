@@ -1,0 +1,160 @@
+The roughest of rough notes. Program counters and various musings
+
+29C3
+2CBD
+(2CB2)
+2CA8 Y=0
+2C98
+1E3C
+
+
+BP & 2CA8: Y=0
+2ca9
+2cab
+2cad
+2cae
+2bc0
+2cb2
+2cb4
+2cb6
+2cb8
+2cba JMP 2CF5 (Y=2)
+
+2cf5
+2cf7 BMI 2CA8
+
+---
+2ca8 INY (Y=2)
+2ca9 Y=3
+2cab
+2cad
+2cae
+2cb0
+2cb2 BNE 2CBD (not taken)
+2cb4
+2cb6
+2cb8
+2cba JMP 2CF5
+
+2cf5 y=4
+2cf7
+2ca8 INY (Y=4)
+2ca9 Y=5
+2cab
+2cad INY (Y=5)
+2cae Y=6
+2cb0
+2cb2 BNE 2CBD (not taken)
+2cb4
+2cb6
+2cb8
+2cba JMP 2CF5
+
+2cf5
+2cf7 BMI 2CA8 (taken) --- loops until Y=$16 - could be this
+     2cf7 BMI 2CA8 (not taken) - 1A09 != 1A
+---
+BMI 2CA8 taken because A>70 (77)?
+
+***
+.L1F03 writes L1A09 to L2D47
+$70 written by .L2C98 by LDA (L008C),Y with Y=0 ie ?&70 = ?&2D47
+
+so $70 contains (usually, but not always) the value of L1A09
+
+at 2CF5 there is a compare of Y with $70
+if the result is negative there is a branch to L2CA8
+
+at L2CA8 Y is incremented a couple of times, and
+at $2CF5 there is another CPY with $70
+if the result is negative loop back to L2CA8
+this allows Y to run wild until A happens to be Zero (LDA ($8C),Y)
+Y gets pushed onto the stack via A while a few things happen
+Y gets pulled from the stack via A at $29F4/$29F5
+Y remains high ($18) and (ignoring LDAs) is used at locations including
+$2CE4 (STA ($8C),Y)
+$29EF (STA ($80),Y)
+and
+$2CEE (STA ($8C),Y) where it overwrites $2D60
+
+
+***
+
+Good:
+2CF7 30 AF     BMI 2CA8   A=77 X=01 Y=04 S=FB ....B..
+(70 = 04)
+
+Bad:
+2CF7 30 AF     BMI 2CA8   A=77 X=01 Y=06 S=FB ....B.N
+(70 = 1C)
+
+---
+
+2CF5 C4 70     CPY 70     A=77 X=01 Y=04 S=FB ....B..
+2CF7 30 AF     BMI 2CA8   A=77 X=01 Y=04 S=FB CZ..B..
+2CF9 60        RTS        A=77 X=01 Y=04 S=FB CZ..B..
+
+2CF5 C4 70     CPY 70     A=77 X=01 Y=02 S=FB ....B.N
+2CF7 30 AF     BMI 2CA8   A=77 X=01 Y=02 S=FB ....B.N
+2CA8 C8        INY
+---
+2CA8 INY (Y=$17)
+2CA9
+2CAB
+2CAD INY (Y=$17)
+2CAE (Y=$18)
+2CB0
+2CB2
+2CBD JSR 29C3
+
+29C3 TYA (Y=18)
+29C4 PHA ($18 on the stack)
+29C5 LDY #5
+29C7 CLC
+29C8 LDA 80
+29CA ADC #78
+29CC STA 84
+29CE
+29D0
+29D2
+29D4
+29D6
+29D8
+29DA
+29DC
+29DE BPL 29EB (taken)
+29ED
+29EF
+29F1 DEY (Y=5)
+29F2 BPL 29EB (taken) - loops until Y=0
+
+29F4 PLA (pulls $18 off the stack)
+29F5 TAY (A=$18)
+29F6 RTS (Y=$18)
+
+2CC0...
+2CA8 INY (Y=$18)
+2CA9 LDA (8C),Y
+2CAB STA 80
+2CAD INY (Y=$19)
+2CAE LDA (8C),Y
+2CB0 STA 81
+2CB2 BNE 2CBD (taken)
+
+2CBD JSR 29C3
+
+29C3...
+29F6 RTS (Y=$1A)
+
+2CC0...29C3...29F6 repeats
+2CEB DEY (Y=$1A)
+2CEC Y=$19
+2CEE STA (8C),Y (Y=$19)
+
+? Why is 2CA8 getting called
+
+
+
+
+
+

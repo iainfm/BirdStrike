@@ -10,6 +10,7 @@ ENMODS   = FALSE        \ Enable mods (not working yet): 1) Skip level
 \ 75/76 (&2D13)
 \ 7A/7B (&2E00)
 \ 88
+\ Check memory writes 261A - 26AF
 
 \ Possible SMC locations to investigate:
 \ L17A0
@@ -2809,7 +2810,7 @@ L28D7 = L28D5+2            \ SMC - player sprite / hit / skull
         JMP     osword    \ Play a sound (player fire)
 
 .L29C3  \ Bullet plotting?    \ RTSing here prevents bug
-        TYA
+        TYA     \ Y is high ($18) here when the bug hits (called from $2cbd)
         PHA
         LDY     #$05
         CLC
@@ -3346,7 +3347,10 @@ L2C1E = L2C1D+1
 .L2C98                                      \ Something to do with enemy bomb plotting
         LDY     #$00                        \ Y = 0
         LDA     (L008C),Y                   \ A = ?(&2D47+0)
+		
+		\ NOPping the following line out may be the best glitch-fix option?
         STA     L0070                       \ ?&70 = A                (=?&2D47)
+		
         LDA     L2D74                       \ ?&2D74 = A              (seems pointless!)
         STA     L0082 \ Store bomb sprite LO\ ?&82 = A                (=?&2D47)
         LDA     L2D75                       \ A = ?&2D75
@@ -3386,7 +3390,8 @@ L2C1E = L2C1D+1
         LDA     L0081                       \ A = ?&81
         ADC     #$02                        \ A = A + 2
         STA     L0081                       \ ?&81 = A
-.L2CDE
+		
+.L2CDE  \ Triggered when bomb hits bottom of screen
         CMP     #$80                        \ A = &80 (128)? 
         BMI     L2CE8                       \ Less? Goto .L2CE8   (check this)
 
@@ -3399,12 +3404,16 @@ L2C1E = L2C1D+1
 
         DEY                                 \ Y = Y - 1
         LDA     L0080                       \ A = ?&80
+		
+		\ How does Y get to 19 here if $1A09 ~= $1A?
         STA     (L008C),Y    \ $(2D47+Y)    \ ?&(2D47+Y) = ?&80
+		\
+		
         INY                                 \ Y = Y + 1
         LDA     L0081                       \ A = ?&81
         STA     (L008C),Y    \ $(2D47+Y)    \ ?&(2D47+Y) = ?&81
 .L2CF5
-        CPY     L0070                       \ Y = ?&70?
+        CPY     L0070                       \ Y : ?&70?
         BMI     L2CA8                       \ Branch if minus to .L2CA8 (loop) *** No glitch if this NOPped J'accuse surtout
 
         RTS                                 \ Return
