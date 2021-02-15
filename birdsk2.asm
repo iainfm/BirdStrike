@@ -1,10 +1,16 @@
 \ Build directives
-TEST     = FALSE
-ORIGINAL = TRUE       \ Build an exact copy of the original
-PRESERVE = FALSE      \ Preserve original memory locations (only when ORIGINAL = FALSE)
-ENMODS   = FALSE        \ Enable mods (not working yet): 1) Skip level
+
+ORIGINAL = FALSE      \ Build an exact copy of the original. False overrides the tamper protection / default high score holder
+FIX      = TRUE       \ Use 'spare' space at $1B11 for the fix
+PRESERVE = TRUE       \ Preserve original memory locations (only when ORIGINAL = FALSE)
+ENMODS   = FALSE      \ Enable mods (not working yet): 1) Skip level
                       \ Note: enabling cheats cannot preserve original memory locations
-					  
+MAX_1A09 = $10        \ Limit how high L1A09 can get.
+                      \ >= $19 will cause glitches.
+					  \ <= $06 will affect game difficulty (no. of simultaneous enemy bombs)
+					  \ $10 seems safe.
+TEST     = FALSE      \ Used for code-relocatability testing					  
+
 \ ToDo: check references to $28D6/7 (player sprite pointer), $2D7C/D and $78/79 for fixed addressing (L2BB0)
 \ L2d68 as well
 \ 75/76 (&2D13)
@@ -989,17 +995,37 @@ L18F6 = L18F4+2          \ SMC?
         EQUB    $41,$1F,$48,$48,$48,$48,$48,$48
         EQUB    $48
         
-        EQUS    "LDASTAJSRRTSBNE"                    \ BASIC/keyboard/source artefacts?
-        EQUS    "P.~!&"
-        EQUB    $16,$34,$13
-        EQUS    "12000L."
-        EQUB    $0E
-        EQUB    $0D
-        EQUS    "RUN"
-        EQUB    $0D,$16,$32,$17
-        EQUB    $00,$0C,$00,$00,$00,$00,$00,$00
-        EQUB    $00,$00
-        EQUS    "CALLQ%"
+.gameFix    \ L1B11
+        IF FIX = FALSE
+		    \ junk BASIC/keyboard/source artefacts?
+			EQUS    "LDASTAJSRRTSBNE"
+            EQUS    "P.~!&"
+            EQUB    $16,$34,$13
+            EQUS    "12000L."
+            EQUB    $0E
+            EQUB    $0D
+            EQUS    "RUN"
+            EQUB    $0D,$16,$32,$17
+            EQUB    $00,$0C,$00,$00,$00,$00,$00,$00
+            EQUB    $00,$00
+            EQUS    "CALLQ%"
+		ELSE
+		    \ Use this space for the memory-overwrite fix
+		    PHP    \ Probably unnecessary
+		    LDA    L1A09
+			CMP    #MAX_1A09    \ L1A09 seems safe at $10.
+			BEQ    maxedOut
+			INC    L1A09
+			INC    L1A09
+.maxedOut   PLP    \ Also probably unnecessary
+			RTS
+			
+			\ Blank out the unused remainder
+			FOR Z, 1, 55-16
+			    EQUB $00
+			NEXT
+			
+		ENDIF
         
         EQUB    $0D,$00,$00,$14,$3C,$00,$00,$00    \ Part pigeon? Possibly corrupt 
         EQUB    $00,$00,$00,$3C,$3C,$34,$3C,$28
@@ -1307,10 +1333,16 @@ L18F6 = L18F4+2          \ SMC?
 		\ Need something that caps L1A09 to < = $19
 		\ Probably need to jsr, do the deed and rts
 		
-        INC     L1A09    \ J'accuse! NOP this out (x3 to keep addresses consistent for fix) - Changed to NOPping the STA 24d7 out
-        INC     L1A09    \ J'accuse! NOP this out (x3 to keep addresses consistent for fix) - Changed to NOPping the STA 24d7 out
-		\ NOP:NOP:NOP:NOP:NOP:NOP
-        LDA     #$0C
+		
+		IF FIX = FALSE
+            INC     L1A09      \ J'accuse! NOP this out (x3 to keep addresses consistent for fix) - Changed to NOPping the STA 24d7 out
+            INC     L1A09      \ J'accuse! NOP this out (x3 to keep addresses consistent for fix) - Changed to NOPping the STA 24d7 out
+        ELSE
+		    JSR     gameFix    \ 3 bytes
+			NOP:NOP:NOP
+		ENDIF
+		
+		LDA     #$0C
         JSR     oswrch   \ Clear screen
 
         LDA     #$9A
@@ -1335,17 +1367,8 @@ L18F6 = L18F4+2          \ SMC?
         STA     L2D0A,Y      \ Zero 2D0A to 2D5E (backwards)
         DEY
         BNE     zeroLoop
-
-        
-		IF ORIGINAL = TRUE
-		    LDA     L1A09        \ Restore 2D47
-		ELSE
-		    LDA #$02             \ Required for double-fire
-		    IF PRESERVE = TRUE
-		        NOP              \ Preserve addresses with original
-			ENDIF
-		ENDIF
-		
+		LDA     L1A09        \ Restore 2D47
+		\ Original fix removed from here
 		STA     L2D47        \ NOPping this out will cure the code overwrite issue too, but no double-fire
 		
         LDA     #$06
@@ -3411,6 +3434,7 @@ L2C1E = L2C1D+1
         LDA     L0080                       \ A = ?&80
 		
 		\ How does Y get to 19 here if $1A09 ~= $1A?
+		\ Because of the loop at L2CA8 - Y incs depending on the value of ?&2D47
         STA     (L008C),Y    \ $(2D47+Y)    \ ?&(2D47+Y) = ?&80
 		\
 		

@@ -80,6 +80,10 @@ $2CEE (STA ($8C),Y) where it overwrites $2D60
 
 ***
 
+Loop from 2CA8 to 2CF7 repeats, incrememting Y, until Y >= ($2D47)
+
+***
+
 Good:
 2CF7 30 AF     BMI 2CA8   A=77 X=01 Y=04 S=FB ....B..
 (70 = 04)
