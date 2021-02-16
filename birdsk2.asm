@@ -1,10 +1,11 @@
 \ Build directives
 
 ORIGINAL = FALSE      \ Build an exact copy of the original. False overrides the tamper protection / default high score holder
-FIX      = TRUE       \ Use 'spare' space at $1B11 for the fix
-PRESERVE = TRUE       \ Preserve original memory locations (only when ORIGINAL = FALSE)
-ENMODS   = FALSE      \ Enable mods (not working yet): 1) Skip level
-                      \ Note: enabling cheats cannot preserve original memory locations
+FIX      = TRUE       \ Needs ORIGINAL = FALSE. Use 'spare' space at $1B11 for the fix
+PRESERVE = TRUE       \ Preserve original memory locations where possible when ORIGINAL = FALSE
+                      \ Does not apply globally, eg if FIX = TRUE or ENCHTS = TRUE
+ENRELO   = FALSE      \ Enable relocation (not working yet)
+ENCHTS   = TRUE       \ Requires FIX = TRUE. Enable some PoC modifications.
 MAX_1A09 = $10        \ Limit how high L1A09 can get.
                       \ >= $19 will cause glitches.
 					  \ <= $06 will affect game difficulty (no. of simultaneous enemy bombs)
@@ -246,7 +247,7 @@ org     $1200          \ "P%" as per the original binary
         BNE     p0copyloop
 
         LDA     #$8C
-        LDX     #$0C
+        LDX     #$0Cb
         JSR     osbyte        \ Set TAPE filing system and baud rate (X)
 
         JMP     game
@@ -280,16 +281,6 @@ org     $1200          \ "P%" as per the original binary
         STA     osword_redirection_C      \ Restore default vectors to enable sounds
         LDA     wordv_2
         STA     osword_redirection_D      \ Restore default vectors to enable sounds
-		
-IF ENMODS = TRUE \ Testing
-    \.cheatLevelSkip
-    \       LDX     #$CF
-	\	    JSR     keyboardScan     \ 1 key
-	\	    BNE     keyCheckComplete
-	\	    LDA     #$80
-	\	    STA     gameFlags
-	\ NOP
-    ENDIF
 
 .checkRkey      \ .L144A
         LDX     #$CC
@@ -996,7 +987,8 @@ L18F6 = L18F4+2          \ SMC?
         EQUB    $48
         
 .gameFix    \ L1B11
-        IF FIX = FALSE
+PRINT ORIGINAL, FIX, ENCHTS
+        IF ORIGINAL = TRUE
 		    \ junk BASIC/keyboard/source artefacts?
 			EQUS    "LDASTAJSRRTSBNE"
             EQUS    "P.~!&"
@@ -1009,7 +1001,14 @@ L18F6 = L18F4+2          \ SMC?
             EQUB    $00,$0C,$00,$00,$00,$00,$00,$00
             EQUB    $00,$00
             EQUS    "CALLQ%"
+			EQUB    $0D,$00,$00,$14,$3C,$00,$00,$00    \ Part pigeon? Possibly corrupt 
+            EQUB    $00,$00,$00,$3C,$3C,$34,$3C,$28
+            EQUB    $00,$00,$3C,$2D,$22,$00,$00,$00    \ Part pigeon? Possibly corrupt
+            EQUB    $00,$00,$00,$14,$3C,$00,$14,$00
+            EQUB    $00,$00,$00,$00,$00,$00,$00,$00
+			\ 95 bytes total
 		ELSE
+		IF FIX = TRUE
 		    \ Use this space for the memory-overwrite fix
 		    PHP    \ Probably unnecessary
 		    LDA    L1A09
@@ -1018,21 +1017,68 @@ L18F6 = L18F4+2          \ SMC?
 			INC    L1A09
 			INC    L1A09
 .maxedOut   PLP    \ Also probably unnecessary
-			RTS
-			
-			\ Blank out the unused remainder
-			FOR Z, 1, 55-16
-			    EQUB $00
-			NEXT
-			
+			RTS    \ 16 bytes
 		ENDIF
-        
-        EQUB    $0D,$00,$00,$14,$3C,$00,$00,$00    \ Part pigeon? Possibly corrupt 
-        EQUB    $00,$00,$00,$3C,$3C,$34,$3C,$28
-		
-        EQUB    $00,$00,$3C,$2D,$22,$00,$00,$00    \ Part pigeon? Possibly corrupt
-        EQUB    $00,$00,$00,$14,$3C,$00,$14,$00
-        EQUB    $00,$00,$00,$00,$00,$00,$00,$00
+        IF ENCHTS = TRUE
+.rng        \ Originally at L25B8
+            PRINT "rng at: ",~rng
+            LDA     L007D    \ 2 bytes
+            AND     #$48     \ 2
+            ADC     #$38     \ 2
+            ASL     A        \ 1
+            ASL     A        \ 1
+            ROL     L007F    \ 2
+            ROL     L007E    \ 2
+            ROL     L007D    \ 2 \ Randomise pigeon height?
+            LDA     L007D    \ 2 \ Why? - could probably save 2 bytes here.
+			                 \ 16 bytes
+							 
+			\ Proof of concept cheats
+.levelSkip	LDX     #$CF         \ 2 bytes    \ '1' key
+			JSR     keyboardScan \ 3 bytes
+			BNE     levelSkpO    \ 2 bytes
+			LDA     #$80         \ 2 bytes
+			STA     gameFlags    \ 3 bytes
+			                     \ 12 bytes			
+.levelSkpO
+
+.immortal   LDX     #$CE         \ 2 bytes     \ '2' key
+            JSR     keyboardScan \ 3 bytes
+			BNE     immSkip      \ 2 bytes
+			LDA     #$C9         \ 2 bytes
+			EOR     L2238        \ 3 bytes     \ Toggle RTS/LDA#
+			STA     L2238        \ 3 bytes
+.debounce2  LDX     #$CE
+			JSR     keyboardScan
+			BEQ     debounce2	
+.immSkip
+
+.pigeon     LDX     #$EE         \ '3' key
+			JSR     keyboardScan
+			BNE     pigeonSkip
+			LDA     #$10
+			STA     gameFlags
+.debounce3  LDX     #$EE
+            JSR     keyboardScan
+			BEQ     debounce3
+.pigeonSkip
+            RTS              \ 1 byte
+		ENDIF
+	ENDIF
+	
+	\ Blank out the unused remainder
+	PRINT ~P%
+	IF P% <> $1B70
+	    FOR Z, P%, $1B6F
+            EQUB    $00
+        NEXT
+	ENDIF
+	
+		\ PRINT (&1B70-P%), "bytes free at",~P%
+        \ P% must = &1B70 here
+		IF P% <> &1B70 
+		     PRINT "WARNING: P% out by",P%-&1B70, "bytes at", ~P%
+		ENDIF
 		
 .L1B70  EQUB    $00,$00,$00,$00,$14,$00,$00,$00    \ Label added by iainfm - hit pigeon
         EQUB    $00,$05,$00,$28,$00,$01,$00,$14
@@ -1198,9 +1244,16 @@ L18F6 = L18F4+2          \ SMC?
         JSR     newGame                     \ Start game on spacebar from title screen
 
 .gameLoop       \ L1E27    \ Main game loop
-
-        JSR     L25B8                       \ unknown, possibly pseudo random number generator?
-
+        IF ORIGINAL = TRUE
+		    JSR L25B8
+		ELSE
+		    IF ENCHTS = TRUE
+                JSR     rng        \ L25B8                       \ unknown, possibly pseudo random number generator?
+            ELSE
+			    JSR L25B8
+	        ENDIF
+        ENDIF
+		
         JSR     vsyncWait                   \ Wait for vsync
 
         JSR     L2A94                       \ Enemy movement
@@ -1252,7 +1305,7 @@ L18F6 = L18F4+2          \ SMC?
         STA     score_low_byte        \ Reset score
         STA     score_high_byte       \ Reset score
 		
-		IF ENMODS = TRUE
+		IF ENRELO = TRUE
 		    LDA #(L2F00 AND $FF)      \ Get address dynamically
 			ENDIF
         STA     enemySpriteAddrLow    \ Reset enemey aircraft to level 1 biplane
@@ -2296,17 +2349,19 @@ L252F = L252E+1               \ SMC?
         RTS
 
 .L25B8  \ Doesn't seem to do much other than ROL 7d/e/f. RNG?
-        LDA     L007D
-        AND     #$48
-        ADC     #$38
-        ASL     A
-        ASL     A
-        ROL     L007F
-        ROL     L007E
-        ROL     L007D    \ Randomise pigeon height?
-        LDA     L007D    \ Why?
-        RTS
-
+        \ Candidate to move elsewhere and add enhancements to?
+        LDA     L007D    \ 2 bytes
+        AND     #$48     \ 2
+        ADC     #$38     \ 2
+        ASL     A        \ 1
+        ASL     A        \ 1
+        ROL     L007F    \ 3
+        ROL     L007E    \ 3
+        ROL     L007D    \ 3 \ Randomise pigeon height?
+        LDA     L007D    \ 2 \ Why? - could probably save 2 bytes here.
+        RTS              \ 1
+                         \ 20 bytes total
+						 
 .drawLineArt        \ .L25 C9
         LDY     #$00
 .drawLineArtLoop    \ .L25CB
@@ -3354,7 +3409,7 @@ L2C1E = L2C1D+1
         STA     L0081        \ $81
         JSR     L29C3
         LDY     #$00
-.L2C7D  INY
+.L2C7D  INY                  \ Find a free bomb slot
         INY
         LDA     (L008C),Y    \ $8C
         BNE     L2C7D
@@ -3383,7 +3438,8 @@ L2C1E = L2C1D+1
         STA     L0082 \ Store bomb sprite LO\ ?&82 = A                (=?&2D47)
         LDA     L2D75                       \ A = ?&2D75
         STA     L0083 \ Store bomb sprite HI\ ?&83 = A                (=?&2D75)
-.L2CA8
+		
+.L2CA8  \ Loop to 'do stuff' to bombs, SteveF on stardot
         INY                                 \ Y = Y + 1               (Y = 1)
         LDA     (L008C),Y                   \ A = ?(&2D47+1)          (A = ?&2D48)
         STA     L0080                       \ ?&80 = A                (A = ?&2D48)
@@ -3393,7 +3449,7 @@ L2C1E = L2C1D+1
         BNE     L2CBD                       \ Branch if not zero to .L2CBD
 
         LDA     #$7F                        \ A = &7F
-        AND     L0073                       \ A = &7F AND ?&73        (set bottom 7 bits)
+        AND     L0073                       \ A = &7F AND ?&73        (clear top bit)
         STA     L0073                       \ ?&73 = A
         JMP     L2CF5                       \ Goto .L2CF5
 
@@ -3473,7 +3529,7 @@ L2D03 = L2D02+1             \ SMC?
         EQUB    $00,$00,$00,$00,$00,$00,$00,$00
         EQUB    $00,$00,$00,$00
 
-.L2D47  \ aka ($8C)
+.L2D47  \ aka ($8C)                                \ Number of active bomb slots
         EQUB    $02                                \ First byte is copied from 1A09
 		EQUB    $D6,$00,$00,$00,$00,$00,$00        \ Screen memory pairs of bomb positions
         EQUB    $00,$00,$00,$00,$00,$00,$00,$00    \ Unknown how many are used for this (at least 3 pairs)
