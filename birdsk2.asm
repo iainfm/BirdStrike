@@ -62,7 +62,7 @@ L0076   = $0076
 L0077   = $0077
 L0078   = $0078
 L0079   = $0079
-L007A   = $007A
+L007A   = $007A    \ Bullet X coordinate?
 L007B   = $007B
 L007C   = $007C
 L007D   = $007D
@@ -78,7 +78,7 @@ L0086   = $0086
 L0087   = $0087
 enemySpriteAddrLow   = $0088        \ L0088 \ Enemy sprite address low byte (0 = level 1 aircraft, add $40 per level)
 enemySpriteAddrHigh  = $0089        \ L0089 \ Enemy sprite address high byte
-L008A   = $008A
+L008A   = $008A    \ Enemy X coordinate?
 L008B   = $008B
 L008C   = $008C    \ Something to do with enemy bomb y-position
 L008D   = $008D
@@ -987,7 +987,7 @@ L18F6 = L18F4+2          \ SMC?
         EQUB    $48
         
 .gameFix    \ L1B11
-PRINT ORIGINAL, FIX, ENCHTS
+\ PRINT ORIGINAL, FIX, ENCHTS
         IF ORIGINAL = TRUE
 		    \ junk BASIC/keyboard/source artefacts?
 			EQUS    "LDASTAJSRRTSBNE"
@@ -1010,64 +1010,75 @@ PRINT ORIGINAL, FIX, ENCHTS
 		ELSE
 		IF FIX = TRUE
 		    \ Use this space for the memory-overwrite fix
-		    PHP    \ Probably unnecessary
-		    LDA    L1A09
-			CMP    #MAX_1A09    \ L1A09 seems safe at $10.
-			BEQ    maxedOut
-			INC    L1A09
-			INC    L1A09
-.maxedOut   PLP    \ Also probably unnecessary
-			RTS    \ 16 bytes
+		    \ PHP    \ Probably unnecessary
+		    \ LDA    L1A09
+			\ CMP    #MAX_1A09    \ L1A09 seems safe at $10.
+			\ BEQ    maxedOut
+			\ INC    L1A09
+			\ INC    L1A09
+            \ PLP    \ Also probably unnecessary
+			
+			\ msc27's method:
+			LDA     L1A09
+			CMP     #MAX_1A09
+			BCS     maxedOut
+			ADC     #$02
+			STA     L1A09
+.maxedOut   RTS
 		ENDIF
+		
         IF ENCHTS = TRUE
-.rng        \ Originally at L25B8
-            PRINT "rng at: ",~rng
-            LDA     L007D    \ 2 bytes
-            AND     #$48     \ 2
-            ADC     #$38     \ 2
-            ASL     A        \ 1
-            ASL     A        \ 1
-            ROL     L007F    \ 2
-            ROL     L007E    \ 2
-            ROL     L007D    \ 2 \ Randomise pigeon height?
-            LDA     L007D    \ 2 \ Why? - could probably save 2 bytes here.
-			                 \ 16 bytes
+.rng        \ $1B11 (originally at L25B8)
+            LDA     L007D
+            AND     #$48
+            ADC     #$38
+            ASL     A
+            ASL     A
+            ROL     L007F
+            ROL     L007E
+            ROL     L007D    \ Randomise pigeon height?
+            LDA     L007D    \ Why? - could probably save 2 bytes here.
 							 
 			\ Proof of concept cheats
-.levelSkip	LDX     #$CF         \ 2 bytes    \ '1' key
+.cheat1     LDX     #$CF         \ 2 bytes    \ '1' key
 			JSR     keyboardScan \ 3 bytes
-			BNE     levelSkpO    \ 2 bytes
-			LDA     #$80         \ 2 bytes
-			STA     gameFlags    \ 3 bytes
-			                     \ 12 bytes			
-.levelSkpO
+			BNE     ch1Skip      \ 2 bytes
+			
+			LDA     #$80         \ 2 bytes    \ Set the game flags
+			STA     gameFlags    \ 3 bytes    \ to level complete
+.ch1Skip
 
-.immortal   LDX     #$CE         \ 2 bytes     \ '2' key
+.cheat2     LDX     #$CE         \ 2 bytes     \ '2' key
             JSR     keyboardScan \ 3 bytes
-			BNE     immSkip      \ 2 bytes
-			LDA     #$C9         \ 2 bytes
+			BNE     ch2Skip      \ 2 bytes
+			
+			LDA     #$C9         \ 2 bytes     \ I am invincible!
 			EOR     L2238        \ 3 bytes     \ Toggle RTS/LDA#
-			STA     L2238        \ 3 bytes
+			STA     L2238        \ 3 bytes     \ and store
 .debounce2  LDX     #$CE
 			JSR     keyboardScan
 			BEQ     debounce2	
-.immSkip
+.ch2Skip
 
-.pigeon     LDX     #$EE         \ '3' key
+.cheat3     LDX     #$EE         \ '3' key
 			JSR     keyboardScan
-			BNE     pigeonSkip
-			LDA     #$10
-			STA     gameFlags
+			BNE     ch3Skip
+			LDA     #$10       \ trigger
+			STA     gameFlags  \ a pigeon
+			\ or
+			\ LDA     #$20     \ make all hits critical
+			\ EOR     L2AEF    \ aka
+			\ STA     L2AEF    \ Golden Gun mode
 .debounce3  LDX     #$EE
             JSR     keyboardScan
 			BEQ     debounce3
-.pigeonSkip
+.ch3Skip
             RTS              \ 1 byte
 		ENDIF
 	ENDIF
 	
 	\ Blank out the unused remainder
-	PRINT ~P%
+	PRINT (&1B70-P%), "bytes free at",~P%
 	IF P% <> $1B70
 	    FOR Z, P%, $1B6F
             EQUB    $00
@@ -3124,13 +3135,13 @@ L28D7 = L28D5+2            \ SMC - player sprite / hit / skull
         SBC     L007A
         BMI     L2B21
 
-        CMP     #$07
+        CMP     #$07          \ Wing hit?
         BPL     L2B21
 
-        CMP     #$03
-        BEQ     L2AFE
+        CMP     #$03          \ Critical hit
+.L2AEF  BEQ     L2AFE         \ $2AEF Change to BNE for easy kills (EOR $20)
 
-        LDA     #$40
+        LDA     #$40          \ Trigger pigeon
         ORA     gameFlags
         STA     gameFlags
         ASL     A
