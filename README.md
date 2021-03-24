@@ -54,6 +54,8 @@ c 2238 A9
 
 ## Changes
 
+15/02/21 Final(?) fix method implemented. Should play identically to the original now, save for the glitches and crash :)
+
 11/01/21 Improved fix implemented, which doesn't break the double-fire feature. Binary and disk image updated with this new build.
 
 09/01/21 Added playable binary with BeebEm-format .INF file and a .SSD file containing the repaired game. These are as close to the original as possible*, so require BirdSk1 to be loaded first. Shift-Break the disk image, or replace file BirdSk2 on your Bird Strike floppy/image with the one here.
