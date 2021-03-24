@@ -2,10 +2,10 @@
 
 ORIGINAL = FALSE      \ Build an exact copy of the original. False overrides the tamper protection / default high score holder
 FIX      = TRUE       \ Needs ORIGINAL = FALSE. Use 'spare' space at $1B11 for the fix
-PRESERVE = TRUE       \ Preserve original memory locations where possible when ORIGINAL = FALSE
+PRESERVE = TRUE       \ Not currently used. Preserve original memory locations where possible when ORIGINAL = FALSE
                       \ Does not apply globally, eg if FIX = TRUE or ENCHTS = TRUE
 ENRELO   = FALSE      \ Enable relocation (not working yet)
-ENCHTS   = TRUE       \ Requires FIX = TRUE. Enable some PoC modifications.
+ENCHTS   = FALSE      \ Requires FIX = TRUE. Enable some PoC modifications.
 MAX_1A09 = $10        \ Limit how high L1A09 can get.
                       \ >= $19 will cause glitches.
 					  \ <= $06 will affect game difficulty (no. of simultaneous enemy bombs)
@@ -148,52 +148,24 @@ org     $1200          \ "P%" as per the original binary
 		
 .entry  \ L1300
 
-        \ Official code entry point. Originally needed BIRDSK1 to be loaded at page &3000 first.
-        \ *possibly* an anti-tamper mechanism?
+        \ Official code entry point. Restores vectors used by game-loading tune routines.
 
         SEI                  \ Disable interrupts
 		
-		IF ORIGINAL = TRUE
-		    LDA     L3527
-	    ELSE
-		    LDA     #$A4         \ Originally loaded from L3527
-			IF PRESERVE = TRUE
-		        NOP              \ To keep memory addresses consistent with original
-			ENDIF
-		ENDIF
+	    LDA     L3527        \ Restore vectors
         STA     WRCHvA
 		
-		IF ORIGINAL = TRUE
-		    LDA     L3528
-		ELSE
-		    LDA     #$E0         \ Originally loaded from L3528
-			IF PRESERVE = TRUE
-		        NOP              \ To keep memory addresses consistent with original
-			ENDIF
-		ENDIF
+		LDA     L3528
         STA     WRCHvB
         
-		IF ORIGINAL = TRUE
-		    LDA     L3529
-		ELSE
-		    LDA     #$A6         \ Originally loaded from L3529
-			IF PRESERVE = TRUE
-		        NOP              \ To keep memory addresses consistent with original
-			ENDIF
-		ENDIF
+	    LDA     L3529
         STA     EVNTvA
 		
-		IF ORIGINAL = TRUE
-		    LDA     L352A
-		ELSE
-		    LDA     #$FF         \ Originally loaded from L352A
-			IF PRESERVE = TRUE
-		        NOP              \ To keep memory addresses consistent with original
-			ENDIF
-		ENDIF
+		LDA     L352A
         STA     EVNTvB
 		
         CLI                  \ Enable interrupts
+		
         LDA     #$0D
         LDX     #$00
         JSR     osbyte       \ Disable output buffer empty event
@@ -3387,7 +3359,7 @@ L2C1E = L2C1D+1
         EQUB    $C0    \ Making this the value being loaded into A
 		BIT     L0073  \ and this the next instruction
 		
-.L2C49  BNE     L2C91
+.L2C49  BNE     L2C91  \ Only drop bomb if top bit of L0073 is clear (and...) - SteveF
         DEC     L0073
         BNE     L2C91
         LDY     #$FF
@@ -3420,6 +3392,7 @@ L2C1E = L2C1D+1
         STA     L0081        \ $81
         JSR     L29C3
         LDY     #$00
+		
 .L2C7D  INY                  \ Find a free bomb slot
         INY
         LDA     (L008C),Y    \ $8C
