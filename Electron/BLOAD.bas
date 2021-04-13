@@ -1,0 +1,50 @@
+   10REM Birdstrike
+   20REM Hacked by Mr.Spock
+   30REM Bugfix patch by iainfm
+   40FOR N%=0 TO 2 STEP2
+   50P%=&900
+   60[OPTN%
+   70LDX #c1 MOD256:LDY #c1 DIV256
+   80JSR &FFF7
+   90LDA #140:JSR &FFF4
+  100LDA #&1D:STA &71
+  110LDA #&13:STA &73
+  120LDY #0:STY &70:STY &72
+  130LDX #&1D
+  140.l1:LDA (&70),Y:STA (&72),Y
+  150INY:BNE l1
+  160INC &71:INC &73
+  170DEX:BNE l1
+  180STY &1E03
+  190LDA #2:STA &50
+  200 
+  210\ iainfm patch - limit &1A09 to 16
+  220LDA #&AD:STA &1E4F \ LDA &1A09
+  230LDA #&09:STA &1E50
+  240LDA #&1A:STA &1E51
+  250LDA #&C9:STA &1E52 \ CMP #&10
+  260LDA #&10:STA &1E53
+  270LDA #&B0:STA &1E54 \ BCS done
+  280LDA #&05:STA &1E55
+  290LDA #&69:STA &1E56 \ ADC #&02
+  300LDA #&02:STA &1E57
+  310LDA #&8D:STA &1E58 \ STA &1A09
+  320LDA #&09:STA &1E59
+  330LDA #&1A:STA &1E5A
+  340LDA #&60:STA &1E5B \ .done RTS
+  350 
+  360\STA &2238 \ Invincibility cheat
+  370 
+  380\ Redirect 1st INC &1A09 to patch
+  390\ code and NOP out 2nd INC &1A09
+  400LDA #&20:STA &1EF6 \ JSR &1E4F
+  410LDA #&4F:STA &1EF7
+  420LDA #&1E:STA &1EF8
+  430LDA #&EA           \ NOPs
+  440STA &1EF9:STA &1EFA:STA &1EFB
+  450 
+  460\ Patch complete. Launch game.
+  470JMP &1E00
+  480.c1:EQUS"L.BIRD2 1D00"+CHR$&D
+  490]NEXT
+  500CALL&900
