@@ -1430,13 +1430,13 @@ L18F6 = L18F4+2          \ SMC?
         DEX
         BNE     L1F5B
 
-        LDA     #$3A
+.ppos   LDA     #$3A
         STA     L0081
         LDA     #$81
         STA     L0082   \ need changing to #LO(something)?
         LDX     #$01
         LDY     #$08
-.L1F76
+.L1F76                  \ .pp1
         LDA     #$81
         STA     L2D13,X
         INX
@@ -1893,7 +1893,7 @@ L18F6 = L18F4+2          \ SMC?
         STA     L0081
         JMP     L2581
 
-.L2238                          \ Death-check
+.L2238                          \ Death-check - .h0 in PIGSRCE
         LDA     #$20            \ Change to RTS for invincibility
         BIT     gameFlags
         BNE     L2245
@@ -1901,10 +1901,10 @@ L18F6 = L18F4+2          \ SMC?
         LDA     timer_L1D55
         BNE     L2278
 
-.L2244
+.L2244                          
         RTS
 
-.L2245
+.L2245                         \ .h1 in PIGSRCE
         LDX     #$00
         LDY     #$07
         JSR     L281D          \ Flash screen white when player hit
@@ -1931,7 +1931,7 @@ L18F6 = L18F4+2          \ SMC?
         STA     L28D6
         JMP     L28D3
 
-.L2278
+.L2278                         \ .h12 in PIGSRCE
         DEC     timer_L1D55    \ Screen flash timer
         LDA     timer_L1D55
         CMP     #$FE
@@ -3685,7 +3685,14 @@ L2D03 = L2D02+1             \ SMC?
         EQUB    $10,$00,$00,$00,$3C,$00,$00,$00
         EQUB    $30,$00,$00,$34,$3C,$34,$10,$00
         EQUB    $38,$28,$28,$3A,$14,$38,$20,$00
-        EQUB    $20,$00,$00,$00,$3C,$00,$00,$3A
+        EQUB    $20,$00,$00,$00,$3C,$00,$00
+		
+IF ORIGINAL = TRUE
+        EQUB    $3A
+	ELSE
+		EQUB    $00
+ENDIF
+
 
 .BeebDisEndAddr
 

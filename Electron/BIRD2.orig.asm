@@ -426,9 +426,9 @@ osbyte  = $FFF4
         EQUB    $74,$6F,$20,$70,$6C,$61,$79,$2E
         EQUB    $00,$00
 
-.L1778
+.L1778  \ Same as BBC version
         LDY     #$0A
-.L177A
+.L177A  \ Same as BBC version
         LDA     L180E,Y
         JSR     oswrch
 
@@ -441,7 +441,7 @@ osbyte  = $FFF4
         STA     L17AC
         LDA     #$04
         STA     L0070
-.L1791
+.L1791  \ Same as BBC version
         LDA     #$1D
         JSR     oswrch
 
@@ -451,7 +451,7 @@ osbyte  = $FFF4
         JSR     oswrch
 
         SEC
-.L179F
+.L179F  \ Same as BBC version
         LDA     #$00
 L17A0 = L179F+1
         SBC     #$80
@@ -460,7 +460,7 @@ L17A0 = L179F+1
         JSR     oswrch
 
         PLP
-.L17AB
+.L17AB  \ Same as BBC version
         LDA     #$00
 L17AC = L17AB+1
         SBC     #$00
@@ -480,7 +480,8 @@ L17AC = L17AB+1
         STA     L1A0C
         LDA     #$88
         STA     L1A0B
-.L17D1
+		
+.L17D1  \ Same as BBC version
         CLC
         LDA     L1A0B
         STA     L1D59
@@ -492,8 +493,8 @@ L17AC = L17AB+1
 
         STX     L2382
         INC     L1D5C
-.L17EC
-        JSR     L20E0
+.L17EC  \ Same as BBC version
+        JSR     L20E0    \ L20DE on BBC version
 
         BNE     L17EC
 
@@ -513,7 +514,7 @@ L17AC = L17AB+1
         LDA     #$1A
         JMP     oswrch
 
-.L180E
+.L180E  \ Same as BBC version - VDU calls
         EQUB    $10,$03,$FF,$04,$0F,$02,$0F,$00
         EQUB    $F0,$18,$1A
 
