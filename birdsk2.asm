@@ -52,7 +52,7 @@ L0009   = $0009
 L000A   = $000A
 L000B   = $000B
 L005D   = $005D
-L0070   = $0070
+L0070   = $0070    \ psta aka no
 L0071   = $0071
 L0072   = $0072
 L0073   = $0073
@@ -64,21 +64,22 @@ L0078   = $0078
 L0079   = $0079
 L007A   = $007A    \ Bullet X coordinate?
 L007B   = $007B
-L007C   = $007C
+L007C   = $007C    \ py
 L007D   = $007D
 L007E   = $007E    \ Only used in .L25B8
 L007F   = $007F    \ Only used in .L25B8
-L0080   = $0080    \ Score screen memory location low byte
-L0081   = $0081    \ Score screen memory location high byte
-L0082   = $0082    \ Sprite pointer low byte (digits, notes, pigeons etc)
-L0083   = $0083    \ Sprite pointer high byte
+L0080   = $0080    \ Score screen memory location low byte  sd
+L0081   = $0081    \ Score screen memory location high byte sd+1
+L0082   = $0082    \ Sprite pointer low byte (digits, notes, pigeons etc) sf
+L0083   = $0083    \ Sprite pointer high byte sf+1
 L0084   = $0084    \ Something to do with enemy position / plotting
 L0085   = $0085    \ Something to do with enemy position / plotting
-L0086   = $0086
-L0087   = $0087
+L0086   = $0086    \ gunp
+L0087   = $0087    \ gunp+1
+
 enemySpriteAddrLow   = $0088        \ L0088 \ Enemy sprite address low byte (0 = level 1 aircraft, add $40 per level)
 enemySpriteAddrHigh  = $0089        \ L0089 \ Enemy sprite address high byte
-L008A   = $008A    \ Enemy X coordinate?
+L008A   = $008A    \ bulst Enemy X coordinate?
 L008B   = $008B
 L008C   = $008C    \ Something to do with enemy bomb y-position
 L008D   = $008D
@@ -357,20 +358,20 @@ org     $1200          \ "P%" as per the original binary
         EQUB    $1F,$05,$0F,$11,$01        \ Red text, centred on screen
         EQUS    "GAME OVER"
 
-.L14D8  \ Enemy has reached bottom of the screen
+.L14D8  \ .stp4 Enemy has reached bottom of the screen
         RTS
 
-.L14D9
-        LDA     timer_L1D55
-        BEQ     L14D8
+.L14D9  \ .stp6
+        LDA     timer_L1D55 \ gex
+        BEQ     L14D8       \ stp4
 
-        LDA     L007A
+        LDA     L007A       \ psta
         EOR     #$80
-        STA     L007A
+        STA     L007A       \ psta
         INC     L0077
         PLA
         PLA
-        JMP     L2BE4
+        JMP     L2BE4       \ fo+3
 
 .L14EB
         LDA     #$01
@@ -1466,7 +1467,7 @@ L18F6 = L18F4+2          \ SMC?
         LDY     #$00
         LDA     (L0075),Y
         STA     L0070
-.L1FAA
+.L1FAA                 \ .slop
         INY
         INY
         LDA     (L0075),Y
@@ -1483,13 +1484,13 @@ L18F6 = L18F4+2          \ SMC?
 
         JSR     L22E2
 
-.L1FC1
+.L1FC1  \ .sgun
         LDA     #$20
-        STA     playerXpos
+        STA     playerXpos \ aka Xg
         LDA     #$7E
-        STA     L0087
+        STA     L0087      \ gunp+1
         LDA     #$90
-        STA     L0086
+        STA     L0086      \ gunp
         LDA     #HI(L2358) \ $23       \ Memory reference - player sprite pointer
         STA     L28D7
         LDA     #LO(L2358) \ $58       \ Memory reference - player sprite pointer
@@ -1499,27 +1500,27 @@ L18F6 = L18F4+2          \ SMC?
         LDA     #$40       \ Begin level tune
         JMP     playTune
 
-.L1FE0
-        LDA     gameFlags
-        BEQ     L2054     \ Zero? Skip to L2054
+.L1FE0  \ .sor
+        LDA     gameFlags \ sc
+        BEQ     L2054     \ s7 Zero? Skip to L2054
 
         SED
         AND     #$02      \ Bit 2 set?
-        BEQ     L1FFE     \ Skip to L1FFE
+        BEQ     L1FFE     \ s1 Skip to L1FFE
 
         CLC
         LDA     #$15
-        ADC     score_low_byte
-        STA     score_low_byte
-        LDA     score_high_byte
+        ADC     score_low_byte  \ sc+1
+        STA     score_low_byte  \ sc+1
+        LDA     score_high_byte \ sc+2
         ADC     #$00
-        STA     score_high_byte
-        JSR     L258D
+        STA     score_high_byte \ sc+2
+        JSR     L258D \ X%
 
-.L1FFE
+.L1FFE  \ .s1
         LDA     #$40
-        BIT     gameFlags
-        BEQ     L2021
+        BIT     gameFlags \ sc
+        BEQ     L2021 \ s2
 
         CLC
         LDA     #$01
@@ -1535,7 +1536,7 @@ L18F6 = L18F4+2          \ SMC?
         JSR     osword        \ Play a sound (plane winged?)
 
         SED
-.L2021
+.L2021  \ .s2
         LDA     #$10		  \ Pigeon hit - add a note to the stave
         BIT     gameFlags
         BEQ     L2042
@@ -1568,36 +1569,36 @@ L18F6 = L18F4+2          \ SMC?
         STA     gameFlags
         RTS
 
-.L2054
-        LDA     #$34    \ Score screen memory location high byte
-        STA     L0081
-        LDA     #$B0    \ Score screen memory location low byte
-        STA     L0080
+.L2054  \ .s7
+        LDA     #$34    \ Score screen memory location high byte ($33 in PIGSRCE)
+        STA     L0081   \ sd+1
+        LDA     #$B0    \ Score screen memory location low byte  ($90 in PIGSRCE)
+        STA     L0080   \ sd
         LDA     #HI(L1C00)  \ $1C    \ Possible memory reference (score digits pointer)
-        STA     L0083
+        STA     L0083   \ sf+1
         LDA     #$F0
         AND     score_high_byte
-        JSR     L285A
+        JSR     L285A   \ w
 
         LDA     #$0F
-        AND     score_high_byte
+        AND     score_high_byte \ sc+2
         ASL     A
         ASL     A
         ASL     A
         ASL     A
-        JSR     L285A
+        JSR     L285A   \ w
 
         LDA     #$F0
-        AND     score_low_byte
-        JSR     L285A
+        AND     score_low_byte  \ sc+1
+        JSR     L285A   \ w
 
         LDA     #$0F
-        AND     score_low_byte
+        AND     score_low_byte  \ sc+1
         ASL     A
         ASL     A
         ASL     A
         ASL     A
-        JSR     L285A
+        JSR     L285A   \ w (JMP in PIGSRCE)
 
         LDA     #$00
         JMP     L285A
@@ -1995,26 +1996,26 @@ L18F6 = L18F4+2          \ SMC?
         STA     L0078
         JSR     L2C08
 
-        JMP     L22DE
+        JMP     L22DE \ h10
 
-.L22DB
+.L22DB  \ .h8
         DEY
-.L22DC
-        DEY
-        DEY
-.L22DE
+.L22DC  \ .h9
         DEY
         DEY
-        BNE     L22BC
+.L22DE  \ .h10
+        DEY
+        DEY
+        BNE     L22BC \ h6
 
-.L22E2  \ Self-modifying code calls
+.L22E2  \ .h7   Self-modifying code calls
         LDA     #$20        \ JSR opcode
-        STA     smc_L286E
+        STA     smc_L286E   \ mg
         LDA     #$A5        \ LDA zeropage opcode
-        STA     smc_L29F7
+        STA     smc_L29F7   \ np
         LDA     #$A9        \ LDA# opcode
-        STA     smc_L2C45
-        STA     smc_L295E
+        STA     smc_L2C45   \ nbo
+        STA     smc_L295E   \ nb
         SEC
         LDA     L1D57
         SBC     #$18
@@ -2123,23 +2124,23 @@ L240F = L240E+1          \ SMC - $1A = L-R $1B = R-L
         LDA     #$4B
 L246C = L246B+1
         CLC
-.L246E
+.L246E  \ .b5
         ADC     #$05
         TAY
-        LDA     L007C
+        LDA     L007C    \ py
         ADC     #$10
-        STA     L007C
+        STA     L007C    \ py
         TYA
         DEX
-        BPL     L246E
+        BPL     L246E    \ b5
 
-        STA     L2D7D
-        STA     L0081
+        STA     L2D7D    \ ba+1
+        STA     L0081    \ sd+1
         LDX     #$02
-        STX     L2D7E
-        LDA     L2D68,X
-        STA     L0082     \ ooft
-        JMP     L2581
+        STX     L2D7E    \ ba+2
+        LDA     L2D68,X  \ bis,X
+        STA     L0082    \ sf
+        JMP     L2581    \ pb
 
 .L248D
         RTS
@@ -2171,27 +2172,27 @@ L246C = L246B+1
         STA     L0082     \ ooft
         LDY     #$00
         LDA     (L008A),Y
-        STA     L0070
-.L24C3
+        STA     L0070     \ no
+.L24C3  \ .h
         INY
-        LDA     (L008A),Y
+        LDA     (L008A),Y \ (bulst),Y
         SEC
-        SBC     L007C
-        BMI     L2517
+        SBC     L007C     \ py
+        BMI     L2517     \ nh
 
         CMP     #$07
         BPL     L2517
 
         INY
         INY
-        LDA     (L008A),Y
-        BEQ     L2519
+        LDA     (L008A),Y \ (bulst),Y
+        BEQ     L2519     \ nh+2
 
         INY
-        LDA     (L008A),Y
+        LDA     (L008A),Y \ (bulst),Y
         SEC
-        SBC     L2D7F
-        BMI     L251A
+        SBC     L2D7F     \ ba+3
+        BMI     L251A     \ nh+3
 
         CMP     #$03
         BPL     L251A
@@ -2226,12 +2227,12 @@ L246C = L246B+1
 .L2516
         RTS
 
-.L2517
+.L2517  \ .nh
         INY
         INY
-.L2519
+.L2519  \ .nh+2
         INY
-.L251A
+.L251A  \ .nh+3
         CPY     L0070
         BMI     L24C3
 
@@ -2292,7 +2293,7 @@ L252F = L252E+1               \ SMC?
 
         DEC     L2D7D
         DEC     L0081
-.L2581
+.L2581  \ .pb
         LDY     #$17
 .L2583 \ not the culprit
         LDA     (L0082),Y
@@ -2632,7 +2633,7 @@ L2673 = L2671+2            \ SMC - Cloud screen memory address
         STA     LFE4E         \ Disable vsync interrupt
         RTS
 
-.L285A
+.L285A  \ .w
         STA     L0082    \ ooft
         LDY     #$0F
 .L285E  \ not the culprit
@@ -3523,7 +3524,7 @@ L2D03 = L2D02+1             \ SMC?
         EQUB    $80,$40,$40,$00,$80,$00,$40,$80
         EQUB    $00
 
-.L2D68
+.L2D68  \ .bis
         EQUB    $88,$A0,$B8,$D0,$E8,$D0,$B8,$88
 
 .playerXpos  \ .L2D70
@@ -3569,13 +3570,13 @@ L2D03 = L2D02+1             \ SMC?
 .L2D7C  \ aka ($80)
         EQUB    $00
 
-.L2D7D  \ aka ($81) Pigeon position
+.L2D7D  \ aka ($81) Pigeon position ba+1
         EQUB    $00
 
-.L2D7E
+.L2D7E  \ ba+2
         EQUB    $06
 
-.L2D7F
+.L2D7F  \ ba+3
         EQUB    $00
 		
 .L2D80  EQUB    $01,$81,$FD,$00,$00,$28,$00         \ 14 bytes of envelope data
