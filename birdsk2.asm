@@ -1,7 +1,7 @@
 \ Build directives
 
-ORIGINAL = FALSE      \ Build an exact copy of the original. False overrides the tamper protection / default high score holder
-FIX      = TRUE       \ Needs ORIGINAL = FALSE. Use 'spare' space at $1B11 for the fix
+ORIGINAL = TRUE       \ Build an exact copy of the original. False overrides the tamper protection / default high score holder
+FIX      = FALSE      \ Needs ORIGINAL = FALSE. Use 'spare' space at $1B11 for the fix
 PRESERVE = TRUE       \ Not currently used. Preserve original memory locations where possible when ORIGINAL = FALSE
                       \ Does not apply globally, eg if FIX = TRUE or ENCHTS = TRUE
 ENRELO   = FALSE      \ Enable relocation (not working yet)
@@ -52,38 +52,38 @@ L0009   = $0009
 L000A   = $000A
 L000B   = $000B
 L005D   = $005D
-L0070   = $0070    \ psta aka no
-L0071   = $0071
+L0070   = $0070    \ no
+L0071   = $0071    \ bfg
 L0072   = $0072
 L0073   = $0073
-L0074   = $0074
-L0075   = $0075
-L0076   = $0076
-L0077   = $0077
-L0078   = $0078
-L0079   = $0079
-L007A   = $007A    \ Bullet X coordinate?
+L0074   = $0074    \ mod
+L0075   = $0075    \ pls
+L0076   = $0076    \ pls+1
+L0077   = $0077    \ exp
+L0078   = $0078    \ pos
+L0079   = $0079    \ pos+1
+L007A   = $007A    \ psta \ Bullet X coordinate?
 L007B   = $007B
 L007C   = $007C    \ py
 L007D   = $007D
 L007E   = $007E    \ Only used in .L25B8
 L007F   = $007F    \ Only used in .L25B8
-L0080   = $0080    \ Score screen memory location low byte  sd
-L0081   = $0081    \ Score screen memory location high byte sd+1
-L0082   = $0082    \ Sprite pointer low byte (digits, notes, pigeons etc) sf
-L0083   = $0083    \ Sprite pointer high byte sf+1
-L0084   = $0084    \ Something to do with enemy position / plotting
-L0085   = $0085    \ Something to do with enemy position / plotting
+L0080   = $0080    \ sd   Score screen memory location low byte  sd
+L0081   = $0081    \ sd+1 Score screen memory location high byte sd+1
+L0082   = $0082    \ sf   Sprite pointer low byte (digits, notes, pigeons etc) sf
+L0083   = $0083    \ sf+1 Sprite pointer high byte sf+1
+L0084   = $0084    \ st \ Something to do with enemy position / plotting
+L0085   = $0085    \ st+1 \ Something to do with enemy position / plotting
 L0086   = $0086    \ gunp
 L0087   = $0087    \ gunp+1
 
-enemySpriteAddrLow   = $0088        \ L0088 \ Enemy sprite address low byte (0 = level 1 aircraft, add $40 per level)
-enemySpriteAddrHigh  = $0089        \ L0089 \ Enemy sprite address high byte
+enemySpriteAddrLow   = $0088   \ plf     \ L0088 \ Enemy sprite address low byte (0 = level 1 aircraft, add $40 per level)
+enemySpriteAddrHigh  = $0089   \ plf+1   \ L0089 \ Enemy sprite address high byte
 L008A   = $008A    \ bulst Enemy X coordinate?
-L008B   = $008B
-L008C   = $008C    \ Something to do with enemy bomb y-position
-L008D   = $008D
-L008E   = $008E
+L008B   = $008B    \ bulst+1
+L008C   = $008C    \ bost \ Something to do with enemy bomb y-position
+L008D   = $008D    \ bost+1
+L008E   = $008E    \ cnt
 
 BYTEvA  = $020A        \ BYTEvA
 BYTEvB  = $020B        \ BYTEvB
@@ -97,7 +97,7 @@ WRCHvB  = $020F        \ WRCH vector B
 EVNTvA  = $0220        \ EVNT vector A
 EVNTvB  = $0221        \ EVNT vector B
 
-L02FC   = $02FC        \ Busy buffer flag
+L02FC   = $02FC        \ picn \ Busy buffer flag
 
 L3527   = $3527        \ Screen memory locations
 L3528   = $3528
@@ -220,7 +220,7 @@ org     $1200          \ "P%" as per the original binary
         BNE     p0copyloop
 
         LDA     #$8C
-        LDX     #$0Cb
+        LDX     #$0C
         JSR     osbyte        \ Set TAPE filing system and baud rate (X)
 
         JMP     game
@@ -229,132 +229,138 @@ org     $1200          \ "P%" as per the original binary
         FOR Z, 1, 128
 		    EQUB $00
 	    NEXT
-        
+
+.L1400
 		\ Thanks and credits
         EQUS    "Thanks David,Ian,Martin,Mum,Dad,Susi C"
 
         
-.keyCheck       \ Main keyboard scan during gameplay .L1426
+.keyCheck       \ .opt \ Main keyboard scan during gameplay .L1426
         LDX     #$EF             \ Q key
-        JSR     keyboardScan
+        JSR     keyboardScan     \ key
 
-        BNE     checkSkey        \ Skip if pressed
+        BNE     checkSkey        \ op1    \ Skip if pressed
 
-        LDA     #LO(L1461)       \ #$61
-        STA     osword_redirection_C      \ Mess with vectors to disable sounds
-        LDA     #HI(L1461)       \ #$14
-        STA     osword_redirection_D      \ Mess with vectors to disable sounds
+        LDA     #LO(L1461)       \ (mute MOD 256) \ #$61
+        STA     osword_redirection_C      \ &20C  \ Mess with vectors to disable sounds
+        LDA     #HI(L1461)       \ (mute DIV 256) \ #$14
+        STA     osword_redirection_D      \ &20D  \ Mess with vectors to disable sounds
 		
-.checkSkey      \ .L1437
+.checkSkey \ .op1 \ .L1437
         LDX     #$AE             \ S key
-        JSR     keyboardScan
+        JSR     keyboardScan     \ key
 
-        BNE     checkRkey        \ Skip if pressed
-        LDA     wordv_1
-        STA     osword_redirection_C      \ Restore default vectors to enable sounds
-        LDA     wordv_2
-        STA     osword_redirection_D      \ Restore default vectors to enable sounds
+        BNE     checkRkey        \ op2 \ Skip if pressed
+        LDA     wordv_1          \ soun
+        STA     osword_redirection_C      \ &20C  \ Restore default vectors to enable sounds
+        LDA     wordv_2          \ soun+1 
+        STA     osword_redirection_D      \ &20D \ Restore default vectors to enable sounds
 
-.checkRkey      \ .L144A
+.checkRkey \.op2 \ .L144A
         LDX     #$CC
-        JSR     keyboardScan     \ R key
-        BNE     keyCheckComplete
+        JSR     keyboardScan     \ key \ R key
+        BNE     keyCheckComplete \ op5
 
-.debounceRkey   \ .L1451  \ De-bounce for R keypress?
+.debounceRkey \ .op3 \ .L1451  \ De-bounce for R keypress?
         LDA     #$81
         LDY     #$01
         LDX     #$00
         JSR     osbyte    \ Read key with timeout
-        BCS     debounceRkey     \ No key detected
+        BCS     debounceRkey \ op3 \ No key detected
         CPX     #$52      \ INKEY value of R
-        BEQ     debounceRkey
+        BEQ     debounceRkey \ op3
 
-.keyCheckComplete    \.L1460
+.keyCheckComplete \.op5 \.L1460
         RTS
 
-.L1461  \ Disable sounds - Address used by .keyCheck (osword_redirection_C/D)
+.L1461  \ .mute \ Disable sounds - Address used by .keyCheck (osword_redirection_C/D)
 
         CMP    #$07
-		BEQ    keyCheckComplete
-		JMP    (wordv_1)
+		BEQ    keyCheckComplete  \ op5
+		JMP    (wordv_1)         \ (soun)
 
-.wordv_1    \ OSWORD redirection vector stored here \L1468
+.wordv_1    \ soun \ OSWORD redirection vector stored here \L1468
         EQUB    $EB
 
 .wordv_2    \ OSWORD redirection vector stored here \L1469
         EQUB    $E7
 
-.L146A  \ Move enemy / check left bound
-        LDA     L149B
-        BEQ     L1490
+.L146A \ .nlr  \ Move enemy / check left bound
+        LDA     L149B     \ tog
+        BEQ     L1490     \ enlr
 
-        LDA     L0077
-        BPL     L1483
+        LDA     L0077     \ exp
+        BPL     L1483     \ rt
 
-        DEC     L007A
+        DEC     L007A     \ psta
         SEC
-        LDA     L0078
+        LDA     L0078     \ pos
         SBC     #$08
-        STA     L0078
-        BCS     L1490
+        STA     L0078     \ pos
+        BCS     L1490     \ enlr
 
-        DEC     L0079
-        JMP     L1490
+        DEC     L0079     \ pos+1
+        JMP     L1490     \ enlr
 
-.L1483  \ Check right bound
-        INC     L007A
+.L1483  \ .rt
+        \ Check right bound
+        INC     L007A     \ psta
         CLC
-        LDA     L0078
+        LDA     L0078     \ pos
         ADC     #$08
-        STA     L0078
-        BCC     L1490
+        STA     L0078     \ pos
+        BCC     L1490     \ enlr
 
-        INC     L0079
+        INC     L0079     \ pos+1
 		
-.L1490  \ Enemy left-right zigzag
+.L1490  \ .enlr \ Enemy left-right zigzag
         LDA     #$01    \ 0 = vertical descent
-        EOR     L149B
-        STA     L149B
-        JMP     L2BE1
+        EOR     L149B   \ tog
+        STA     L149B   \ tog
+        JMP     L2BE1   \ (no label)
 
-.L149B
+.L149B  \ .tog
         EQUB    $00    \ enemy zig-zag state?
 		
-.L149C  \ Triggered when bullet fired
-		LDA     L14AD
-		BEQ     L14A5
-		DEC     L14AD
+.L149C  \ .fpat
+        \ Triggered when bullet fired
+		LDA     L14AD  \ fp0
+		BEQ     L14A5  \ fp1
+		DEC     L14AD  \ fp0
 		RTS
 		
-.L14A5  \ Player bullet fired
+.L14A5  \ .fp1
+        \ Player bullet fired
         LDA     #$12     \ 2nd bullet fire delay?
-        STA     L14AD
+        STA     L14AD    \ fp0
 		JMP     L297D    \ this (or another L297D) may upset the disassembly. Jury's out.
 		
-.L14AD  EQUB   $00
+.L14AD  \ .fp0
+        EQUB   $00
 
-.gameOver       \ Display Game Over message    \ L14AE
+.gameOver \ .gov      \ Display Game Over message    \ L14AE
         PLA
         PLA
         LDY     #$FF
 		
-.gameOverLoop   \ L14B2
+.gameOverLoop \ .gov1  \ L14B2
         INY
         LDA     #$0A
-        JSR     L208D
+        JSR     L208D  \ delay
 
-        LDA     gameOverText,Y    \ Load chr at gameOverText (L14CA), offset Y
+        LDA     gameOverText,Y    \ gov2,Y \ Load chr at gameOverText (L14CA), offset Y
         JSR     oswrch            \ Print it
 
         CMP     #$52              \ Loop untl the "R" of "OVER"
-        BNE     gameOverLoop
+        BNE     gameOverLoop      \ gov1
 
         LDA     #$96
-        JSR     L208D
+        JSR     L208D  \ delay
 
-        JMP     L1E21
+        JMP     L1E21  \ newgame (original $.S)
 
-.gameOverText   \ GAME OVER message        \ L14CA    
+.gameOverText \ .gov2
+        \ GAME OVER message        \ L14CA    
         EQUB    $1F,$05,$0F,$11,$01        \ Red text, centred on screen
         EQUS    "GAME OVER"
 
@@ -368,97 +374,94 @@ org     $1200          \ "P%" as per the original binary
         LDA     L007A       \ psta
         EOR     #$80
         STA     L007A       \ psta
-        INC     L0077
+        INC     L0077       \ exp \ 'bug' noted in $.S
         PLA
         PLA
-        JMP     L2BE4       \ fo+3
+        JMP     L2BE4       \ fo+3 / F%+3
 
-.L14EB
+.L14EB  \ exg
         LDA     #$01
-        BIT     L151A
-        BNE     L1502
+        BIT     L151A       \ exg3
+        BNE     L1502       \ exg1
 
-        LDY     score_high_byte
+        LDY     score_high_byte     \ sc+2
         CPY     #$05				\ Extra life at 5000?
-        BMI     L1519
+        BMI     L1519       \ exg2
+        ORA     L151A       \ exg3
+        STA     L151A       \ exg3
+        JSR     L151B       \ exg4
 
-        ORA     L151A
-        STA     L151A
-        JSR     L151B
-
-.L1502
+.L1502  \ .exg1
         LDA     #$02
-        BIT     L151A
-        BNE     L1519
+        BIT     L151A       \ exg3
+        BNE     L1519       \ exg2
 
-        LDY     score_high_byte
+        LDY     score_high_byte    \ sc+2
         CPY     #$10
-        BMI     L1519
+        BMI     L1519       \ exg2
 
-        ORA     L151A
-        STA     L151A
-        JMP     L151B
+        ORA     L151A       \ exg3
+        STA     L151A       \ exg3
+        JMP     L151B       \ exg4
 
-.L1519
+.L1519  \ .exg2
         RTS
 
-.L151A
+.L151A  \ .exg3
         EQUB    $00
 
-.L151B
-        JSR     L2223
+.L151B  \ .exg4
+        JSR     L2223        \ mini
 
         LDA     #$DC
-        STA     L2DFC
+        STA     L2DFC        \ (no label)
         LDX     #$F8
         LDY     #$2D
         LDA     #$07
-        JSR     osword        \ Play a sound (extra life)
+        JSR     osword       \ Play a sound (extra life)
 
-        INC     L1D56
+        INC     L1D56        \ gex+1
         CLC
-        LDA     L1D57
+        LDA     L1D57        \ gex+2
         ADC     #$18
-        STA     L1D57
-        BCC     L153D
-
-        INC     L1D58
-.L153D
+        STA     L1D57        \ gex+2
+        BCC     L153D        \ exg5
+        INC     L1D58        \ gex+3
+.L153D  \ .exg5
         RTS
 
-.L153E
-        LDA     level
+.L153E  \ .bon
+        LDA     level        \ fc
         AND     #$03
-        BNE     L1550
+        BNE     L1550        \ bon0
 
         LDA     #$0F
-        JSR     L208D
+        JSR     L208D        \ delay
 
-        JSR     vduCalls
+        JSR     vduCalls     \ stmv
 
-        JMP     L1556
+        JMP     L1556        \ bon11
 
-.L1550
-        JSR     L20B1
+.L1550  \ .bon0
+        JSR     L20B1        \ cht
+        JSR     playTune     \ tune
 
-        JSR     playTune
-
-.L1556
-        JSR     L159E
+.L1556  \ .bon11
+        JSR     L159E        \ wbmsg
 
         LDY     #$4B
-.L155B
+.L155B  \ .bon1
         SED
         CLC
-        LDA     score_low_byte
+        LDA     score_low_byte  \ sc+1
         ADC     #$02
-        STA     score_low_byte
-        LDA     score_high_byte
+        STA     score_low_byte  \ sc+1
+        LDA     score_high_byte \ sc+2
         ADC     #$00
-        STA     score_high_byte
+        STA     score_high_byte \ sc+2
         CLD
         LDA     #$02
-        JSR     L208D
+        JSR     L208D    \ delay
 
         TYA
         PHA
@@ -467,29 +470,30 @@ org     $1200          \ "P%" as per the original binary
         LDA     #$07
         JSR     osword        \ Play a sound (bonus noise)
 
-        JSR     L2054
+        JSR     L2054    \ s7
 
         PLA
         TAY
         DEY
-        BNE     L155B
+        BNE     L155B    \ bon1
 
-        INC     L15B7
-        LDX     #$B7
-        LDY     #$15
+        INC     L15B7    \ bsou
+        LDX     #$B7     \ (bsou AND 255) \ TODO: Implement this
+        LDY     #$15     \ (bsou DIV 256) \ TODO: Implement this
         LDA     #$07
         JSR     osword        \ Play a sound (last pip of bonus noise)
 
-        DEC     L15B7
+        DEC     L15B7    \ bsou
         LDA     #$80
-        ORA     gameFlags
-        STA     gameFlags
+        ORA     gameFlags    \ sc
+        STA     gameFlags    \ sc
         RTS
 
-.L159E  \ Display bonus text
+.L159E  \ .wbmsg
+        \ Display bonus text
         LDY     #$00
-.L15A0
-        LDA     bonusText,Y
+.L15A0  \ .wb1
+        LDA     bonusText,Y  \ bmsg,Y
         JSR     oswrch
 
         INY
@@ -498,31 +502,37 @@ org     $1200          \ "P%" as per the original binary
 
         RTS
 
-.bonusText      \L15AC
+.bonusText \ .bmsg \ L15AC
         \ BONUS! message
         EQUB    $11,$06,$1F,$07,$0F        \ Cyan text, centred
         EQUS    "BONUS!"
 
-.L15B7  \ Something to do with the bonus routine
+.L15B7  \ .bsou
+        \ Something to do with the bonus routine
         EQUB    $12 \ (just this byte, the rest is padding?)
 		EQUB    $00,$FF,$FF,$00,$00,$00,$00
-        EQUB    $FF,$B4,$16,$08,$20,$7F
+        EQUB    $FF
+		
+.L15C0  \ .nbk		
+		EQUB    $B4,$16,$08,$20,$7F
 
-.L15C5
+.L15C5  \ .hs
         EQUB    $00
 
 .L15C6
         EQUB    $00
 
-.L15C7
+.L15C7  \ .hs+2
         EQUB    $02
 
-.titleScreen    \ L15C8
+.titleScreen \ .m7    \ L15C8
        \ MODE 7 Title Screen
 	   
         EQUB    $16,$07,$17,$00,$0A,$20,$00,$00
         EQUB    $00,$00,$00,$00
-.L15D4	EQUB    $9A,$94,$68,$3F
+		
+.L15D4	\ .bsk
+        EQUB    $9A,$94,$68,$3F
         EQUB    $6F,$34,$20,$20,$20,$20,$20,$20
         EQUB    $20,$20,$FF,$20,$20,$5F,$7E,$2F
         EQUB    $6D,$20,$78,$20,$20,$20,$20,$20
@@ -547,14 +557,14 @@ org     $1200          \ "P%" as per the original binary
         EQUB    $1F,$0B,$09,$8D,$83
         EQUS    "High Score"
 
-.highScoreDots  \ L16A0
+.highScoreDots  \ .dts \ L16A0
         \ High score display
         EQUB    $1F,$0B,$0B   \ Move text cursor
         EQUS    "............."
         EQUB    $00
 		EQUB    $1F,$19,$0B   \ Move text cursor
 
-.keysText       \ L16B4
+.keysText \ .nam       \ L16B4
         
 		IF ORIGINAL = TRUE
             EQUS    "andrew  "    \ original high score holder
@@ -564,7 +574,8 @@ org     $1200          \ "P%" as per the original binary
 		
         EQUB    $00
 
-.L16BD  EQUB    $1F,$0E,$0E   \ Move text cursor
+.L16BD  \ .ints
+        EQUB    $1F,$0E,$0E   \ Move text cursor
 		EQUB    $8D,$83       \ Double-height / yellow
         EQUS    "Keys"        \ Double height line 1
         EQUB    $1F,$0E,$0F   \ Move text cursor
@@ -586,27 +597,34 @@ org     $1200          \ "P%" as per the original binary
 		EQUB    $86           \ Cyan
         EQUS    "R ................. rest"
         EQUB    $00
-.L175C  EQUB    $1F,$07,$18   \ Move text cursor
+		
+.L175C  \ .sps
+        EQUB    $1F,$07,$18   \ Move text cursor
 		EQUB    $81,$88       \ Red / flash
         EQUS    "Press space to play."
         EQUB    $00,$00,$00
 
-.vduCalls       \ Call the VDU commands at vduCallsTable in reverse order    \ L1778
+
+\\\\\\ Start of 2nd PART $.S //////
+
+.vduCalls       \ .stmv \ Call the VDU commands at vduCallsTable in reverse order    \ L1778
         LDY     #$0A
-.vduLoop        \ L177A
-        LDA     vduCallsTable,Y
+		
+.vduLoop        \ .stm4 \ L177A
+        LDA     vduCallsTable,Y     \ stm10,Y
         JSR     oswrch
 
         DEY
-        BPL     vduLoop
+        BPL     vduLoop    \ stm4
 
         LDA     #$80
-        STA     L17A0      \ SMC
+        STA     L17A0      \ stm2+1 \ SMC
         LDA     #$00
-        STA     L17AC      \ SMC
+        STA     L17AC      \ stm3+1 \ SMC
         LDA     #$04
-        STA     L0070
-.L1791
+        STA     L0070      \ no
+		
+.L1791  \ .stm1
         LDA     #$1D
         JSR     oswrch
 
@@ -616,69 +634,73 @@ org     $1200          \ "P%" as per the original binary
         JSR     oswrch
 
         SEC
-.L179F
+.L179F  \ .stm2
         LDA     #$00
 L17A0 = L179F+1            \ SMC
         SBC     #$80
-        STA     L17A0
+        STA     L17A0      \ stm2+1
         PHP
         JSR     oswrch
 
         PLP
-.L17AB
+		
+.L17AB  \ .stm3
         LDA     #$00
 L17AC = L17AB+1            \ SMC
         SBC     #$00
-        STA     L17AC
+        STA     L17AC      \ stm3+1
         JSR     oswrch
 
-        JSR     drawStave
+        JSR     drawStave  \ stv
 
-        DEC     L0070
-        BNE     L1791
+        DEC     L0070      \ no
+        BNE     L1791      \ stm1
 
-        LDA     level
-        STA     L1A08
+        \ .stm5
+        LDA     level      \ fc
+        STA     L1A08      \ tm
         LDA     #$00
-        STA     level
+        STA     level      \ fc
         LDA     #$26    \ Possible memory address - purpose unknown
-        STA     L1A0C
+        STA     L1A0C      \ tm+4
         LDA     #$88    \ Possible memory address - purpose unknown
-        STA     L1A0B
-.L17D1
+        STA     L1A0B      \ tm+3
+		
+.L17D1  \ .stm6
         CLC
-        LDA     L1A0B
-        STA     L1D59
-        LDA     L1A0C
+        LDA     L1A0B      \ tm+3
+        STA     L1D59      \ not
+        LDA     L1A0C      \ tm+4
         ADC     #$0A
-        STA     L1A0C
-        STA     L1D5A
-        JSR     L20B1
+        STA     L1A0C      \ tm+4
+        STA     L1D5A      \ not+1
+        JSR     L20B1      \ cht
 
-        STX     L2382
-        INC     level
-.L17EC
-        JSR     L20DE
+        STX     L2382      \ nl
+        INC     level      \ fc
+		
+.L17EC  \ .stm8
+        JSR     L20DE      \ nxno
 
-        BNE     L17EC
+        BNE     L17EC      \ stm8
 
-        JSR     L20B1
+        JSR     L20B1      \ cht
 
-        JSR     playTune
+        JSR     playTune   \ tune
 
         LDA     #$3C
-        JSR     L208D
+        JSR     L208D      \ delay
 
-        LDA     level
-        CMP     #$04
-        BNE     L17D1
+        LDA     level      \ fc
+        CMP     #$04 
+        BNE     L17D1      \ stm6
 
-        LDA     L1A08
-        STA     level
+        LDA     L1A08      \ tm
+        STA     level      \ fc
         LDA     #$1A
         JMP     oswrch \ Restore default windows and then RTS
 
-.vduCallsTable         \ VDU calls    \ L180E - executed top-to-bottom
+.vduCallsTable  \ .stm10   \ VDU calls    \ L180E - executed top-to-bottom
         EQUB    $10    \ Clear graphics area
 		EQUB    $03    \ 
 		EQUB    $FF    \ 
@@ -691,35 +713,34 @@ L17AC = L17AB+1            \ SMC
 		EQUB    $18    \ Define graphics window
 		EQUB    $1A    \ Restore default windows
 
-.L1819
+.L1819  \ .gend
         LDA     #$00
-        STA     L15C5
-        LDA     score_high_byte
-        CMP     L15C7
-        BCC     L183F
+        STA     L15C5  \ hs
+        LDA     score_high_byte  \ sc+2
+        CMP     L15C7  \ hs+2
+        BCC     L183F  \ ge1
+        BNE     L1830  \ ge0
+        LDA     score_low_byte   \ sc+1
+        CMP     L15C6  \ hs+1
+        BCC     L183F  \ ge1
 
-        BNE     L1830
-
-        LDA     score_low_byte
-        CMP     L15C6
-        BCC     L183F
-
-.L1830
-        LDA     score_low_byte
-        STA     L15C6
-        LDA     score_high_byte
-        STA     L15C7
-        DEC     L15C5
-.L183F
+.L1830  \ .ge0
+        LDA     score_low_byte   \ sc+1
+        STA     L15C6  \ hs+1
+        LDA     score_high_byte  \ sc+2
+        STA     L15C7  \ hs+2
+        DEC     L15C5  \ hs
+		
+.L183F  \ .ge1
         LDA     #$16
         JSR     oswrch
 
         LDA     #$07
         JSR     oswrch
 
-        LDX     #LO(L15D4)          \ #$D4 self-modifying code
-        LDY     #HI(L15D4)          \ #$15 self-modifying code
-        JSR     L18EB
+        LDX     #LO(L15D4)    \ (bsk AND 255)    \ #$D4 self-modifying code
+        LDY     #HI(L15D4)    \ (bsk DIV 256)    \ #$15 self-modifying code
+        JSR     L18EB    \ wrs
 
         LDA     #$1F
         JSR     oswrch
@@ -730,22 +751,22 @@ L17AC = L17AB+1            \ SMC
         LDA     #$0B
         JSR     oswrch
 
-        LDA     L15C7
-        JSR     L18D7
+        LDA     L15C7    \ hs+2
+        JSR     L18D7    \ whs
 
-        LDA     L15C6
-        JSR     L18D7
+        LDA     L15C6    \ hs+1
+        JSR     L18D7    \ whs
 
-        LDA     #$30
+        LDA     #$30     
         JSR     oswrch
 
-        LDX     #LO(highScoreDots) \ #$A0 self-modifying code
-        LDY     #HI(highScoreDots) \ #$16 self-modifying code
-        JSR     L18EB
+        LDX     #LO(highScoreDots) \ (dts AND 255) \ #$A0 self-modifying code
+        LDY     #HI(highScoreDots) \ (dts DIV 256) \ #$16 self-modifying code
+        JSR     L18EB    \ wrs
 
-        LDX     #LO(L16BD)         \ #$BD self-modifying code
-        LDY     #HI(L16BD)         \ #$16 self-modifying code
-        JSR     L18EB
+        LDX     #LO(L16BD)         \ (ints AND 255) \ #$BD self-modifying code
+        LDY     #HI(L16BD)         \ (ints DIV 256) \ #$16 self-modifying code
+        JSR     L18EB    \ wrs
 
         LDA     #$1F
         JSR     oswrch        \ Move cursor to x,y
@@ -756,60 +777,60 @@ L17AC = L17AB+1            \ SMC
         LDA     #$0B
         JSR     oswrch        \ Move cursor up one line
 
-        LDA     L15C5
-        BEQ     L18A4
+        LDA     L15C5    \ hs
+        BEQ     L18A4    \ ge3
 
         LDA     #$15
         LDX     #$00
         JSR     osbyte        \ Flush keyboard buffer
 
         TXA
-        LDX     #$C0
-        LDY     #$15
+        LDX     #$C0          \ (nbk AND 255) \ TODO: implement this
+        LDY     #$15          \ (nbk DIV 256) \ TODO: implement this
         JSR     osword        \ Read line from input to memory, probably the name for the high score table
 
-        JMP     L18B1
+        JMP     L18B1    \ ge7
 
-.L18A4
+.L18A4  \ .ge3
         LDY     #$FF
-.L18A6
+.L18A6  \ .ge6
         INY
-        LDA     keysText,Y    \ read and
-        JSR     osasci        \ print high score text etc
+        LDA     keysText,Y    \ nam,Y \ read and
+        JSR     osasci                \ print high score text etc
 
         CMP     #$20
-        BPL     L18A6
+        BPL     L18A6    \ ge6
 
-.L18B1
+.L18B1  \ .ge7
         LDY     #$02
-.L18B3  \ Title screen loop
-        LDA     titleScreen,Y
+.L18B3  \ .ge5  \ Title screen loop
+        LDA     titleScreen,Y    \ m7,Y
         JSR     oswrch
 
         INY
         CPY     #$0D
-        BNE     L18B3
+        BNE     L18B3    \ ge5
 
         LDA     #$64
-        JSR     L208D
+        JSR     L208D    \ delay
 
-.L18C3
+.L18C3  \ .space
         LDA     #$1A
         JSR     oswrch
 
-        LDX     #LO(L175C)       \ #$5C self-modifying code
-        LDY     #HI(L175C)       \ #$17 self-modifying code
-        JSR     L18EB
+        LDX     #LO(L175C)       \ (sps AND 255) \ #$5C self-modifying code
+        LDY     #HI(L175C)       \ (sps DIV 256) \ #$17 self-modifying code
+        JSR     L18EB    \ wrs
 
-.L18CF  \ Wait for spacebar to begin game
+.L18CF  \ .ge4  \ Wait for spacebar to begin game
         LDX     #$9D     \ Space bar
-        JSR     keyboardScan
+        JSR     keyboardScan     \ key
 
-        BNE     L18CF
+        BNE     L18CF    \ ge4
 
         RTS
 
-.L18D7
+.L18D7  \ .whs
         PHA
         LSR     A
         LSR     A
@@ -825,21 +846,24 @@ L17AC = L17AB+1            \ SMC
         ADC     #$30
         JMP     osasci    \ with implied RTS
 
-.L18EB
-        STX     L18F5    \ naughtly self-modifying code
-        STY     L18F6    \ naughtly self-modifying code
+.L18EB  \ .wrs
+        STX     L18F5    \ (wr1+2) \ naughtly self-modifying code
+        STY     L18F6    \ (wr1+3) \ naughtly self-modifying code
         LDY     #$FF
-.L18F3
+		
+.L18F3  \ .wr1
         INY
 .L18F4
-        LDA     highScoreDots,Y
-L18F5 = L18F4+1          \ SMC?
-L18F6 = L18F4+2          \ SMC?
+        LDA     highScoreDots,Y  \ dts,Y
+L18F5 = L18F4+1          \ wr1+2 \ SMC?
+L18F6 = L18F4+2          \ wr1+3 \ SMC?
 
         JSR     osasci            \ Print the dots in the high score 'table'
 
         CMP     #$00
-        BNE     L18F3
+        BNE     L18F3    \ wr1
+		
+\\\\\ $.S has an RTS here / end of 2nd part //////
 
         PHA
         LDA     L005D
@@ -901,7 +925,7 @@ L18F6 = L18F4+2          \ SMC?
 .L1A08
         EQUB    $FF
 
-.L1A09
+.L1A09  \ .tm+1
         EQUB    $FF
 
 .L1A0A
@@ -1144,31 +1168,31 @@ L18F6 = L18F4+2          \ SMC?
 		EQUB    $BA,$77,$51,$7A,$B8,$7C           \ Unknown - unused player graves?
         EQUB    $20,$7A,$42,$7A
 
-.unused_L1D54   \ Unused?
+.unused_L1D54   \ .picn \ Unused?
         EQUB    $00
 
-.timer_L1D55    \ Only used for the screen flash timer, I think.
+.timer_L1D55    \ .gex \ Only used for the screen flash timer, I think.
         EQUB    $00
 
-.L1D56  \ Something to do with lives(?)
+.L1D56  \ .gex+1 \ Something to do with lives(?)
         EQUB    $00
 
-.L1D57
+.L1D57  \ .gex+2
         EQUB    $00
 
-.L1D58
+.L1D58  \ .gex+3
         EQUB    $00
 
-.L1D59
+.L1D59  \ .not
         EQUB    $00
 
-.L1D5A
+.L1D5A  \ .not+1
         EQUB    $00
 
 .L1D5B  \ Enemy kill counter (x2)
         EQUB    $00
 
-.level  \ L1D5C \ Current level
+.level  \ .fc \ L1D5C \ Current level
         EQUB    $00
 
 .L1D5D  \ Game data?
@@ -1203,16 +1227,17 @@ L18F6 = L18F4+2          \ SMC?
         EQUB    $00,$08,$04,$04,$30,$3A,$30,$30
 
 
-.game   \L1E00
+.game   \ .Q%   \ L1E00
         \ Game can be run by starting execution here
 
         LDA     #$C8                        \ Read/write escape/break effect
-        LDX     #$03                        \ esc disabled, memory clear on break
+        LDX     #$03                        \ esc disabled, memory clear on break (&1 in $.S)
         LDY     #$00                        \ could be useful for debugging?
         JSR     osbyte
 
-        JSR     L18C3                       \ No 'press space to play' message if RTS'd
+        JSR     L18C3     \ space           \ No 'press space to play' message if RTS'd
 
+\ * not part of $.S
         LDX     #$01
         LDA     #$04
         LDY     #$00
@@ -1222,57 +1247,61 @@ L18F6 = L18F4+2          \ SMC?
         STA     wordv_1
         LDA     osword_redirection_D        \ Get OSWORD indirecton vector (high(?) byte - TBC)
         STA     wordv_2
-.L1E21
+\ * not part of $.S
+
+.L1E21  \ .newgame                          \ .newgame as per $.S
         JSR     L1819                       \ Display title screen/high score/controls
 
         JSR     newGame                     \ Start game on spacebar from title screen
 
-.gameLoop       \ L1E27    \ Main game loop
+.gameLoop       \ .GO \ L1E27    \ Main game loop
         IF ORIGINAL = TRUE
-		    JSR L25B8
+		    JSR L25B8                       \ S%?
 		ELSE
 		    IF ENCHTS = TRUE
-                JSR     rng        \ L25B8                       \ unknown, possibly pseudo random number generator?
+                JSR     rng                 \ L25B8 \ pseudo random number generator?
             ELSE
-			    JSR L25B8
+			    JSR L25B8                   \ R%
 	        ENDIF
         ENDIF
 		
-        JSR     vsyncWait                   \ Wait for vsync
+        JSR     vsyncWait                   \ scr \ Wait for vsync
 
-        JSR     L2A94                       \ Enemy movement
+        JSR     L2A94                       \ mp \ Enemy movement
 
-        JSR     smc_L29F7                   \ Self modifying code - next enemy?
+        JSR     smc_L29F7                   \ np \ Self modifying code - next enemy?
 
-        JSR     smc_L286E                   \ Player movement? - either an RTS or JMP $28D3 (load skull sprite?) - changed by .L2245/.L22E2
+        JSR     smc_L286E                   \ mg \ Player movement? - either an RTS or JMP $28D3 (load skull sprite?) - changed by .L2245/.L22E2
 
-        JSR     L28E2                       \ Bullet Y movement
+        JSR     L28E2                       \ mb \ Bullet Y movement
 
-        JSR     smc_L295E                   \ Player fire - either an RTS or JMP absolute
+        JSR     smc_L295E                   \ nb \ Player fire - either an RTS or JMP absolute
 
-        JSR     L2C98                       \ Enemy bombs
+        JSR     L2C98                       \ mbo \ Enemy bombs
 
-        JSR     smc_L2C45                   \ Drop a bomb? - either an RTS or an LDA
+        JSR     smc_L2C45                   \ nbo \ Drop a bomb? - either an RTS or an LDA
 
-        JSR     L240E                       \ Pigeon
+        JSR     L240E                       \ B%  \ Pigeon
 
-        JSR     L2238                       \ Player hit detection
+        JSR     L2238                       \ H% \ .h0 \ Player hit detection
 
         JSR     L1FE0                       \ Gravestones plot / pigeon reset after hit
 
-        JSR     keyCheck                    \ Keyboard scan
+        JSR     keyCheck                    \ opt \ Keyboard scan
+		
+		                                    \ $.S has an extra JSRkey and LDX#&8F here
 
         JMP     gameLoop                    \ branch back around
         
         EQUS    "(c)A.E.Frigaard 1984 Hello!"
 
-.newGame        \ L1E6C    \ Set up new game
+.newGame        \ S% \ L1E6C    \ Set up new game
         LDA     #$05       \ Used to calculate address locations of sound envelopes
-        STA     L0070
-        JSR     L2835      \ Define-envelope routine
+        STA     L0070      \ no
+        JSR     L2835      \ E% \ Define-envelope routine
 
         LDA     #$49       \ New game tune
-        JSR     playTune
+        JSR     playTune   \ tune
 
         LDA     #$16
         JSR     oswrch     \ VDU 22 (change mode)
@@ -1281,86 +1310,88 @@ L18F6 = L18F4+2          \ SMC?
         JSR     oswrch     \ To mode 2
 
         LDA     #$00
-        STA     L151A      
-        STA     L008E
-        STA     level                 \ Reset level
-        STA     unused_L1D54          \ Unused? Perhaps not.
-        STA     timer_L1D55           \ 'Lightning' effect timer
-        STA     score_low_byte        \ Reset score
-        STA     score_high_byte       \ Reset score
+        STA     L151A      \ exg2
+        STA     L008E      \ cnt
+        STA     level      \ fc       \ Reset level
+        STA     unused_L1D54          \ picn \ Unused? Perhaps not.
+        STA     timer_L1D55           \ gex  \ 'Lightning' effect timer
+        STA     score_low_byte        \ sc+1 \ Reset score
+        STA     score_high_byte       \ sc+2 \ Reset score
 		
 		IF ENRELO = TRUE
 		    LDA #(L2F00 AND $FF)      \ Get address dynamically
 			ENDIF
-        STA     enemySpriteAddrLow    \ Reset enemey aircraft to level 1 biplane
+        STA     enemySpriteAddrLow    \ plf \ Reset enemey aircraft to level 1 biplane
 		                              \ (This messes up relocation)
         CLC
         LDA     #$20
-        STA     L2D79
+        STA     L2D79                 \ de
 		
         LDA     #$03     \ Lives? Possible memory address
-        STA     L2D7A
+        STA     L2D7A    \ de+1
         LDA     #$2A     \ Initial x position? Possible memory address
-        STA     L2D7B
+        STA     L2D7B    \ de+2
         LDA     #$02
-        STA     L0071
+        STA     L0071    \ bfg
 		
 		\ Zero page memory lookups
         \ LDA     #$2D \ L2D0A_high
 
 		LDA     #L2D47 DIV 256 \ #HI(L2D47)
-        STA     L008B    \ ($8B) = $472D (check)
-        STA     L008D    \ ($8C) = $2D47
-        STA     L0076    \ ($75) = $2D13
+        STA     L008B    \ bulst+1 \ ($8B) = $472D (check)
+        STA     L008D    \ bost+1  \ ($8C) = $2D47
+        STA     L0076    \ pls+1   \ ($75) = $2D13
 		
         \ LDA     #$47
-		LDA     #L2D47 MOD 256 \ #LO(L2D47)
-        STA     L008C    \ ($8C) = $2D47
+		LDA     #L2D47 MOD 256  \ #LO(L2D47)
+        STA     L008C    \ bost \($8C) = $2D47
         
 		\ LDA     #$0A
 		LDA     #L2D0A MOD 256 \ #LO(L2D0A)
-        STA     L008A    \ ($8A) = $2D0A
+        STA     L008A    \ bulst \ ($8A) = $2D0A
         \ LDA     #$13
 		LDA     #L2D13 MOD 256 \ #LO(L2D13)
-        STA     L0075    \ ($75) = $2D13
+        STA     L0075    \ pls \ ($75) = $2D13
 		
         LDX     #$0F
         LDY     #$07
 
 		
-.L1EC6
-        JSR     L281D    \ Set palette
+.L1EC6  \ .col
+        JSR     L281D    \ D% \ Set palette
 
         DEX
         CPX     #$07
-        BNE     L1EC6
+        BNE     L1EC6   \ col
 
-        STX     L007D
+        STX     L007D   \ ra1
         LDA     #$03    \ Lives
-        STA     L1D56
+        STA     L1D56   \ gex+1
         LDA     #HI(L2F00)    \ #$2F                 
-        STA     enemySpriteAddrHigh
-        LDA     #$F0
-        STA     useless
+        STA     enemySpriteAddrHigh   \ plf+1
+        LDA     #$F0    
+        STA     useless \ inb
         LDA     #$00
-        STA     L1A09    \ Part of the problem
-.L1EE3
-        JSR     L20B1
+        STA     L1A09   \ tm+1 \ Part of the problem
+		
+.L1EE3  \ bf
+        JSR     L20B1   \ cht? 
 
-        STX     L2382
-        INC     level    \ Increment level number
-        LDA     L2D79
+        STX     L2382   \ nl
+        INC     level   \ fc \ Increment level number
+        LDA     L2D79   \ de
         CMP     #$0F
-        BMI     L1F03
+        BMI     L1F03   \ b0
 
-        LDA     level
-        AND     #$01     \ Is level even?
-        BEQ     L1F03    \ Yes, branch
-		                 \ If not... (don't know why; reduces L2D79 by 2 every 2nd level)
-        DEC     L2D79    \ Commenting these out gives a slightly different corruption
-        DEC     L2D79
-        DEC     useless
-.L1F03
+        LDA     level   \ fc
+        AND     #$01    \ Is level even?
+        BEQ     L1F03   \ b0 \ Yes, branch
+		                \ If not... (don't know why; reduces L2D79 by 2 every 2nd level)
+        DEC     L2D79   \ de \ Commenting these out gives a slightly different corruption
+        DEC     L2D79   \ de \ 
+        DEC     useless \ inb
+		
+.L1F03  \ .b0
 		\ The glitch/crash bug lies with the two INCs below
 		\ To create a byte-for-byte original version leave them in and uncomment the NOPs
 		\ To fix the bug comment out the INCs
@@ -1372,8 +1403,8 @@ L18F6 = L18F4+2          \ SMC?
 		
 		
 		IF FIX = FALSE
-            INC     L1A09      \ J'accuse! NOP this out (x3 to keep addresses consistent for fix) - Changed to NOPping the STA 24d7 out
-            INC     L1A09      \ J'accuse! NOP this out (x3 to keep addresses consistent for fix) - Changed to NOPping the STA 24d7 out
+            INC     L1A09      \ tm+1 \ J'accuse! NOP this out (x3 to keep addresses consistent for fix) - Changed to NOPping the STA 24d7 out
+            INC     L1A09      \ tm+1 \ J'accuse! NOP this out (x3 to keep addresses consistent for fix) - Changed to NOPping the STA 24d7 out
         ELSE
 		    JSR     gameFix    \ 3 bytes
 			NOP:NOP:NOP
@@ -1386,51 +1417,56 @@ L18F6 = L18F4+2          \ SMC?
         LDX     #$14
         JSR     osbyte   \ Write to Video ULA CPL and cursor width?
 
-        JSR     L261A    \ Draw clouds - not culprit
+        JSR     L261A    \ C% Draw clouds - not culprit
 
-        JSR     drawLineArt    \ Draw scenery - not culprit
+        JSR     drawLineArt \ V%   \ Draw scenery - not culprit
 
-        JSR     drawStave \ not culprit
+        JSR     drawStave \ stv \ not culprit
 
-        JSR     L2054
+        JSR     L2054     \ s7
 
         LDA     #$00
-        STA     L1D5B        \ Reset Ememy kill counter
-        STA     gameFlags    \ Reset game flags
-        STA     L2D7D        \ Reset Pigeon position
+        STA     L1D5B        \ (no label?) Reset Ememy kill counter
+        STA     gameFlags    \ sc \ Reset game flags
+        STA     L2D7D        \ ba+1 \ Reset Pigeon position
         LDY     #$54
 		
-.zeroLoop       \L1F2E
-        STA     L2D0A,Y      \ Zero 2D0A to 2D5E (backwards)
+.zeroLoop       \ .b1 \L1F2E
+        STA     L2D0A,Y      \ (no label?) \ Zero 2D0A to 2D5E (backwards)
         DEY
-        BNE     zeroLoop
-		LDA     L1A09        \ Restore 2D47
+        BNE     zeroLoop     \ .b1
+		LDA     L1A09        \ tm+1 \ Restore 2D47
 		\ Original fix removed from here
-		STA     L2D47        \ NOPping this out will cure the code overwrite issue too, but no double-fire
+		STA     L2D47        \ (no label?) NOPping this out will cure the code overwrite issue too, but no double-fire
 		
         LDA     #$06
-        STA     L2D0A
+        STA     L2D0A        \ (no label)
         LDA     #$1E         \ Probably not a memory pointer
-        STA     L2D13
+        STA     L2D13        \ (no label)
         LDA     #$30
-        STA     L1D5A
+        STA     L1D5A        \ not+1
         LDA     #$88
-        STA     L1D59
+        STA     L1D59        \ not
         LDA     #$80
-        STA     L1D57
+        STA     L1D57        \ gex+2
         LDA     #$32
-        STA     L1D58
+        STA     L1D58        \ get+3
         LDX     L1D56    \ Lives
-.L1F5B
-        JSR     L2223
+		
+\\\\\\\\ PIGSRCE @ &2221 ////////   \\\\\\\ $.S overlaps ///////
+
+.L1F5B  \ .pmi
+        JSR     L2223   \ mini
 
         CLC
-        LDA     L1D57
-        ADC     #$18
-        STA     L1D57
+        LDA     L1D57   \ gex+2
+        ADC     #$18    \ #$20 in PIGSRCE / &18 in $.S
+        STA     L1D57   \ gex+2
         DEX
-        BNE     L1F5B
-
+		                \ BNE pmi in PIGSRCE / $.S
+		                \ CPX #7 in PIGSRCE
+        BNE     L1F5B   \ col?
+                        \ STX ra1 in PIGSRCE
 .ppos   LDA     #$3A
         STA     L0081
         LDA     #$81
@@ -1439,68 +1475,71 @@ L18F6 = L18F4+2          \ SMC?
         LDY     #$08
 .L1F76                  \ .pp1
         LDA     #$81
-        STA     L2D13,X
+        STA     L2D13,X \ !pls,X
         INX
         TYA
-        CLC
+        CLC	
         ADC     #$50
-        STA     L2D13,X
+        STA     L2D13,X \ !pls,X
         TAY
         INX
         LDA     L0081
         ADC     #$00
-        STA     L2D13,X
+        STA     L2D13,X \ !pls,X
+                        \ extra code in PIGSRCE here &2257-&225F
         STA     L0081
         CLC
         INX
         LDA     L0082
         ADC     #$0A
         STA     L0082
-        STA     L2D13,X
+        STA     L2D13,X \ !pls,X
         INX
         LDA     #$D0
-        STA     L2D13,X
+        STA     L2D13,X \ !pls,X
         INX
         CPX     #$1F
-        BMI     L1F76
+        BMI     L1F76   \ pp1
 
         LDY     #$00
-        LDA     (L0075),Y
-        STA     L0070
-.L1FAA                 \ .slop
+        LDA     (L0075),Y  \ (pls),Y
+        STA     L0070      \ no
+.L1FAA                     \ .slop
         INY
         INY
-        LDA     (L0075),Y
-        STA     L0078
+        LDA     (L0075),Y  \ (pls),Y
+        STA     L0078      \ pos
         INY
-        LDA     (L0075),Y
-        STA     L0079
-        JSR     L2C08
+        LDA     (L0075),Y  \ (pls),Y
+        STA     L0079      \ pos+1
+        JSR     L2C08      \ pp
 
         INY
         INY
-        CPY     L0070
-        BMI     L1FAA
+        CPY     L0070      \ no
+        BMI     L1FAA      \ slop
 
-        JSR     L22E2
+        JSR     L22E2      \ h7
 
 .L1FC1  \ .sgun
         LDA     #$20
-        STA     playerXpos \ aka Xg
+        STA     playerXpos \ Xg
         LDA     #$7E
         STA     L0087      \ gunp+1
         LDA     #$90
         STA     L0086      \ gunp
         LDA     #HI(L2358) \ $23       \ Memory reference - player sprite pointer
-        STA     L28D7
+        STA     L28D7      \ gun+4
         LDA     #LO(L2358) \ $58       \ Memory reference - player sprite pointer
-        STA     L28D6
-        JSR     L28D3
+        STA     L28D6      \ gun+3
+        JSR     L28D3      \ gun (JMP in PIGSRCE, JSR in $.S)
+		
+\\\\\ END OF PIGSRCE MATCH /////   \\\\\\ $.S continues //////
 
         LDA     #$40       \ Begin level tune
-        JMP     playTune
+        JMP     playTune   \ tune
 
-.L1FE0  \ .sor
+.L1FE0  \ .sor  (@ &239D in PIGSRCE)
         LDA     gameFlags \ sc
         BEQ     L2054     \ s7 Zero? Skip to L2054
 
@@ -1509,7 +1548,7 @@ L18F6 = L18F4+2          \ SMC?
         BEQ     L1FFE     \ s1 Skip to L1FFE
 
         CLC
-        LDA     #$15
+        LDA     #$15      \ #&05\pl in PIGSRCE/$.S
         ADC     score_low_byte  \ sc+1
         STA     score_low_byte  \ sc+1
         LDA     score_high_byte \ sc+2
@@ -1518,56 +1557,56 @@ L18F6 = L18F4+2          \ SMC?
         JSR     L258D \ X%
 
 .L1FFE  \ .s1
-        LDA     #$40
+        LDA     #$40      \ #&10 in PIGSRCE / &40 in $.S
         BIT     gameFlags \ sc
-        BEQ     L2021 \ s2
+        BEQ     L2021 \ s2 / s4 in $.S
 
         CLC
-        LDA     #$01
-        ADC     score_low_byte
-        STA     score_low_byte
-        LDA     score_high_byte
+        LDA     #$01      \ #&10\pig in PIGSRCE, #1\wng in $.S
+        ADC     score_low_byte  \ sc+1
+        STA     score_low_byte  \ sc+1
+        LDA     score_high_byte \ sc+2
         ADC     #$00
-        STA     score_high_byte
+        STA     score_high_byte \ sc+2
         CLD
-        LDX     #$B7
-        LDY     #$15
-        LDA     #$07
+        LDX     #$B7          \ Not in PIGSRCE? but in $.S
+        LDY     #$15          \
+        LDA     #$07          \
         JSR     osword        \ Play a sound (plane winged?)
 
         SED
-.L2021  \ .s2
+.L2021  \ .s4
         LDA     #$10		  \ Pigeon hit - add a note to the stave
         BIT     gameFlags
         BEQ     L2042
 
         CLC
-        LDA     #$0A
-        ADC     score_low_byte    \ Wing hit - 10 points
-        STA     score_low_byte
-        LDA     score_high_byte
+        LDA     #$0A              \ pig in $.S
+        ADC     score_low_byte    \ sc+1 \ Wing hit - 10 points
+        STA     score_low_byte    \ sc+1
+        LDA     score_high_byte   \ sc+2
         ADC     #$00              \ Add carry to high byte
-        STA     score_high_byte
+        STA     score_high_byte   \ sc+2
         CLD
-        JSR     L20DE
+        JSR     L20DE             \ nxno
 
-        BNE     L2042
+        BNE     L2042             \ s2
 
-        JSR     L153E
+        JSR     L153E             \ bon
 
-.L2042
+.L2042  \ .s2
         CLD
-        JSR     L14EB
+        JSR     L14EB             \ exg
 
-        LDA     gameFlags
-        BPL     L204E   \ Bit 8 clear? Skip to reset game flag
+        LDA     gameFlags         \ sc
+        BPL     L204E             \ s3 \ Bit 8 clear? Skip to reset game flag
 
         JMP     nextLevel   \ Next level
 
-.L204E
+.L204E  \ .s3
         LDA     #$00    \ Reset game flag
-        STA     gameFlags
-        RTS
+        STA     gameFlags \ sc
+        RTS     \ sor in $.S
 
 .L2054  \ .s7
         LDA     #$34    \ Score screen memory location high byte ($33 in PIGSRCE)
@@ -1577,8 +1616,8 @@ L18F6 = L18F4+2          \ SMC?
         LDA     #HI(L1C00)  \ $1C    \ Possible memory reference (score digits pointer)
         STA     L0083   \ sf+1
         LDA     #$F0
-        AND     score_high_byte
-        JSR     L285A   \ w
+        AND     score_high_byte      \ sc+1
+        JSR     L285A   \ w / W%
 
         LDA     #$0F
         AND     score_high_byte \ sc+2
@@ -1586,11 +1625,11 @@ L18F6 = L18F4+2          \ SMC?
         ASL     A
         ASL     A
         ASL     A
-        JSR     L285A   \ w
+        JSR     L285A   \ w / W%
 
         LDA     #$F0
         AND     score_low_byte  \ sc+1
-        JSR     L285A   \ w
+        JSR     L285A   \ w / W%
 
         LDA     #$0F
         AND     score_low_byte  \ sc+1
@@ -1598,249 +1637,257 @@ L18F6 = L18F4+2          \ SMC?
         ASL     A
         ASL     A
         ASL     A
-        JSR     L285A   \ w (JMP in PIGSRCE)
+        JSR     L285A   \ w / W% (JMP in PIGSRCE)
 
-        LDA     #$00
-        JMP     L285A
+        LDA     #$00    \ PIGSRCE deviates here, $.S continues
+        JMP     L285A   \ W%
 
-.L208D                       \ aka ($8A),#0
-        STA     L1A0A
+.L208D  \.delay                     \ aka ($8A),#0
+        STA     L1A0A   \ tm+2
         TYA
         PHA
-.L2092
-        JSR     vsyncWait
+		
+.L2092  \ .del1
+        JSR     vsyncWait \ scr
 
-        DEC     L1A0A
-        BNE     L2092
+        DEC     L1A0A     \ tm+2
+        BNE     L2092     \ del1
 
         PLA
         TAY
         RTS
 
-.nextLevel      \ L209D
+.nextLevel      \ .ef     \ L209D
         LDA     #$00
-        STA     gameFlags    \ Reset gameFlags to zero
+        STA     gameFlags    \ sc \ Reset gameFlags to zero
         CLC
-        LDA     enemySpriteAddrLow        \ Enemy sprite address
+        LDA     enemySpriteAddrLow        \ plf \ Enemy sprite address
         ADC     #$40                      \ Add $40 to get new aircraft
-        STA     enemySpriteAddrLow        \ Store it back
+        STA     enemySpriteAddrLow        \ plf \ Store it back
 		                                  \ Need an adc on the high byte here eventually
         LDA     #$64
-        JSR     L208D
+        JSR     L208D   \ delay
 
-        JMP     L1EE3
+        JMP     L1EE3   \ bf
 
-.L20B1
+.L20B1  \ .cht
         LDA     #$03
-        AND     level
+        AND     level   \ fc
         TAX
-        BNE     L20BC
+        BNE     L20BC   \ ctl
 
         LDA     #$33
         RTS
 
-.L20BC
+.L20BC  \ .ctl
         DEX
-        BNE     L20C3
+        BNE     L20C3   \ ct2
 
         TXA
         LDX     #$0D
         RTS
 
-.L20C3	
+.L20C3	\ .ct2
         DEX
-        BNE     L20CB
-
+        BNE     L20CB   \ ct3
         LDA     #$11
         LDX     #$1A
         RTS
 
-.L20CB
+.L20CB  \ .ct3
         LDA     #$22
         LDX     #$26
         RTS
 
-.L20D0
-        LDA     L007D
-        BPL     L20DA
+.L20D0  \ .patch
+        LDA     L007D    \ ra1
+        BPL     L20DA    \ patch2
 
-        LDA     L0080
+        LDA     L0080    \ sd
         EOR     #$C0
-        STA     L0080
-.L20DA
-        LDA     L2D79
-        RTS
+        STA     L0080    \ sd
+		
+.L20DA  \ .patch2
+        LDA     L2D79    \ de
+        RTS     \ dirn when above
 
-.L20DE
-        INC     L2382
-        LDY     L2382
-        LDA     L2382,Y
-        STA     L0070
+.L20DE  \ .nxno
+        INC     L2382    \ nl
+        LDY     L2382    \ nl
+        LDA     L2382,Y  \ nl,Y
+        STA     L0070    \ no
         AND     #$0E
         CMP     #$08
-        BPL     L20F9
+        BPL     L20F9    \ n1
 
         CLC
-        ADC     L1D59
-        STA     L0080
+        ADC     L1D59    \ not
+        STA     L0080    \ sd
         LDA     #$00
-        BEQ     L2103
+        BEQ     L2103    \ n2
 
-.L20F9
+.L20F9  \ n1
         CLC
-        ADC     L1D59
+        ADC     L1D59    \ not
         ADC     #$78
-        STA     L0080
+        STA     L0080    \ sd
         LDA     #$02
-.L2103
-        ADC     L1D5A
-        STA     L0081
+		
+.L2103 \ n2
+        ADC     L1D5A    \ not+1
+        STA     L0081    \ sd+1
         LDA     #HI(L2300)    \ #$23     \ Note sprite pointer
-        STA     L0083
-        JSR     L213E
+        STA     L0083    \ sf+1
+        JSR     L213E    \ chnot
 
         CLC
-        LDA     L1D59
+        LDA     L1D59    \ not
         ADC     #$20
-        STA     L1D59
-        BCC     L211D
+        STA     L1D59    \ not
+        BCC     L211D    \ n3
 
-        INC     L1D5A    \ Deal with page boundaries
-.L211D
-        JSR     L2172
+        INC     L1D5A    \ not+1 \ Deal with page boundaries
+		
+.L211D  \ .n3
+        JSR     L2172    \ pno
 
         CLC
-        LDA     L0080
-        ADC     #$08
-        STA     L0080
-        BCC     L212B
+        LDA     L0080    \ sd
+        ADC     #$08     
+        STA     L0080    \ sd
+        BCC     L212B    \ .n4
 
-        INC     L0081    \ Deal with page boundaries
-.L212B
+        INC     L0081    \ sd+1 \ Deal with page boundaries
+		
+.L212B  .n4
         CLC
-        LDA     L0082
+        LDA     L0082    \ sf
         ADC     #$08     \ Note sprite offset
-        STA     L0082    \ Score sprite pointer low byte
-        BCC     L2136
+        STA     L0082    \ sf \ Score sprite pointer low byte
+        BCC     L2136    \ n5
 
-        INC     L0083    \ Deal with page boundaries
-.L2136
-        JSR     L2172
+        INC     L0083    \ sf+1 \ Deal with page boundaries
+		
+.L2136  \ .n5
+        JSR     L2172    \ pno
 
         INY
-        LDA     L2382,Y
+        LDA     L2382,Y  \ nl,Y
         RTS
 
-.L213E
+.L213E  \ .chnot
         LDA     #$80
-        BIT     L0070
-        BEQ     L2149
+        BIT     L0070    \ no
+        BEQ     L2149    \ c1
 
         LDA     #LO(L1C00) \ $00   \ Number 0 sprite
-        STA     L0082
+        STA     L0082    \ sf
         RTS
 
-.L2149
+.L2149  \ .c1
         LSR     A
-        BIT     L0070
-        BEQ     L2153
+        BIT     L0070    \ no
+        BEQ     L2153    \ c2
 
         LDA     #LO(L1C10) \ #$10
-        STA     L0082  \ Number 1 sprite
+        STA     L0082    \ sf \ Number 1 sprite
         RTS
 
-.L2153
+.L2153  \ .c2
         LSR     A
-        BIT     L0070
-        BEQ     L215D
+        BIT     L0070    \ no
+        BEQ     L215D    \ c3
 
         LDA     #LO(L1C20) \ #$20
-        STA     L0082  \ Number 2 sprite
+        STA     L0082    \ sf \ Number 2 sprite
         RTS
 
-.L215D	\ Something to do with the plotting of dots on the stave
+.L215D	\ .c3 \ Something to do with the plotting of dots on the stave
         LSR     A
-        BIT     L0070
-        BEQ     L2167
+        BIT     L0070    \ no
+        BEQ     L2167    \ c4
 
         LDA     #LO(L1C30) \ #$30
-        STA     L0082  \ Number 3 sprite
+        STA     L0082    \ sf \ Number 3 sprite
         RTS
 
-.L2167
+.L2167  \ .c4
         LDA     #$01
-        BIT     L0070
-        BEQ     L2171
+        BIT     L0070    \ no
+        BEQ     L2171    \ c5
 
         LDA     #LO(L1C40) \ #$40   \ Number 4 sprite
-        STA     L0082
-.L2171
+        STA     L0082    \ sf
+.L2171  \ .c5
         RTS
 
-.L2172  \ Possibly something to do with pigeon hit
+.L2172  \ .pno  \ Possibly something to do with pigeon hit
         TYA
         PHA
         LDY     #$07
         CLC
-        LDA     L0080
+        LDA     L0080    \ sd
         ADC     #$78
-        STA     L0084
-        LDA     L0081
+        STA     L0084    \ st
+        LDA     L0081    \ sd+1
         ADC     #$02
-        STA     L0085
-        LDA     L0080
+        STA     L0085    \ st+1
+        LDA     L0080    \ sd
         AND     #$07
         EOR     #$07
-        STA     L0074
+        STA     L0074    \ mod
         CMP     #$07
-        BPL     L219A
+        BPL     L219A    \ top
 
-.L218F
-        LDA     (L0082),Y
-        ORA     (L0084),Y
-        STA     (L0084),Y    \ Draw note top(?) half
+.L218F  \ .bot
+        LDA     (L0082),Y    \ (sf),Y
+        ORA     (L0084),Y    \ (st),Y
+        STA     (L0084),Y    \ (st),Y \ Draw note top(?) half
         DEY
-        CPY     L0074
-        BNE     L218F
+        CPY     L0074        \ mod
+        BNE     L218F        \ bot
 
-.L219A  \ not the culprit
-        LDA     (L0082),Y
-        ORA     (L0080),Y
+.L219A  \ .top  \ not the culprit
+        LDA     (L0082),Y    \ (sf),Y
+        ORA     (L0080),Y    \ (sd),Y
         STA     (L0080),Y    \ Draw note bottom(?) half
         DEY
-        BPL     L219A
+        BPL     L219A        \ top
 
         PLA
         TAY
         RTS
 
-.playTune       \ L21A6  \ Sound routines (start of level chimes, bonus tunes etc); not the culprit
-        STA     L0070
+.playTune       \ .tune \ L21A6  \ Sound routines (start of level chimes, bonus tunes etc); not the culprit
+        STA     L0070        \ no
 		
-.playTuneLoop   \ L21A8
+.playTuneLoop   \ .t1   \ L21A8
         \ Sound player routine 
-        LDY     L0070
-        LDA     L23B2,Y
-        BEQ     holdLoop
-        STA     L2DFC
+        LDY     L0070        \ no
+        LDA     L23B2,Y      \ tl,Y
+        BEQ     holdLoop     \ t3
+        STA     L2DFC        \ (no label)
         INY
-        LDA     L23B2,Y
-        STA     L2DFE
-        LDX     #$F8
+        LDA     L23B2,Y      \ tl,Y
+        STA     L2DFE        \ (no label)
+        LDX     #$F8         
         LDY     #$2D
         LDA     #$07
-        JSR     osword        \ Play a sound
-        INC     L0070
-        INC     L0070
-        JMP     playTuneLoop
+        JSR     osword       \ Play a sound
+        INC     L0070        \ no
+        INC     L0070        \ no
+        JMP     playTuneLoop \ t1
 
-.holdLoop       \ L21C9       \ Wait for tune to (almost) finish?
+.holdLoop       \ .t3         \ L21C9       \ Wait for tune to (almost) finish?
         LDA     #$80
         LDX     #$FA          \ Sound channel 1
         JSR     osbyte        \ Read ADC channel or get buffer status
         CPX     #$0F
-        BMI     holdLoop
+        BMI     holdLoop      \ t3
         RTS
+
+\\\\\\ END OF 1st PART $.S (&21DF) //////
+
 
 .keyboardScan                 \ .L21D5
         LDA     #$81          \ X = (CC, AE, EF)
@@ -1854,7 +1901,7 @@ L18F6 = L18F4+2          \ SMC?
 		EQUB    $00,$00,$00,$00,$00,$00
         EQUB    $00,$00,$00,$00,$00,$00,$00,$00
 
-.drawStave      \ Draw stave    \ L21EE
+.drawStave      \ stv \ Draw stave    \ L21EE
         LDY     #$00
 
 .staveLoop1     \ L21F0
@@ -1883,32 +1930,34 @@ L18F6 = L18F4+2          \ SMC?
         EQUB    $03,$19,$01,$00,$03,$00,$00,$19
         EQUB    $00,$00,$FD,$F0,$FF
 
-.L2223  \ not the culprit - load player lives address
+.L2223  \ .mini \ not the culprit - load player lives address - Differs from PIGSRCE
         LDA     #LO(L1910) \ #$10
-        STA     L0082
+        STA     L0082      \ sf
         LDA     #HI(L1910) \ #$19
-        STA     L0083
-        LDA     L1D57
-        STA     L0080
-        LDA     L1D58
-        STA     L0081
-        JMP     L2581
+        STA     L0083      \ sf+1
+        LDA     L1D57      \ gex+2
+        STA     L0080      \ sd
+        LDA     L1D58      \ gex+3
+        STA     L0081      \ sd+1
+        JMP     L2581      \ pb
 
-.L2238                          \ Death-check - .h0 in PIGSRCE
-        LDA     #$20            \ Change to RTS for invincibility
-        BIT     gameFlags
-        BNE     L2245
+\\\\ PIGSRCE &22AF ////
 
-        LDA     timer_L1D55
-        BNE     L2278
+.L2238  \ .h0                  \ Death-check - .h0 in PIGSRCE
+        LDA     #$20           \ Change to RTS for invincibility
+        BIT     gameFlags      \ sc
+        BNE     L2245          \ h1
 
-.L2244                          
+        LDA     timer_L1D55    \ gex?
+        BNE     L2278          \ h12?
+
+.L2244  \ .stp4
         RTS
 
-.L2245                         \ .h1 in PIGSRCE
+.L2245  \ .h1
         LDX     #$00
         LDY     #$07
-        JSR     L281D          \ Flash screen white when player hit
+        JSR     L281D          \ D% \ Flash screen white when player hit
 
         LDA     #$07
         LDY     #$2D
@@ -1916,87 +1965,87 @@ L18F6 = L18F4+2          \ SMC?
         JSR     osword         \ Play a sound (player hit / lightning)
 
         LDA     #$FF
-        STA     timer_L1D55
+        STA     timer_L1D55    \ gex?
 		
 		\ Self-modifying code section
         LDA     #$60           \ RTS opcode
-        STA     smc_L2C45
-        STA     smc_L29F7
-        STA     smc_L286E
-        STA     smc_L295E
-        JSR     L28D3
+        STA     smc_L2C45      \ nbo
+        STA     smc_L29F7      \ np
+        STA     smc_L286E      \ mg
+        STA     smc_L295E      \ nb
+        JSR     L28D3          \ gun
 
         LDA     #HI(L1A10) \#$1A     \ Memory reference (lost life sprite 1)
-        STA     L28D7
+        STA     L28D7          \ gun+4
         LDA     #LO(L1A10) \#$10     \ Memory reference (lost life sprite 1)
-        STA     L28D6
-        JMP     L28D3
+        STA     L28D6          \ gun+3
+        JMP     L28D3          \ gun
 
-.L2278                         \ .h12 in PIGSRCE
-        DEC     timer_L1D55    \ Screen flash timer
-        LDA     timer_L1D55
+.L2278  \ .h12
+        DEC     timer_L1D55    \ gex \ Screen flash timer
+        LDA     timer_L1D55    \ gex
         CMP     #$FE
-        BNE     L2289
+        BNE     L2289          \ h3
 
         LDX     #$00
         LDY     #$00
-        JMP     L281D    \ Unflash screen
+        JMP     L281D          \ D% \ Unflash screen
 
-.L2289
+.L2289  \ .h3
         CMP     #$DC
-        BNE     L2298
+        BNE     L2298          \ h4
 
-        JSR     L28D3
+        JSR     L28D3          \ gun
 
-        LDA     #LO(L1A38) \ #$38    \ Memory reference (lost life sprite 2)
-        STA     L28D6
-        JMP     L28D3
+        LDA     #LO(L1A38)     \ #$38    \ Memory reference (lost life sprite 2)
+        STA     L28D6          \ gun+3
+        JMP     L28D3          \ gun
 
-.L2298
+.L2298  \ .h4
         CMP     #$8C
-        BNE     L22A7
+        BNE     L22A7          \ h5
 
-        JSR     L28D3
+        JSR     L28D3          \ gun
 
-        LDA     #LO(L1A60) \ #$60    \ Memory reference (Skull sprite)
-        STA     L28D6
-        JMP     L28D3
+        LDA     #LO(L1A60)     \ #$60    \ Memory reference (Skull sprite)
+        STA     L28D6          \ gun+3
+        JMP     L28D3          \ gun
 
-.L22A7
+.L22A7  \ .h5
         CMP     #$01
-        BNE     L2244
+        BNE     L2244          \ stp4
 
-        DEC     L1D56
-        BNE     L22B3
+        DEC     L1D56          \ not in PIGSRCE
+        BNE     L22B3          \ gun in PIGSRCE
 
-        JMP     gameOver
+        JMP     gameOver       \ not in PIGSRCE
 
 .L22B3
-        JSR     L28D3
+        JSR     L28D3 \ not in PIGSRCE
 
-        JSR     L1FC1
+        JSR     L1FC1 \ not in PIGSRCE
 
-        LDY     L2D13
-.L22BC
-        LDA     (L0075),Y
+        LDY     L2D13          \ !pls
+.L22BC  \ .h6
+        LDA     (L0075),Y      \ (pls),Y
         CMP     #$C0
-        BNE     L22DB
+        BNE     L22DB          \ h8
 
         DEY
-        LDA     (L0075),Y
-        BPL     L22DC
+        LDA     (L0075),Y      \ (pls),Y
+        BPL     L22DC          \ h9
 
         EOR     #$80
-        STA     (L0075),Y
+        STA     (L0075),Y      \ (pls),Y
         DEY
-        LDA     (L0075),Y
-        STA     L0079
+        LDA     (L0075),Y      \ (pls),Y
+        STA     L0079          \ pos+1
         DEY
-        LDA     (L0075),Y
-        STA     L0078
-        JSR     L2C08
+        LDA     (L0075),Y      \ (pls),Y
+        STA     L0078          \ pos
+        JSR     L2C08          \ pp
 
-        JMP     L22DE \ h10
+        JMP     L22DE          \ h10
 
 .L22DB  \ .h8
         DEY
@@ -2016,11 +2065,15 @@ L18F6 = L18F4+2          \ SMC?
         LDA     #$A9        \ LDA# opcode
         STA     smc_L2C45   \ nbo
         STA     smc_L295E   \ nb
+		                    \ DEC/BEQ in PIGSRCE here
         SEC
-        LDA     L1D57
-        SBC     #$18
-        STA     L1D57
-        JMP     L2223
+        LDA     L1D57       \ gex+2
+        SBC     #$18        \ #&20 in PIGSRCE
+        STA     L1D57       \ gex+2
+        JMP     L2223       \ mini (JSR in PIGSRCE)
+		                    \ JMP sgun in PIGSRCE
+							
+\\\\\\ PIGSRCE continues at this point //////
 
 .L2300  \ $2300 Musical notes and other sprites
         EQUB    $00,$00,$00,$00,$00,$14,$3C,$3C    \ Crotchet
@@ -2048,7 +2101,7 @@ L18F6 = L18F4+2          \ SMC?
 		
         EQUB    $00,$00
 
-.L2382
+.L2382  \ .nl
         EQUB    $0D,$4A,$18,$8C,$8E,$1C,$8A,$84
         EQUB    $14,$82,$20,$44,$05,$00,$48,$18
         EQUB    $86,$84,$14,$86,$84,$14,$88,$2A
@@ -2056,7 +2109,7 @@ L18F6 = L18F4+2          \ SMC?
         EQUB    $8A,$84,$14,$82,$20,$44,$00,$44
         EQUB    $42,$42,$44,$46,$24,$14,$05,$00
 
-.L23B2
+.L23B2  \ .tl
 		\ Start of level / bonus tunes
         EQUB    $65,$17,$5D,$05,$59,$0A,$65,$05
         EQUB    $79,$0A,$81,$05,$89,$1E,$79,$1E
@@ -2071,58 +2124,59 @@ L18F6 = L18F4+2          \ SMC?
         EQUB    $05,$41,$05,$65,$0A,$65,$0A,$55
         EQUB    $14,$00,$14,$00
 
-.L240E
-        LDA     #HI(L1BB8)    \ #$1B     \ Pigeon sprite memory pointer
+.L240E  \ B% \ .pg?
+        LDA     #HI(L1BB8)    \ #$1B     \ Pigeon sprite memory pointer \ &B in PIGSRCE
 L240F = L240E+1          \ SMC - $1A = L-R $1B = R-L
-        STA     L0083
-        LDA     L2D7D
-        BNE     L248E
+        STA     L0083    \ sf+1
+        LDA     L2D7D    \ ba+1
+        BNE     L248E    \ b0
 
         LDA     #$42
-        BIT     gameFlags
-        BEQ     L248D
+        BIT     gameFlags \ sc
+        BEQ     L248D     \ ep
 
         LDA     #$02
-        BIT     L02FC
-        BEQ     L2444
+        BIT     L02FC     \ picn
+        BEQ     L2444     \ pg1
 		
         \ Wing hit? Send R-L pigeon
-        LDA     #HI(L1BB8)    \ #$1B     \ Pigeon R-L sprite pointer
-        STA     L0083
-        STA     L240F    \ self-modifying code
+        LDA     #HI(L1BB8)    \ #$1B     \ Pigeon R-L sprite pointer \ #&B in PIGSRCE
+        STA     L0083    \ sf+1
+        STA     L240F    \ pg+1 \ self-modifying code
         LDA     #$68
-        STA     L2D7C
-        STA     L0080
+        STA     L2D7C    \ ba
+        STA     L0080    \ sd
         LDA     #$00     \ Pigeon end position?
-        STA     L252F
+        STA     L252F    \ xps+1
         LDA     #$4C
-        STA     L2D7F
+        STA     L2D7F    \ ba+3
         LDA     #$4B
-        STA     L246C
-        BNE     L245F
+        STA     L246C    \ b5-2
+        BNE     L245F    \ b3
 
-.L2444  \ Wing hit? Send L-R pigeon
-        LDA     #HI(L1A88)    \ #$1A     \ Pigeon L-R sprite pointer
-        STA     L0083    \ need changing to #HI(something) (done)
-        STA     L240F
+.L2444  \ .pg1  \ Wing hit? Send L-R pigeon
+        LDA     #HI(L1A88)    \ #$1A     \ Pigeon L-R sprite pointer \ &A in PIGSRCE
+        STA     L0083    \ sf+1 \ need changing to #HI(something) (done)
+        STA     L240F    \ pg+1
         LDA     #$00
-        STA     L2D7C
-        STA     L0080
-        STA     L2D7F
-        LDA     #$4C    \ Pigeon end position?
-        STA     L252F
+        STA     L2D7C    \ ba
+        STA     L0080    \ sd
+        STA     L2D7F    \ ba+3
+        LDA     #$4C     \ Pigeon end position?
+        STA     L252F    \ xps+1
         LDA     #$49
-        STA     L246C
-.L245F
+        STA     L246C    \ b5-2
+
+.L245F  \ .b3
         LDA     #$00
-        STA     L007C
-        INC     L02FC
+        STA     L007C    \ py
+        INC     L02FC    \ picn
         LDA     #$07
-        AND     L007D
+        AND     L007D    \ ra1
         TAX
 .L246B
-        LDA     #$4B
-L246C = L246B+1
+        LDA     #$4B     \ #&49 in PIGSRCE
+L246C = L246B+1 \ b5-2
         CLC
 .L246E  \ .b5
         ADC     #$05
@@ -2142,36 +2196,36 @@ L246C = L246B+1
         STA     L0082    \ sf
         JMP     L2581    \ pb
 
-.L248D
+.L248D  \ .ep
         RTS
 
-.L248E
-        LDA     L2D7C
-        STA     L0080
-        LDA     L2D7D
-        STA     L0081
-        BPL     L24B2
+.L248E  \ .b0
+        LDA     L2D7C    \ ba
+        STA     L0080    \ sd
+        LDA     L2D7D    \ ba+1
+        STA     L0081    \ sd+1
+        BPL     L24B2    \ b1
 
-        DEC     L2D7E
-        BNE     L248D
+        DEC     L2D7E    \ ba+2
+        BNE     L248D    \ ep
 
         EOR     #$80
-        STA     L0081
+        STA     L0081    \ sd+1
         LDA     #$10
-        ORA     gameFlags
-        STA     gameFlags
-        LDA     #$00
+        ORA     gameFlags \ sc
+        STA     gameFlags \ sc
+        LDA     #$00      \ missing from PIGSRCE
         STA     L2D7D
-        BEQ     L24FE
+        BEQ     L24FE     \ bx?
 
-.L24B2
-        LDA     L2D7E
+.L24B2  \ .b1
+        LDA     L2D7E     \ ba+2
         AND     #$7F
         TAX
-        LDA     L2D68,X
-        STA     L0082     \ ooft
+        LDA     L2D68,X   \ bix,X
+        STA     L0082     \ sf
         LDY     #$00
-        LDA     (L008A),Y
+        LDA     (L008A),Y \ (bulst),Y
         STA     L0070     \ no
 .L24C3  \ .h
         INY
@@ -2181,7 +2235,7 @@ L246C = L246B+1
         BMI     L2517     \ nh
 
         CMP     #$07
-        BPL     L2517
+        BPL     L2517     \ nh
 
         INY
         INY
@@ -2205,26 +2259,27 @@ L246C = L246B+1
         JSR     osword        \ Play a sound (pigeon hit)
 
         LDA     #$10
-        STA     L2D7E
+        STA     L2D7E         \ ba+2
         LDA     #$80
-        ORA     L2D7D
-        STA     L2D7D
-        JSR     L2581
+        ORA     L2D7D         \ ba+1
+        STA     L2D7D         \ ba+1
+        JSR     L2581         \ pb
 
-.L24FE  \ hit pigeon sprite plot
-        LDA     #HI(L1B70) \ #$1B    \ Possible memory address
-        STA     L0083
+.L24FE  \ .bx   \ hit pigeon sprite plot
+        LDA     #HI(L1B70) \ #$1B    \ Possible memory address (&B in PIGSRCE)
+        STA     L0083         \ sf+1
         LDA     #LO(L1B70) \ #$70    \ Possible memory address
-        STA     L0082
-        JMP     L2581
+        STA     L0082         \ sf
+        JMP     L2581         \ pb
 
-.L2509
+.L2509  \ .b9
         LDA     #$04
-        ORA     gameFlags
-        STA     gameFlags
+        ORA     gameFlags     \ sc
+        STA     gameFlags     \ sc
         LDA     #$00
-        STA     L2D7D
-.L2516
+        STA     L2D7D         \ ba+1
+		
+.L2516  \ .x
         RTS
 
 .L2517  \ .nh
@@ -2233,78 +2288,80 @@ L246C = L246B+1
 .L2519  \ .nh+2
         INY
 .L251A  \ .nh+3
-        CPY     L0070
-        BMI     L24C3
+        CPY     L0070         \ no
+        BMI     L24C3         \ h
 
         LDA     #$80
-        EOR     L2D7E
-        STA     L2D7E
-        BMI     L2516
+        EOR     L2D7E         \ ba+2
+        STA     L2D7E         \ ba+2
+        BMI     L2516         \ x
 
-        JSR     L2581
+        JSR     L2581         \ pb
 
-        LDA     L2D7F
-.L252E
-        CMP     #$00
-L252F = L252E+1               \ SMC?
-        BEQ     L2509
+        LDA     L2D7F         \ ba+3
+.L252E  \ .xps
+        CMP     #$00          \ #76 in PIGSRCE
+L252F = L252E+1               \ xps+1  \ SMC?
+        BEQ     L2509         \ b9
 
         AND     #$1F
-        BNE     L253F
+        BNE     L253F         \ b6
 
         LDA     #$07
         LDY     #$2D
         LDX     #$F0
         JSR     osword        \ Play a sound (pigeon chirp...just like pigeons do (no pun intended))
 
-.L253F
-        LDX     L2D7E
+.L253F  \ .b6
+        LDX     L2D7E         \ ba+2
         DEX
-        BPL     L2547
+        BPL     L2547         \ b7
 
         LDX     #$07
-.L2547
-        STX     L2D7E
-        LDA     L2D68,X
-        STA     L0082    \ ooft
-        LDA     L252F
-        BEQ     L256C
+.L2547  \ .b7
+        STX     L2D7E         \ ba+2
+        LDA     L2D68,X       \ bis,X
+        STA     L0082         \ sf
+        LDA     L252F         \ xps+1
+        BEQ     L256C         \ b10
 
-        INC     L2D7F
+        INC     L2D7F         \ ba+3
         CLC
-        LDA     L2D7C
+        LDA     L2D7C         \ ba
         ADC     #$08
-        STA     L2D7C
-        STA     L0080
-        BCC     L2581
+        STA     L2D7C         \ ba
+        STA     L0080         \ sd
+        BCC     L2581         \ pb
 
-        INC     L2D7D
-        INC     L0081
-        JMP     L2581
+        INC     L2D7D         \ ba+1
+        INC     L0081         \ sd+1
+        JMP     L2581         \ pb
 
-.L256C
-        DEC     L2D7F
+.L256C  \ .b10
+        DEC     L2D7F         \ ba+3
         SEC
-        LDA     L2D7C
+        LDA     L2D7C         \ ba
         SBC     #$08
-        STA     L2D7C
-        STA     L0080
-        BCS     L2581
+        STA     L2D7C         \ ba
+        STA     L0080         \ sd
+        BCS     L2581         \ pb
 
-        DEC     L2D7D
-        DEC     L0081
+        DEC     L2D7D         \ ba+1
+        DEC     L0081         \ sd+1
 .L2581  \ .pb
         LDY     #$17
-.L2583 \ not the culprit
-        LDA     (L0082),Y
-        EOR     (L0080),Y
-        STA     (L0080),Y    \ Draw pigeon
+.L2583 \ .b8 \ not the culprit
+        LDA     (L0082),Y     \ (sf),Y
+        EOR     (L0080),Y     \ (sd),Y
+        STA     (L0080),Y     \ (sd),Y \ Draw pigeon
         DEY
-        BPL     L2583
+        BPL     L2583         \ b8
 
         RTS
+		
+\\\\\\\\\\\\\ END OF PIGSRCE ///////////////
 
-.L258D
+.L258D  \ X%
         LDY     L1D5B
         CPY     #$09
         BPL     L25B7
@@ -2332,7 +2389,7 @@ L252F = L252E+1               \ SMC?
 .L25B7
         RTS
 
-.L25B8  \ Doesn't seem to do much other than ROL 7d/e/f. RNG?
+.L25B8  \ R% (random?)   \ RNG?
         \ Candidate to move elsewhere and add enhancements to?
         LDA     L007D    \ 2 bytes
         AND     #$48     \ 2
@@ -2346,7 +2403,7 @@ L252F = L252E+1               \ SMC?
         RTS              \ 1
                          \ 20 bytes total
 						 
-.drawLineArt        \ .L25 C9
+.drawLineArt    \ V%     \ .L25C9
         LDY     #$00
 .drawLineArtLoop    \ .L25CB
         LDA     sceneryLineArt,Y
@@ -2396,7 +2453,7 @@ L252F = L252E+1               \ SMC?
 
         EQUB    $00
 
-.L261A
+.L261A  \ C%
         LDA     #$44     \ screen memory - cloud start address
         STA     L0079
         LDA     #$FF
@@ -2580,7 +2637,7 @@ L2673 = L2671+2            \ SMC - Cloud screen memory address
 		EQUB    $28
         EQUB    $79,$00
 
-.L281D  \ PLOT X, Y, 00 ?
+.L281D  \ D% \ PLOT X, Y, 00 ?
         LDA     #$13
         JSR     oswrch
 
@@ -2597,7 +2654,7 @@ L2673 = L2671+2            \ SMC - Cloud screen memory address
 
         JMP     oswrch    \ with implied RTS
 
-.L2835  \ Define envelopes
+.L2835  \ E% \ Define envelopes
         \ Need to recode this for relocation
 		\ Memory locations used (in order) are:
 		\ $2DC0, $2DB0, $2DA0, $2D90, $2D80
@@ -2621,7 +2678,7 @@ L2673 = L2671+2            \ SMC - Cloud screen memory address
             BNE     L2835
         RTS
 
-.vsyncWait      \ L284A
+.vsyncWait  \ .scr            \ L284A
         LDA     #$02          \ https://tobylobster.github.io/mos/mos/S-s3.html
         STA     LFE4E         \ Enable vsync interrupt
 		
@@ -2649,7 +2706,7 @@ L2673 = L2671+2            \ SMC - Cloud screen memory address
         RTS
 
         BRK
-.smc_L286E      \ ZX key processing
+.smc_L286E      \ mg (move gun?) \ ZX key processing
         RTS     \ but changes in code to &20 (JMP $28D3) .L2245/.L22E2
         EQUB    $D3,$28 \ address for JMP above
 
@@ -2664,11 +2721,11 @@ L2673 = L2671+2            \ SMC - Cloud screen memory address
         JSR     osbyte    \ Keyboard scan
         INX
         BNE     L28B4     \ Not Z
-        LDX     playerXpos     \ $2D70     \ X pos?
+        LDX     playerXpos     \ Xg \ $2D70     \ X pos?
         CPX     #$01           \ Player min X bound
         BEQ     L28B4
         DEX
-        STX     playerXpos     \ $2D70
+        STX     playerXpos     \ Xg $2D70
         SEC
         LDA     $86
         SBC     #$08
@@ -2676,11 +2733,11 @@ L2673 = L2671+2            \ SMC - Cloud screen memory address
         BCS     L28B4
         DEC     $87
         BCC     L28B4
-.L289E  LDX     playerXpos     \ $2D70
+.L289E  LDX     playerXpos     \ Xg \ $2D70
         CPX     #$47           \ player max X bound
         BEQ     L28B4
         INX
-        STX     playerXpos     \ $2D70
+        STX     playerXpos     \ Xg \ $2D70
         CLC
         LDA     L0086          \ $86
         ADC     #$08
@@ -2704,17 +2761,18 @@ L2673 = L2671+2            \ SMC - Cloud screen memory address
         ORA     #$20
         STA     gameFlags  \ $2D76
 
-.L28D3
+.L28D3  \ .gun
         LDY     #$27
 .L28D5
         LDA     L1A60,Y    \ Load skull sprite?
-L28D6 = L28D5+1            \ SMC - player sprite / hit / skull
-L28D7 = L28D5+2            \ SMC - player sprite / hit / skull
+L28D6 = L28D5+1 \ gun+3    \ SMC - player sprite / hit / skull
+L28D7 = L28D5+2 \ gun+4    \ SMC - player sprite / hit / skull
         BEQ     L28DE
 
         EOR     (L0086),Y
         STA     (L0086),Y
-.L28DE
+		
+.L28DE  \ .mb (move bullet?)
         DEY
         BPL     L28D5
 
@@ -2806,7 +2864,7 @@ L28D7 = L28D5+2            \ SMC - player sprite / hit / skull
 
         RTS
 
-.smc_L295E      \ Check for fire press
+.smc_L295E      \ nb \ Check for fire press
         RTS     \ Changed in code to LDA# $01
 
 .L295F
@@ -2820,19 +2878,23 @@ L28D7 = L28D5+2            \ SMC - player sprite / hit / skull
         JSR     osbyte \ Keyboard scan
         INX
         BEQ     L2977
+		
+.L2970  \\\\\\\ $.S overwrites the code of $.G here //////
         LDA     #$00
-        STA     L14AD  \ $14AD
+        STA     L14AD  \ fp0 \ $14AD
         RTS
                     
 .L2976  RTS
                     
-.L2977  JMP     L149C
+.L2977  JMP     L149C  \ fpat
+
+\\\\\\ This section is a hangover from the 'G' file ///////
         \ ADC     ($D0),Y
         \.L297C  SBC     $FFA0,Y
         
 		\ L297D = L297C + 1	
         EQUB    $71,$D0,$F9  \ This may be code... but probably isn't. Never executes.
-
+\\\\\\                                              ///////
 
 .L297D  LDY     #$FF
 
@@ -2858,7 +2920,7 @@ L28D7 = L28D5+2            \ SMC - player sprite / hit / skull
         STA     (L008A),Y    \ $8A
         STA     L0081        \ $81
         INY
-        LDA     playerXpos     \ $2D70
+        LDA     playerXpos     \ Xg \ $2D70
         CLC
         ADC     #$03
         STA     (L008A),Y    \ $8A
@@ -2942,7 +3004,7 @@ L28D7 = L28D5+2            \ SMC - player sprite / hit / skull
         TAY
         RTS
 
-.smc_L29F7      \ Something to do with next enemy
+.smc_L29F7      \ np \ Something to do with next enemy
         RTS     \ Changed to LDA (opcode $A5) zeropage by L22E2, back to RTS (opcode $60) by L2245
 
         EQUB    L0072    \ $72    \ zeropage address when .smc_L29F7 is an LDA
@@ -3047,7 +3109,7 @@ L28D7 = L28D5+2            \ SMC - player sprite / hit / skull
 .L2A91
         JMP     L2BE4
 
-.L2A94
+.L2A94  \ .mp
         LDY     #$00
         LDA     (L0075),Y
         STA     L0070
@@ -3179,7 +3241,7 @@ L28D7 = L28D5+2            \ SMC - player sprite / hit / skull
 
         SEC
         LDA     L007A
-        SBC     playerXpos
+        SBC     playerXpos    \ Xg
         STA     L0077
         LDA     #$00
         BCS     L2B60
@@ -3275,7 +3337,7 @@ L28D7 = L28D5+2            \ SMC - player sprite / hit / skull
 .L2BE1
         JSR     L2C08
 
-.L2BE4
+.L2BE4  \ .fo+3
         DEY
         DEY
         DEY
@@ -3303,7 +3365,7 @@ L28D7 = L28D5+2            \ SMC - player sprite / hit / skull
 .L2C07
         RTS
 
-.L2C08  \ Enemy drawing?
+.L2C08  \ .pp (plot plane?) Enemy drawing?
         TYA
         PHA
         CLC
@@ -3354,7 +3416,7 @@ L2C1E = L2C1D+1
         TAY
         RTS
 
-.smc_L2C45      \ Drop a bomb if $2C49!=$60
+.smc_L2C45      \ .nbo \ Drop a bomb if $2C49!=$60
         RTS     \ Gets changed to $A9 (LDA#) by L22E2
 
         EQUB    $C0    \ Making this the value being loaded into A
@@ -3410,7 +3472,7 @@ L2C1E = L2C1D+1
         STA     L0073        \ $73
         RTS
 		
-.L2C98                                      \ Something to do with enemy bomb plotting
+.L2C98  \ .mbo                              \ Something to do with enemy bomb plotting
         LDY     #$00                        \ Y = 0
         LDA     (L008C),Y                   \ A = ?(&2D47+0)
 		
@@ -3527,10 +3589,10 @@ L2D03 = L2D02+1             \ SMC?
 .L2D68  \ .bis
         EQUB    $88,$A0,$B8,$D0,$E8,$D0,$B8,$88
 
-.playerXpos  \ .L2D70
+.playerXpos  \ .Xg \ .L2D70 \ Gun X
         EQUB    $20    \ Initial player X pos
 
-.useless        \ L2D71
+.useless \ .inb \ L2D71
                 \ Seems to be completely redundent. Set to $D7 here, changed to
                 \ $F0 by L1EC6 (at the beginning of a new game), then decremented
 				\ once by L1EE3. Possibly a removed or planned feature?
@@ -3549,7 +3611,7 @@ L2D03 = L2D02+1             \ SMC?
 .L2D75
         EQUB    HI(L2350)    \ $23     \ Enemy bomb sprite high
 
-.gameFlags      \ L2D76 \ Game flags
+.gameFlags      \ sc \ L2D76 \ Game flags
         EQUB    $00		\ pigeon flying, 10 = add notes (use for bonus cheat), 80 = end level (c 2d76 80)
 
 .score_low_byte \ $2D77
@@ -3558,19 +3620,19 @@ L2D03 = L2D02+1             \ SMC?
 .score_high_byte\ $2D78
         EQUB    $00
 
-.L2D79
+.L2D79  \ .de
         EQUB    $20
 
-.L2D7A  \ Life / lives counter?
+.L2D7A  \ .de+1 \ Life / lives counter?
         EQUB    $03
 
-.L2D7B
+.L2D7B  \ .de+2
         EQUB    $42
 
-.L2D7C  \ aka ($80)
+.L2D7C  \ .ba  \ aka ($80)
         EQUB    $00
 
-.L2D7D  \ aka ($81) Pigeon position ba+1
+.L2D7D  \ ba+1 \ aka ($81) Pigeon position
         EQUB    $00
 
 .L2D7E  \ ba+2
