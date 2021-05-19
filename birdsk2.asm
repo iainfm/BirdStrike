@@ -46,7 +46,7 @@ TEST     = FALSE      \ Used for code-relocatability testing
 \ Check possible SMC @ L2C1E
 
 \ BirdSk2.bin
-L0000   = $0000        \ Zero Page uses
+L0000   = $0000    \ Zero Page uses - original labels below where discovered
 L0008   = $0008
 L0009   = $0009
 L000A   = $000A
@@ -870,18 +870,18 @@ L18F6 = L18F4+2          \ wr1+3 \ SMC?
 \\\\\ $.S / C.SOURCE has an RTS here / end of 2nd part //////
 
 \\\\\ $.X starts here /////
-        PHA
-        LDA     L005D
-        CMP     #$01
-        BNE     L1907
-
-        PLA
-        RTS
+        PHA              \ should
+        LDA     L005D    \ be
+        CMP     #$01     \ graphics
+        BNE     L1907    \ ?
+        PLA              \ ?
+        RTS              \ ?
 
 .L1907
-        JMP     L1907                              \ Infinite loop alert
+        JMP     L1907    \ ?                       \ Infinite loop alert
 
-        \ Table below seems to be offset by 2 (ie STA &30002 for correct alignment)
+        \ Table below seems to be offset by 2 (ie STA &3002 for correct alignment)
+		\ Sprite locations appear to match $.X
 		
 .L190A  EQUB    $00,$00,$05,$00,$00,$00            \ Yellow dot? Probably junk
 		
