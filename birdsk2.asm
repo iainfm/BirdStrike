@@ -51,7 +51,7 @@ L0008   = $0008
 L0009   = $0009
 L000A   = $000A
 L000B   = $000B
-L005D   = $005D
+L005D   = $005D    \ possible an artefact
 L0070   = $0070    \ no
 L0071   = $0071    \ bfg
 L0072   = $0072    \ pflg
@@ -65,7 +65,7 @@ L0079   = $0079    \ pos+1
 L007A   = $007A    \ psta \ Bullet X coordinate?
 L007B   = $007B
 L007C   = $007C    \ py / ra1 ($.OLDSRCE)
-L007D   = $007D
+L007D   = $007D    \ ra1
 L007E   = $007E    \ Only used in .L25B8
 L007F   = $007F    \ Only used in .L25B8
 L0080   = $0080    \ sd   Score screen memory location low byte  sd
@@ -81,12 +81,12 @@ enemySpriteAddrLow   = $0088   \ plf     \ L0088 \ Enemy sprite address low byte
 enemySpriteAddrHigh  = $0089   \ plf+1   \ L0089 \ Enemy sprite address high byte
 L008A   = $008A    \ bulst Enemy X coordinate?
 L008B   = $008B    \ bulst+1
-L008C   = $008C    \ bost \ Something to do with enemy bomb y-position - bomb stack?
-L008D   = $008D    \ bost+1
+L008C   = $008C    \ bost      \ Something to do with enemy bomb y-position - bomb stack?
+L008D   = $008D    \ bost+1    \ bomb stack hi
 L008E   = $008E    \ cnt
 
-BYTEvA  = $020A        \ BYTEvA
-BYTEvB  = $020B        \ BYTEvB
+BYTEvA  = $020A    \ BYTEvA
+BYTEvB  = $020B    \ BYTEvB
 
 osword_redirection_C   = $020C
 osword_redirection_D   = $020D
@@ -118,7 +118,16 @@ osword  = $FFF1        \ OSWORD
 osbyte  = $FFF4        \ OSBYTE
 
         
-org     $1200          \ "P%" as per the original binary
+org     $1200          \ "P%" as per the available disc binary
+
+\\\\\\ 1200 - 13FF probably added by the original cracker to restore vectors used by
+\\\\\\ loading music and restore ZPG data prior to launching the game code
+\\\\\\ This was handled in the tape version by the decryption routine
+\\\\\\ The reason for the table below and the loop to copy it to ZPG is unknown.
+\\\\\\ Tape version loads at &1400 and execution starts at &1E00.
+\\\\\\
+\\\\\\ Note - if the memory of the decrypted tape version (&1400-&2FFF) is saved, the
+\\\\\\ game can be run by *LOADing it at 1400, setting $5C-$5F to 1 and CALLing &1E00
 
 .p0data \ L1200
         \ First 160 bytes of code get copied to page 0 by p0copyloop
@@ -149,7 +158,7 @@ org     $1200          \ "P%" as per the original binary
 		
 .entry  \ L1300
 
-        \ Official code entry point. Restores vectors used by game-loading tune routines.
+        \ Un-official code entry point. Restores vectors used by game-loading tune routines.
 
         SEI                  \ Disable interrupts
 		
@@ -338,7 +347,7 @@ org     $1200          \ "P%" as per the original binary
 .L14AD  \ .fp0
         EQUB   $00
 
-.gameOver \ .gov      \ Display Game Over message    \ L14AE
+.gameOver \ .gov       \ Display Game Over message    \ L14AE
         PLA
         PLA
         LDY     #$FF
@@ -1941,6 +1950,8 @@ L18F6 = L18F4+2          \ wr1+3 \ SMC?
         EQUB    $03,$19,$01,$00,$03,$00,$00,$19
         EQUB    $00,$00,$FD,$F0,$FF
 
+\\\\ $.PIGSRCE at &2377 ////
+
 .L2223  \ .mini \ not the culprit - load player lives address - Differs from PIGSRCE
         LDA     #LO(L1910) \ #$10
         STA     L0082      \ sf
@@ -1962,10 +1973,10 @@ L18F6 = L18F4+2          \ wr1+3 \ SMC?
         LDA     timer_L1D55    \ gex?
         BNE     L2278          \ h12?
 
-.L2244  \ .stp4
+.L2244  \ .stp4 \ PIGSRCE @ &238C
         RTS
 
-.L2245  \ .h1
+.L2245  \ .h1   \ PIGSRCE @ &22BC
         LDX     #$00
         LDY     #$07
         JSR     L281D          \ D% \ Flash screen white when player hit
@@ -1992,7 +2003,7 @@ L18F6 = L18F4+2          \ wr1+3 \ SMC?
         STA     L28D6          \ gun+3
         JMP     L28D3          \ gun
 
-.L2278  \ .h12
+.L2278  \ .h12  \ PIGSRCE @ &22EF
         DEC     timer_L1D55    \ gex \ Screen flash timer
         LDA     timer_L1D55    \ gex
         CMP     #$FE
@@ -2002,7 +2013,7 @@ L18F6 = L18F4+2          \ wr1+3 \ SMC?
         LDY     #$00
         JMP     L281D          \ D% \ Unflash screen
 
-.L2289  \ .h3
+.L2289  \ .h3   \ PIGSRCE @ &2300
         CMP     #$DC
         BNE     L2298          \ h4
 
@@ -2012,7 +2023,7 @@ L18F6 = L18F4+2          \ wr1+3 \ SMC?
         STA     L28D6          \ gun+3
         JMP     L28D3          \ gun
 
-.L2298  \ .h4
+.L2298  \ .h4   \ PIGSRCE @ &230F
         CMP     #$8C
         BNE     L22A7          \ h5
 
@@ -2022,7 +2033,7 @@ L18F6 = L18F4+2          \ wr1+3 \ SMC?
         STA     L28D6          \ gun+3
         JMP     L28D3          \ gun
 
-.L22A7  \ .h5
+.L22A7  \ .h5   \ PIGSRCE @ &231E - Deviates
         CMP     #$01
         BNE     L2244          \ stp4
 
@@ -2032,12 +2043,13 @@ L18F6 = L18F4+2          \ wr1+3 \ SMC?
         JMP     gameOver       \ not in PIGSRCE
 
 .L22B3
-        JSR     L28D3 \ not in PIGSRCE
+        JSR     L28D3          \ gun
 
         JSR     L1FC1 \ not in PIGSRCE
 
         LDY     L2D13          \ !pls
-.L22BC  \ .h6
+		
+.L22BC  \ .h6   \ PIGSRCE @ &2328
         LDA     (L0075),Y      \ (pls),Y
         CMP     #$C0
         BNE     L22DB          \ h8
@@ -2058,17 +2070,17 @@ L18F6 = L18F4+2          \ wr1+3 \ SMC?
 
         JMP     L22DE          \ h10
 
-.L22DB  \ .h8
+.L22DB  \ .h8   \ PIGSRCE @ &2347
         DEY
-.L22DC  \ .h9
+.L22DC  \ .h9   \ PIGSRCE @ &2348
         DEY
         DEY
-.L22DE  \ .h10
+.L22DE  \ .h10  \ PIGSRCE @ &234A
         DEY
         DEY
         BNE     L22BC \ h6
 
-.L22E2  \ .h7   Self-modifying code calls
+.L22E2  \ .h7   \ PIGSRCE @ &234E    \ Self-modifying code calls
         LDA     #$20        \ JSR opcode
         STA     smc_L286E   \ mg
         LDA     #$A5        \ LDA zeropage opcode
@@ -2135,7 +2147,7 @@ L18F6 = L18F4+2          \ wr1+3 \ SMC?
         EQUB    $05,$41,$05,$65,$0A,$65,$0A,$55
         EQUB    $14,$00,$14,$00
 
-.L240E  \ B% \ .pg?
+.L240E  \ B% \ .pg? \ PIGSRCE @ &240E
         LDA     #HI(L1BB8)    \ #$1B     \ Pigeon sprite memory pointer \ &B in PIGSRCE
 L240F = L240E+1          \ SMC - $1A = L-R $1B = R-L
         STA     L0083    \ sf+1
@@ -2165,7 +2177,7 @@ L240F = L240E+1          \ SMC - $1A = L-R $1B = R-L
         STA     L246C    \ b5-2
         BNE     L245F    \ b3
 
-.L2444  \ .pg1  \ Wing hit? Send L-R pigeon
+.L2444  \ .pg1  \ PIGSRCE @ &2444 \ Wing hit? Send L-R pigeon
         LDA     #HI(L1A88)    \ #$1A     \ Pigeon L-R sprite pointer \ &A in PIGSRCE
         STA     L0083    \ sf+1 \ need changing to #HI(something) (done)
         STA     L240F    \ pg+1
@@ -2178,7 +2190,7 @@ L240F = L240E+1          \ SMC - $1A = L-R $1B = R-L
         LDA     #$49
         STA     L246C    \ b5-2
 
-.L245F  \ .b3
+.L245F  \ .b3   \ PIGSRCE @ &245F
         LDA     #$00
         STA     L007C    \ py
         INC     L02FC    \ picn
@@ -2186,10 +2198,10 @@ L240F = L240E+1          \ SMC - $1A = L-R $1B = R-L
         AND     L007D    \ ra1
         TAX
 .L246B
-        LDA     #$4B     \ #&49 in PIGSRCE
+        LDA     #$4B     \ #&49 in PIGSRCE - Deviation
 L246C = L246B+1 \ b5-2
         CLC
-.L246E  \ .b5
+.L246E  \ .b5   \ PIGSRCE @ &246E
         ADC     #$05
         TAY
         LDA     L007C    \ py
@@ -2207,10 +2219,10 @@ L246C = L246B+1 \ b5-2
         STA     L0082    \ sf
         JMP     L2581    \ pb
 
-.L248D  \ .ep
+.L248D  \ .ep   \ PIGSRCE @ &248D
         RTS
 
-.L248E  \ .b0
+.L248E  \ .b0   \ PIGSRCE @ &248E
         LDA     L2D7C    \ ba
         STA     L0080    \ sd
         LDA     L2D7D    \ ba+1
@@ -2229,7 +2241,7 @@ L246C = L246B+1 \ b5-2
         STA     L2D7D
         BEQ     L24FE     \ bx?
 
-.L24B2  \ .b1
+.L24B2  \ .b1   \ PIGSRCE @ &24B2
         LDA     L2D7E     \ ba+2
         AND     #$7F
         TAX
@@ -2238,7 +2250,8 @@ L246C = L246B+1 \ b5-2
         LDY     #$00
         LDA     (L008A),Y \ (bulst),Y
         STA     L0070     \ no
-.L24C3  \ .h
+		
+.L24C3  \ .h    \ PIGSRCE @ &24C3
         INY
         LDA     (L008A),Y \ (bulst),Y
         SEC
@@ -2276,24 +2289,24 @@ L246C = L246B+1 \ b5-2
         STA     L2D7D         \ ba+1
         JSR     L2581         \ pb
 
-.L24FE  \ .bx   \ hit pigeon sprite plot
+.L24FE  \ .bx   \ PIGSRCE @ &24FE    \ hit pigeon sprite plot
         LDA     #HI(L1B70) \ #$1B    \ Possible memory address (&B in PIGSRCE)
         STA     L0083         \ sf+1
         LDA     #LO(L1B70) \ #$70    \ Possible memory address
         STA     L0082         \ sf
         JMP     L2581         \ pb
 
-.L2509  \ .b9
+.L2509  \ .b9   \ PIGSRCE @ &2509
         LDA     #$04
         ORA     gameFlags     \ sc
         STA     gameFlags     \ sc
         LDA     #$00
         STA     L2D7D         \ ba+1
 		
-.L2516  \ .x
+.L2516  \ .x    \ PIGSRCE @ &2516
         RTS
 
-.L2517  \ .nh
+.L2517  \ .nh   \ PIGSRCE @ &2517
         INY
         INY
 .L2519  \ .nh+2
@@ -2310,7 +2323,8 @@ L246C = L246B+1 \ b5-2
         JSR     L2581         \ pb
 
         LDA     L2D7F         \ ba+3
-.L252E  \ .xps
+		
+.L252E  \ .xps  \ PIGSRCE @ &252E
         CMP     #$00          \ #76 in PIGSRCE
 L252F = L252E+1               \ xps+1  \ SMC?
         BEQ     L2509         \ b9
@@ -2323,13 +2337,14 @@ L252F = L252E+1               \ xps+1  \ SMC?
         LDX     #$F0
         JSR     osword        \ Play a sound (pigeon chirp...just like pigeons do (no pun intended))
 
-.L253F  \ .b6
+.L253F  \ .b6   \ PIGSRCE @ &253F
         LDX     L2D7E         \ ba+2
         DEX
         BPL     L2547         \ b7
 
         LDX     #$07
-.L2547  \ .b7
+		
+.L2547  \ .b7   \ PIGSRCE @ &2547
         STX     L2D7E         \ ba+2
         LDA     L2D68,X       \ bis,X
         STA     L0082         \ sf
@@ -2348,7 +2363,7 @@ L252F = L252E+1               \ xps+1  \ SMC?
         INC     L0081         \ sd+1
         JMP     L2581         \ pb
 
-.L256C  \ .b10
+.L256C  \ .b10  \ PIGSRCE @ &256C
         DEC     L2D7F         \ ba+3
         SEC
         LDA     L2D7C         \ ba
@@ -2359,9 +2374,11 @@ L252F = L252E+1               \ xps+1  \ SMC?
 
         DEC     L2D7D         \ ba+1
         DEC     L0081         \ sd+1
-.L2581  \ .pb
+		
+.L2581  \ .pb   \ PIGSRCE @ &2581
         LDY     #$17
-.L2583 \ .b8 \ not the culprit
+		
+.L2583 \ .b8     \ PIGSRCE @ &2583     \ not the culprit
         LDA     (L0082),Y     \ (sf),Y
         EOR     (L0080),Y     \ (sd),Y
         STA     (L0080),Y     \ (sd),Y \ Draw pigeon
@@ -2476,11 +2493,9 @@ L252F = L252E+1               \ xps+1  \ SMC?
         STA     (L0078),Y
         INY
         BNE     L2626
-
         INC     L0079
         DEX
         BNE     L2622
-
         LDY     #$1F
 .L2632
         LDA     L2EE0,Y
