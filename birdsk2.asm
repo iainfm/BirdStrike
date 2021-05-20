@@ -121,10 +121,13 @@ osbyte  = $FFF4        \ OSBYTE
 org     $1200          \ "P%" as per the available disc binary
 
 \\\\\\ 1200 - 13FF probably added by the original cracker to restore vectors used by
-\\\\\\ loading music and restore ZPG data prior to launching the game code
-\\\\\\ This was handled in the tape version by the decryption routine
+\\\\\\ loading music and restore ZPG data prior to launching the game code.
+\\\\\\
+\\\\\\ This was handled in the tape version by the decryption routine.
+\\\\\\
 \\\\\\ The reason for the table below and the loop to copy it to ZPG is unknown.
-\\\\\\ Tape version loads at &1400 and execution starts at &1E00.
+\\\\\\ Possibly scatter-gun approach to making it work as the cracker knew something
+\\\\\\ in ZPG was critical for the game to start. Seems to be $5C-$5F must equal 1.
 \\\\\\
 \\\\\\ Note - if the memory of the decrypted tape version (&1400-&2FFF) is saved, the
 \\\\\\ game can be run by *LOADing it at 1400, setting $5C-$5F to 1 and CALLing &1E00
