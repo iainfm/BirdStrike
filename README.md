@@ -38,7 +38,7 @@ They are:
 
 1) Fresh game loaded, never been played. Press space and enjoy!
 2) Level 9 - a few levels before the first glitch I can spot.
-2) Lever 12 - the level before the first visible glitch
+2) Level 12 - the level before the first visible glitch
 4) Level 13 - the first visible glitch - a 'stuck' enemy bomb at the top of the screen
 5) Level 20 - many glitches present by this point - cloud/pigeon sprite corruption etc
 6) Level 22 - the last level before the game crashes completely. Down the plane and it's all over!
@@ -54,7 +54,7 @@ c 2238 A9
 
 ## Changes
 
-May 21 - Labels from the author's original sources added as comments to birdsk2.asm. Potential 'better' fix identified - simply move the L1A09 (tm+1 in the original) after the two INCs.
+May '21- Labels from the author's original sources added as comments to birdsk2.asm. Potential 'better' fix identified - simply move the L1A09 (tm+1 in the original) after the two INCs.
 
 15/02/21 Final(?) fix method implemented. Should play identically to the original now, save for the glitches and crash :)
 
