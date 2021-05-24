@@ -54,6 +54,8 @@ c 2238 A9
 
 ## Changes
 
+May 21 - Labels from the author's original sources added as comments to birdsk2.asm. Potential 'better' fix identified - simply move the L1A09 (tm+1 in the original) after the two INCs.
+
 15/02/21 Final(?) fix method implemented. Should play identically to the original now, save for the glitches and crash :)
 
 11/01/21 Improved fix implemented, which doesn't break the double-fire feature. Binary and disk image updated with this new build.
