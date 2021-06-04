@@ -14,7 +14,7 @@
 \ CALL &1E00
 
 \ Zero-page addresses
-L005D   = $005D    \ CMP'd with #$01 - nfinite loop if not equal
+L005D   = $005D    \ CMP'd with #$01 - infinite loop if not equal
 no      = $0070
 bfg     = $0071
 pflg    = $0072
