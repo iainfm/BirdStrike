@@ -19,10 +19,8 @@ pflg    = $0072
 bofg    = $0073
 mod     = $0074
 pls     = $0075
-\ pls+1   = $0076
 exp     = $0077
 pos     = $0078
-\ pos+1   = $0079
 psta    = $007A
 L007B   = $007B
 py      = $007C
@@ -30,19 +28,12 @@ ra1     = $007D
 L007E   = $007E
 L007F   = $007F
 sd      = $0080
-\ sd+1    = $0081
 sf      = $0082
-\ sf+1    = $0083
 st      = $0084
-\ st+1    = $0085
 gunp    = $0086
-\ gunp+1  = $0087
 plf     = $0088
-\ plf+1   = $0089
 bulst   = $008A
-\ bulst+1 = $008B
 bost    = $008C
-\ bost+1  = $008D
 cnt     = $008E
 L020C   = $020C
 L020D   = $020D
@@ -64,9 +55,8 @@ osbyte  = $FFF4
 
 .opt
         LDX     #$EF
-        JSR     L21D5
+        JSR     key
         BNE     op1
-
         LDA     #$61
         STA     L020C
         LDA     #$14
@@ -74,17 +64,16 @@ osbyte  = $FFF4
 		
 .op1
         LDX     #$AE
-        JSR     L21D5
+        JSR     key
         BNE     op2
-
         LDA     soun
         STA     L020C
         LDA     soun+1
         STA     L020D
+		
 .op2
         LDX     #$CC
-        JSR     L21D5
-
+        JSR     key
         BNE     op5
 
 .op3
@@ -92,9 +81,7 @@ osbyte  = $FFF4
         LDY     #$01
         LDX     #$00
         JSR     osbyte
-
         BCS     op3
-
         CPX     #$52
         BEQ     op3
 
@@ -104,7 +91,6 @@ osbyte  = $FFF4
 .mute
         CMP     #$07
         BEQ     op5
-
         JMP     (soun)
 
 .soun
@@ -113,17 +99,14 @@ osbyte  = $FFF4
 .nlr
         LDA     tog
         BEQ     enlr
-
         LDA     exp
         BPL     rt
-
         DEC     psta
         SEC
         LDA     pos
         SBC     #$08
         STA     pos
         BCS     enlr
-
         DEC     pos+1
         JMP     enlr
 
@@ -134,7 +117,6 @@ osbyte  = $FFF4
         ADC     #$08
         STA     pos
         BCC     enlr
-
         INC     pos+1
 .enlr
         LDA     #$01
@@ -148,7 +130,6 @@ osbyte  = $FFF4
 .fpat
         LDA     fp0
         BEQ     fp1
-
         DEC     fp0
         RTS
 
@@ -168,28 +149,23 @@ osbyte  = $FFF4
         INY
         LDA     #$0A
         JSR     delay
-
         LDA     gov2,Y
         JSR     oswrch
-
         CMP     #$52
         BNE     gov1
-
         LDA     #$96
         JSR     delay
-
         JMP     newgame
 
 .gov2
         EQUS    $1F,$05,$0F,$11,$01,"GAME OVER"
 
-.stp_4  \ de-duplication of label name
+.stp4_  \ de-duplication of label name
         RTS
 
 .stp6
         LDA     gex
-        BEQ     stp_4
-
+        BEQ     stp4_
         LDA     psta
         EOR     #$80
         STA     psta
@@ -202,11 +178,9 @@ osbyte  = $FFF4
         LDA     #$01
         BIT     exg3
         BNE     exg1
-
         LDY     sc+2
         CPY     #$05
         BMI     exg2
-
         ORA     exg3
         STA     exg3
         JSR     exg4
@@ -215,11 +189,9 @@ osbyte  = $FFF4
         LDA     #$02
         BIT     exg3
         BNE     exg2
-
         LDY     sc+2
         CPY     #$10
         BMI     exg2
-
         ORA     exg3
         STA     exg3
         JMP     exg4
@@ -232,14 +204,12 @@ osbyte  = $FFF4
 
 .exg4
         JSR     mini
-
         LDA     #$DC
         STA     L2DFC
         LDX     #$F8
         LDY     #$2D
         LDA     #$07
         JSR     osword
-
         INC     gex+1
         CLC
         LDA     gex+2
@@ -255,22 +225,17 @@ osbyte  = $FFF4
         LDA     fc
         AND     #$03
         BNE     bon0
-
         LDA     #$0F
         JSR     delay
-
         JSR     stmv
-
         JMP     bon11
 
 .bon0
         JSR     cht
-
         JSR     tune
 
 .bon11
         JSR     wbmsg
-
         LDY     #$4B
 .bon1
         SED
@@ -284,27 +249,22 @@ osbyte  = $FFF4
         CLD
         LDA     #$02
         JSR     delay
-
         TYA
         PHA
         LDX     #$E8
         LDY     #$2D
         LDA     #$07
         JSR     osword
-
         JSR     s7
-
         PLA
         TAY
         DEY
         BNE     bon1
-
         INC     bsou
         LDX     #$B7
         LDY     #$15
         LDA     #$07
         JSR     osword
-
         DEC     bsou
         LDA     #$80
         ORA     sc
@@ -313,14 +273,13 @@ osbyte  = $FFF4
 
 .wbmsg
         LDY     #$00
+		
 .wb1
         LDA     bmsg,Y
         JSR     oswrch
-
         INY
         CPY     #$0B
         BNE     wb1
-
         RTS
 
 .bmsg
@@ -329,23 +288,20 @@ osbyte  = $FFF4
 
 .bsou
         EQUB    $12,$00,$FF,$FF,$00,$00,$00,$00
-        EQUB    $FF
-
-        EQUB    $B4,$16,$08,$20,$7F
+        EQUB    $FF,$B4,$16,$08,$20,$7F
 
 .hs
         EQUB    $00
 
-\.hs+1
+\ .hs+1
         EQUB    $00
 
-\.hs+2
+\ .hs+2
         EQUB    $02
 
 .m7
         EQUB    $16,$07,$17,$00,$0A,$20,$00,$00
         EQUB    $00,$00,$00,$00
-
         EQUB    $9A,$94,$68,$3F,$6F,$34,$20,$20
         EQUB    $20,$20,$20,$20,$20,$20,$FF,$20
         EQUB    $20,$5F,$7E,$2F,$6D,$20,$78,$20
@@ -374,8 +330,6 @@ osbyte  = $FFF4
         EQUB    $8D,$83,$48,$69,$67,$68,$20,$53
         EQUB    $63,$6F,$72,$65
 
-        
-
 .dts
         EQUB    $1F,$0B,$0B,$2E,$2E,$2E,$2E,$2E
         EQUB    $2E,$2E,$2E,$2E,$2E,$2E,$2E,$2E
@@ -385,6 +339,7 @@ osbyte  = $FFF4
         EQUB    $61,$6E,$64,$72,$65,$77,$20,$20
         EQUB    $00
 
+.ints
         EQUB    $1F,$0E,$0E,$8D,$83,$4B,$65,$79
         EQUB    $73,$1F,$0E,$0F,$8D,$83,$4B,$65
         EQUB    $79,$73,$1F,$06,$11,$86,$5A,$20
@@ -406,6 +361,7 @@ osbyte  = $FFF4
         EQUB    $2E,$2E,$2E,$2E,$2E,$2E,$2E,$2E
         EQUB    $2E,$20,$72,$65,$73,$74,$00
 
+.sps
         EQUB    $1F,$07,$18,$81,$88,$50,$72,$65
         EQUB    $73,$73,$20,$73,$70,$61,$63,$65
         EQUB    $20,$74,$6F,$20,$70,$6C,$61,$79
@@ -416,47 +372,43 @@ osbyte  = $FFF4
 .stm4
         LDA     stm10,Y
         JSR     oswrch
-
         DEY
         BPL     stm4
-
         LDA     #$80
         STA     stm2+1
         LDA     #$00
         STA     stm3+1
         LDA     #$04
         STA     no
+		
 .stm1
         LDA     #$1D
         JSR     oswrch
-
         LDA     #$00
         JSR     oswrch
-
         JSR     oswrch
-
         SEC
+		
 .stm2
         LDA     #$00
-\ stm2+1 = stm2+1
+		
+\ .stm2+1
         SBC     #$80
         STA     stm2+1
         PHP
         JSR     oswrch
-
         PLP
+		
 .stm3
         LDA     #$00
-\ stm3+1 = stm3+1
+		
+\ .stm3+1
         SBC     #$00
         STA     stm3+1
         JSR     oswrch
-
         JSR     stv
-
         DEC     no
         BNE     stm1
-
         LDA     fc
         STA     tm
         LDA     #$00
@@ -465,6 +417,7 @@ osbyte  = $FFF4
         STA     L1A0C
         LDA     #$88
         STA     L1A0B
+		
 .stm6
         CLC
         LDA     L1A0B
@@ -474,25 +427,19 @@ osbyte  = $FFF4
         STA     L1A0C
         STA     not+1
         JSR     cht
-
         STX     nl
         INC     fc
+		
 .stm8
         JSR     nxno
-
         BNE     stm8
-
         JSR     cht
-
         JSR     tune
-
         LDA     #$3C
         JSR     delay
-
         LDA     fc
         CMP     #$04
         BNE     stm6
-
         LDA     tm
         STA     fc
         LDA     #$1A
@@ -508,9 +455,7 @@ osbyte  = $FFF4
         LDA     sc+2
         CMP     hs+2
         BCC     ge1
-
         BNE     ge0
-
         LDA     sc+1
         CMP     hs+1
         BCC     ge1
@@ -521,103 +466,83 @@ osbyte  = $FFF4
         LDA     sc+2
         STA     hs+2
         DEC     hs
+		
 .ge1
         LDA     #$16
         JSR     oswrch
-
         LDA     #$07
         JSR     oswrch
-
         LDX     #$D4
         LDY     #$15
         JSR     wrs
-
         LDA     #$1F
         JSR     oswrch
-
         LDA     #$05
         JSR     oswrch
-
         LDA     #$0B
         JSR     oswrch
-
         LDA     hs+2
         JSR     whs
-
         LDA     hs+1
         JSR     whs
-
         LDA     #$30
         JSR     oswrch
-
         LDX     #$A0
         LDY     #$16
         JSR     wrs
-
         LDX     #$BD
         LDY     #$16
         JSR     wrs
-
         LDA     #$1F
         JSR     oswrch
-
         LDA     #$1A
         JSR     oswrch
-
         LDA     #$0B
         JSR     oswrch
-
         LDA     hs
         BEQ     ge3
-
         LDA     #$15
         LDX     #$00
         JSR     osbyte
-
         TXA
         LDX     #$C0
         LDY     #$15
         JSR     osword
-
         JMP     ge7
 
 .ge3
         LDY     #$FF
+		
 .ge6
         INY
         LDA     nam,Y
         JSR     osasci
-
         CMP     #$20
         BPL     ge6
 
 .ge7
         LDY     #$02
+		
 .ge5
         LDA     m7,Y
         JSR     oswrch
-
         INY
         CPY     #$0D
         BNE     ge5
-
         LDA     #$64
         JSR     delay
 
 .space
         LDA     #$1A
         JSR     oswrch
-
         LDX     #$5C
         LDY     #$17
         JSR     wrs
 
 .ge4
         LDX     #$9D
-        JSR     L21D5
-
+        JSR     key
         BNE     ge4
-
         RTS
 
 .whs
@@ -629,7 +554,6 @@ osbyte  = $FFF4
         CLC
         ADC     #$30
         JSR     osasci
-
         PLA
         AND     #$0F
         CLC
@@ -637,25 +561,26 @@ osbyte  = $FFF4
         JMP     osasci
 
 .wrs
-        STX     wr1p2
-        STY     wr1p3
+        STX     wr1+2
+        STY     wr1+3
         LDY     #$FF
+		
 .wr1
         INY
-.wr1p1
+		
+\ .wr1+1
         LDA     dts,Y
-wr1p2 = wr1p1+1
-wr1p3 = wr1p1+2
-        JSR     osasci
+		
+\ .wr1+2
 
+\ .wr1+3
+        JSR     osasci
         CMP     #$00
         BNE     wr1
-
         PHA
         LDA     L005D
         CMP     #$01
         BNE     L1907
-
         PLA
         RTS
 
@@ -871,68 +796,48 @@ wr1p3 = wr1p1+2
         LDX     #$03
         LDY     #$00
         JSR     osbyte
-
         JSR     space
-
         LDX     #$01
         LDA     #$04
         LDY     #$00
         JSR     osbyte
-
         LDA     L020C
         STA     soun
         LDA     L020D
         STA     soun+1
+		
 .newgame
         JSR     gend
-
         JSR     S%
 
 .GO
         JSR     R%
-
         JSR     scr
-
         JSR     mp
-
         JSR     np
-
         JSR     mg
-
         JSR     mb
-
         JSR     nb
-
         JSR     mbo
-
         JSR     nbo
-
         JSR     B%
-
         JSR     h0
-
         JSR     sor
-
         JSR     opt
-
         JMP     GO
-
+		
         EQUS    "(c)A.E.Frigaard 1984 Hello!"
 
 .S%
         LDA     #$05
         STA     no
         JSR     E%
-
         LDA     #$49
         JSR     tune
-
         LDA     #$16
         JSR     oswrch
-
         LDA     #$02
         JSR     oswrch
-
         LDA     #$00
         STA     exg3
         STA     cnt
@@ -963,13 +868,12 @@ wr1p3 = wr1p1+2
         STA     pls
         LDX     #$0F
         LDY     #$07
+		
 .co1
         JSR     D%
-
         DEX
         CPX     #$07
         BNE     co1
-
         STX     ra1
         LDA     #$03
         STA     gex+1
@@ -979,19 +883,17 @@ wr1p3 = wr1p1+2
         STA     inb
         LDA     #$00
         STA     tm+1
+		
 .bf
         JSR     cht
-
         STX     nl
         INC     fc
         LDA     de
         CMP     #$0F
         BMI     b0
-
         LDA     fc
         AND     #$01
         BEQ     b0
-
         DEC     de
         DEC     de
         DEC     inb
@@ -1001,29 +903,23 @@ wr1p3 = wr1p1+2
         INC     tm+1
         LDA     #$0C
         JSR     oswrch
-
         LDA     #$9A
         LDX     #$14
         JSR     osbyte
-
         JSR     C%
-
         JSR     V%
-
         JSR     stv
-
         JSR     s7
-
         LDA     #$00
         STA     L1D5B
         STA     sc
         STA     ba+1
         LDY     #$54
+		
 .b1
         STA     L2D0A,Y
         DEY
         BNE     b1
-
         LDA     tm+1
         STA     L2D47
         LDA     #$06
@@ -1039,9 +935,9 @@ wr1p3 = wr1p1+2
         LDA     #$32
         STA     gex+3
         LDX     gex+1
+		
 .pmi
         JSR     mini
-
         CLC
         LDA     gex+2
         ADC     #$18
@@ -1049,12 +945,14 @@ wr1p3 = wr1p1+2
         DEX
         BNE     pmi
 
+.ppos
         LDA     #$3A
         STA     sd+1
         LDA     #$81
         STA     sf
         LDX     #$01
         LDY     #$08
+		
 .pp1
         LDA     #$81
         STA     L2D13,X
@@ -1081,10 +979,10 @@ wr1p3 = wr1p1+2
         INX
         CPX     #$1F
         BMI     pp1
-
         LDY     #$00
         LDA     (pls),Y
         STA     no
+		
 .slop
         INY
         INY
@@ -1094,12 +992,10 @@ wr1p3 = wr1p1+2
         LDA     (pls),Y
         STA     pos+1
         JSR     pp
-
         INY
         INY
         CPY     no
         BMI     slop
-
         JSR     h7
 
 .sgun
@@ -1110,22 +1006,19 @@ wr1p3 = wr1p1+2
         LDA     #$90
         STA     gunp
         LDA     #$23
-        STA     gunp4
+        STA     gun+4
         LDA     #$58
-        STA     gunp3
+        STA     gun+3
         JSR     gun
-
         LDA     #$40
         JMP     tune
 
 .sor
         LDA     sc
         BEQ     s7
-
         SED
         AND     #$02
-        BEQ     sf1
-
+        BEQ     s1
         CLC
         LDA     #$15
         ADC     sc+1
@@ -1135,11 +1028,10 @@ wr1p3 = wr1p1+2
         STA     sc+2
         JSR     X%
 
-.sf1
+.s1
         LDA     #$40
         BIT     sc
         BEQ     s4
-
         CLC
         LDA     #$01
         ADC     sc+1
@@ -1152,13 +1044,11 @@ wr1p3 = wr1p1+2
         LDY     #$15
         LDA     #$07
         JSR     osword
-
         SED
 .s4
         LDA     #$10
         BIT     sc
         BEQ     s2
-
         CLC
         LDA     #$0A
         ADC     sc+1
@@ -1168,18 +1058,14 @@ wr1p3 = wr1p1+2
         STA     sc+2
         CLD
         JSR     nxno
-
         BNE     s2
-
         JSR     bon
 
 .s2
         CLD
         JSR     exg
-
         LDA     sc
         BPL     s3
-
         JMP     ef
 
 .s3
@@ -1197,7 +1083,6 @@ wr1p3 = wr1p1+2
         LDA     #$F0
         AND     sc+2
         JSR     w
-
         LDA     #$0F
         AND     sc+2
         ASL     A
@@ -1205,11 +1090,9 @@ wr1p3 = wr1p1+2
         ASL     A
         ASL     A
         JSR     w
-
         LDA     #$F0
         AND     sc+1
         JSR     w
-
         LDA     #$0F
         AND     sc+1
         ASL     A
@@ -1217,7 +1100,6 @@ wr1p3 = wr1p1+2
         ASL     A
         ASL     A
         JSR     w
-
         LDA     #$00
         JMP     w
 
@@ -1225,12 +1107,11 @@ wr1p3 = wr1p1+2
         STA     L1A0A
         TYA
         PHA
+		
 .del1
         JSR     scr
-
         DEC     L1A0A
         BNE     del1
-
         PLA
         TAY
         RTS
@@ -1244,7 +1125,6 @@ wr1p3 = wr1p1+2
         STA     plf
         LDA     #$64
         JSR     delay
-
         JMP     bf
 
 .cht
@@ -1252,14 +1132,12 @@ wr1p3 = wr1p1+2
         AND     fc
         TAX
         BNE     ct1
-
         LDA     #$33
         RTS
 
 .ct1
         DEX
         BNE     ct2
-
         TXA
         LDX     #$0D
         RTS
@@ -1267,7 +1145,6 @@ wr1p3 = wr1p1+2
 .ct2
         DEX
         BNE     ct3
-
         LDA     #$11
         LDX     #$1A
         RTS
@@ -1280,10 +1157,10 @@ wr1p3 = wr1p1+2
 .patch
         LDA     ra1
         BPL     patch2
-
         LDA     sd
         EOR     #$C0
         STA     sd
+		
 .patch2
         LDA     de
         RTS
@@ -1296,7 +1173,6 @@ wr1p3 = wr1p1+2
         AND     #$0E
         CMP     #$08
         BPL     n1
-
         CLC
         ADC     not
         STA     sd
@@ -1315,7 +1191,6 @@ wr1p3 = wr1p1+2
         LDA     #$23
         STA     sf+1
         JSR     chnot
-
         CLC
         LDA     not
         ADC     #$20
@@ -1323,27 +1198,25 @@ wr1p3 = wr1p1+2
         BCC     n3
 
         INC     not+1
+		
 .n3
         JSR     pno
-
         CLC
         LDA     sd
         ADC     #$08
         STA     sd
         BCC     n4
-
         INC     sd+1
+		
 .n4
         CLC
         LDA     sf
         ADC     #$08
         STA     sf
         BCC     n5
-
         INC     sf+1
 .n5
         JSR     pno
-
         INY
         LDA     nl,Y
         RTS
@@ -1352,7 +1225,6 @@ wr1p3 = wr1p1+2
         LDA     #$80
         BIT     no
         BEQ     c1
-
         LDA     #$00
         STA     sf
         RTS
@@ -1361,7 +1233,6 @@ wr1p3 = wr1p1+2
         LSR     A
         BIT     no
         BEQ     c2
-
         LDA     #$10
         STA     sf
         RTS
@@ -1370,7 +1241,6 @@ wr1p3 = wr1p1+2
         LSR     A
         BIT     no
         BEQ     c3
-
         LDA     #$20
         STA     sf
         RTS
@@ -1379,7 +1249,6 @@ wr1p3 = wr1p1+2
         LSR     A
         BIT     no
         BEQ     c4
-
         LDA     #$30
         STA     sf
         RTS
@@ -1388,9 +1257,9 @@ wr1p3 = wr1p1+2
         LDA     #$01
         BIT     no
         BEQ     c5
-
         LDA     #$40
         STA     sf
+		
 .c5
         RTS
 
@@ -1426,18 +1295,17 @@ wr1p3 = wr1p1+2
         STA     (sd),Y
         DEY
         BPL     top
-
         PLA
         TAY
         RTS
 
 .tune
         STA     no
+		
 .t1
         LDY     no
         LDA     tl,Y
         BEQ     t3
-
         STA     L2DFC
         INY
         LDA     tl,Y
@@ -1455,47 +1323,41 @@ wr1p3 = wr1p1+2
         LDA     #$80
         LDX     #$FA
         JSR     osbyte
-
         CPX     #$0F
         BMI     t3
-
         RTS
 
-.L21D5
+.key
         LDA     #$81
         LDY     #$FF
         JSR     osbyte
-
         INX
         RTS
-
         EQUB    $E8,$60,$00,$00,$00,$00,$00,$00
         EQUB    $00,$00,$00,$00,$00,$00,$00,$00
 
 .stv
         LDY     #$00
+		
 .L21F0
         LDA     L220E,Y
         JSR     oswrch
-
         INY
         CPY     #$09
         BNE     L21F0
-
         LDX     #$05
+		
 .L21FD
         LDY     #$09
+		
 .L21FF
         LDA     L220E,Y
         JSR     oswrch
-
         INY
         CPY     #$15
         BNE     L21FF
-
         DEX
         BNE     L21FD
-
         RTS
 
 .L220E
@@ -1518,7 +1380,6 @@ wr1p3 = wr1p1+2
         LDA     #$20
         BIT     sc
         BNE     h1
-
         LDA     gex
         BNE     h12
 
@@ -1529,12 +1390,10 @@ wr1p3 = wr1p1+2
         LDX     #$00
         LDY     #$07
         JSR     D%
-
         LDA     #$07
         LDY     #$2D
         LDX     #$E0
         JSR     osword
-
         LDA     #$FF
         STA     gex
         LDA     #$60
@@ -1543,11 +1402,10 @@ wr1p3 = wr1p1+2
         STA     mg
         STA     nb
         JSR     gun
-
         LDA     #$1A
-        STA     gunp4
+        STA     gun+4
         LDA     #$10
-        STA     gunp3
+        STA     gun+3
         JMP     gun
 
 .h12
@@ -1555,7 +1413,6 @@ wr1p3 = wr1p1+2
         LDA     gex
         CMP     #$FE
         BNE     h3
-
         LDX     #$00
         LDY     #$00
         JMP     D%
@@ -1563,47 +1420,38 @@ wr1p3 = wr1p1+2
 .h3
         CMP     #$DC
         BNE     h4
-
         JSR     gun
-
         LDA     #$38
-        STA     gunp3
+        STA     gun+3
         JMP     gun
 
 .h4
         CMP     #$8C
         BNE     h5
-
         JSR     gun
-
         LDA     #$60
-        STA     gunp3
+        STA     gun+3
         JMP     gun
 
 .h5
         CMP     #$01
         BNE     stp4
-
         DEC     gex+1
         BNE     L22B3
-
         JMP     gov
 
 .L22B3
         JSR     gun
-
         JSR     sgun
-
         LDY     L2D13
+		
 .h6
         LDA     (pls),Y
         CMP     #$C0
         BNE     h8
-
         DEY
         LDA     (pls),Y
         BPL     h9
-
         EOR     #$80
         STA     (pls),Y
         DEY
@@ -1613,14 +1461,15 @@ wr1p3 = wr1p1+2
         LDA     (pls),Y
         STA     pos
         JSR     pp
-
         JMP     h10
 
 .h8
         DEY
+		
 .h9
         DEY
         DEY
+		
 .h10
         DEY
         DEY
@@ -1683,19 +1532,15 @@ wr1p3 = wr1p1+2
 .B%
 pg = B%
         LDA     #$1B
-\ pg+1 = pg
         STA     sf+1
         LDA     ba+1
         BNE     b_0
-
         LDA     #$42
         BIT     sc
         BEQ     ep
-
         LDA     #$02
         BIT     L02FC
         BEQ     pg1
-
         LDA     #$1B
         STA     sf+1
         STA     pg+1
@@ -1731,8 +1576,10 @@ pg = B%
         TAX
 .L246B
         LDA     #$4B
-\ b5-2 = L246B+1
+		
+\ .b5-2
         CLC
+		
 .b5
         ADC     #$05
         TAY
@@ -1742,7 +1589,6 @@ pg = B%
         TYA
         DEX
         BPL     b5
-
         STA     ba+1
         STA     sd+1
         LDX     #$02
@@ -1760,10 +1606,8 @@ pg = B%
         LDA     ba+1
         STA     sd+1
         BPL     b_1
-
         DEC     ba+2
         BNE     ep
-
         EOR     #$80
         STA     sd+1
         LDA     #$10
@@ -1782,37 +1626,32 @@ pg = B%
         LDY     #$00
         LDA     (bulst),Y
         STA     no
+		
 .h
         INY
         LDA     (bulst),Y
         SEC
         SBC     py
         BMI     nh
-
         CMP     #$07
         BPL     nh
-
         INY
         INY
         LDA     (bulst),Y
         BEQ     nh+2
-
         INY
         LDA     (bulst),Y
         SEC
         SBC     L2D7F
         BMI     nh+3
-
         CMP     #$03
         BPL     nh+3
-
         LDA     #$E8
         STA     (bulst),Y
         TAX
         LDA     #$07
         LDY     #$2D
         JSR     osword
-
         LDA     #$10
         STA     ba+2
         LDA     #$80
@@ -1839,28 +1678,27 @@ pg = B%
 .nh
         INY
         INY
+		
 \ .nh+2
         INY
+		
 \ .nh+3
         CPY     no
         BMI     h
-
         LDA     #$80
         EOR     ba+2
         STA     ba+2
         BMI     x
-
         JSR     pb
-
         LDA     L2D7F
+		
 .xps
         CMP     #$00
-\ xps+1 = xps+1
+		
+\ .xps+1
         BEQ     b9
-
         AND     #$1F
         BNE     b6
-
         LDA     #$07
         LDY     #$2D
         LDX     #$F0
@@ -1878,7 +1716,6 @@ pg = B%
         STA     sf
         LDA     xps+1
         BEQ     b10
-
         INC     L2D7F
         CLC
         LDA     ba
@@ -1886,7 +1723,6 @@ pg = B%
         STA     ba
         STA     sd
         BCC     pb
-
         INC     ba+1
         INC     sd+1
         JMP     pb
@@ -1899,25 +1735,24 @@ pg = B%
         STA     ba
         STA     sd
         BCS     pb
-
         DEC     ba+1
         DEC     sd+1
+		
 .pb
         LDY     #$17
+		
 .b8
         LDA     (sf),Y
         EOR     (sd),Y
         STA     (sd),Y
         DEY
         BPL     b8
-
         RTS
 
 .X%
         LDY     L1D5B
         CPY     #$09
         BPL     L25B7
-
         LDA     L1D40,Y
         STA     sd
         INY
@@ -1927,17 +1762,18 @@ pg = B%
         STY     L1D5B
         LDY     #$04
         LDA     #$55
+		
 .L25A7
         STA     (sd),Y
         DEY
         BPL     L25A7
-
         LDY     #$09
         ASL     A
         STA     (sd),Y
         LDY     #$01
         LDA     #$FF
         STA     (sd),Y
+		
 .L25B7
         RTS
 
@@ -1955,22 +1791,22 @@ pg = B%
 
 .V%
         LDY     #$00
+		
 .L25CB
         LDA     L26B0,Y
         JSR     oswrch
-
         INY
         BNE     L25CB
-
         LDA     plf
         STA     sf
         LDA     plf+1
         STA     sf+1
         LDA     #$1F
-        STA     L2C1E
+        STA     L2C1D+1
         LDA     #$E0
         STA     no
         LDY     #$00
+		
 .L25E7
         INY
         LDX     L27C3,Y
@@ -1978,29 +1814,26 @@ pg = B%
         LDA     L27C3,Y
         BIT     no
         BNE     L25FF
-
         STA     plf+1
         STX     plf
         INY
         LDX     L27C3,Y
         INY
         LDA     L27C3,Y
+		
 .L25FF
         STX     pos
         STA     pos+1
         JSR     pp
-
         CPY     L27C3
         BMI     L25E7
-
         LDA     #$3F
-        STA     L2C1E
+        STA     L2C1D+1
         LDA     sf
         STA     plf
         LDA     sf+1
         STA     plf+1
         RTS
-
         EQUB    $00
 
 .C%
@@ -2008,52 +1841,53 @@ pg = B%
         STA     pos+1
         LDA     #$FF
         LDX     #$05
+		
 .L2622
         LDY     #$00
         STY     pos
+		
 .L2626
         STA     (pos),Y
         INY
         BNE     L2626
-
         INC     pos+1
         DEX
         BNE     L2622
-
         LDY     #$1F
+		
 .L2632
         LDA     L2EE0,Y
         STA     (pos),Y
         DEY
         BPL     L2632
-
         LDA     #$2E
         STA     L007B
         LDA     #$20
         STA     pos
         LDX     #$08
+		
 .L2644
         LDA     L2D5F,X
         STA     psta
         LDY     #$3F
+		
 .L264B
         LDA     (psta),Y
         STA     (pos),Y
         DEY
         BPL     L264B
-
         CLC
         LDA     pos
         ADC     #$40
         STA     pos
         BCC     L265D
-
         INC     pos+1
+		
 .L265D
         DEX
         BPL     L2644
-
         LDY     #$1F
+		
 .L2662
         LDA     L2EC0,Y
         STA     (pos),Y
@@ -2062,42 +1896,44 @@ pg = B%
 
 .L266A
         LDY     #$00
+		
 .L266C
         LDX     #$07
+		
 .L266E
         LDA     L4900,Y
+		
 L266F = L266E+1
 L2670 = L266E+2
+
 .L2671
         STA     L4180,X
+		
 L2672 = L2671+1
+
 L2673 = L2671+2
         INY
         DEX
         BPL     L266E
-
         CLC
         LDA     L2672
         ADC     #$08
         STA     L2672
         BCC     L2686
-
         INC     L2673
+		
 .L2686
         CPY     #$80
         BNE     L266C
-
         LDA     L266F
         EOR     #$80
         STA     L266F
         BMI     L2697
-
         INC     L2670
 .L2697
         LDA     #$44
         CMP     L2673
         BNE     L266A
-
         STY     L2672
         INX
         STX     L266F
@@ -2161,18 +1997,13 @@ L2673 = L2671+2
 .D%
         LDA     #$13
         JSR     oswrch
-
         TXA
         JSR     oswrch
-
         TYA
         JSR     oswrch
-
         LDA     #$00
         JSR     oswrch
-
         JSR     oswrch
-
         JMP     oswrch
 
 .E%
@@ -2186,19 +2017,17 @@ L2673 = L2671+2
         LDA     #$08
         LDY     #$2D
         JSR     osword
-
         DEC     no
         BNE     E%
-
         RTS
 
 .scr
         LDA     #$02
         STA     sv_ier
+		
 .L284F
         BIT     sv_ifr
         BEQ     L284F
-
         LDA     #$82
         STA     sv_ier
         RTS
@@ -2206,22 +2035,21 @@ L2673 = L2671+2
 .w
         STA     sf
         LDY     #$0F
+		
 .L285E
         LDA     (sf),Y
         STA     (sd),Y
         DEY
         BPL     L285E
-
         CLC
         LDA     sd
         ADC     #$10
         STA     sd
         RTS
-
         BRK
+		
 .mg
         EQUB    $60
-
         EQUB    $D3,$28
 
 .L2871
@@ -2229,21 +2057,16 @@ L2673 = L2671+2
         LDY     #$FF
         LDX     #$BD
         JSR     osbyte
-
         INX
         BEQ     r
-
         DEY
         LDX     #$9E
         JSR     osbyte
-
         INX
         BNE     gd
-
         LDX     Xg
         CPX     #$01
         BEQ     gd
-
         DEX
         STX     Xg
         SEC
@@ -2251,7 +2074,6 @@ L2673 = L2671+2
         SBC     #$08
         STA     gunp
         BCS     gd
-
         DEC     gunp+1
         BCC     gd
 
@@ -2259,7 +2081,6 @@ L2673 = L2671+2
         LDX     Xg
         CPX     #$47
         BEQ     gd
-
         INX
         STX     Xg
         CLC
@@ -2267,48 +2088,45 @@ L2673 = L2671+2
         ADC     #$08
         STA     gunp
         BCC     gd
-
         INC     gunp+1
+		
 .gd
         SEC
         LDA     #$00
         STA     pos
         LDY     #$24
+		
 .ch
         LDA     (gunp),Y
         BEQ     cop
-
         STA     pos
+		
 .cop
         TYA
         SBC     #$08
         TAY
         BPL     ch
-
         LDA     pos
         BEQ     gun
-
         LDA     sc
         ORA     #$20
         STA     sc
+		
 .gun
         LDY     #$27
-gunp1 = gun+1
-.gunp2
+		
+.gop
         LDA     L1A60,Y
-gunp3 = gunp2+1
-gunp4 = gunp2+2
         BEQ     gz
-
         EOR     (gunp),Y
         STA     (gunp),Y
-.gz
+		
+.gz     \ TODO: Check gz/mb - may be mixed up
         DEY
-        BPL     gunp2
-
+        BPL     gop
         RTS
 
-.mb
+.mb     \ TODO: Check gz/mb - may be mixed up
         LDY     #$00
         LDA     (bulst),Y
         STA     no
@@ -2316,6 +2134,7 @@ gunp4 = gunp2+2
         STA     sf
         LDA     buf
         STA     sf+1
+		
 .ntbu
         INY
         LDA     (bulst),Y
@@ -2327,7 +2146,6 @@ gunp4 = gunp2+2
         LDA     (bulst),Y
         STA     sd+1
         BNE     bu1
-
         INY
         LDA     #$FE
         AND     bfg
@@ -2337,7 +2155,6 @@ gunp4 = gunp2+2
 .bu1
         INY
         JSR     s5
-
         LDA     (bulst),Y
         BPL     bu2
 
@@ -2352,7 +2169,6 @@ gunp4 = gunp2+2
         AND     sd
         CMP     #$05
         BMI     bu3
-
         LDA     sd
         SBC     #$05
         STA     sd
@@ -2365,6 +2181,7 @@ gunp4 = gunp2+2
         LDA     sd+1
         SBC     #$02
         STA     sd+1
+		
 .bu4
         SEC
         LDA     exp
@@ -2372,7 +2189,6 @@ gunp4 = gunp2+2
         STA     exp
         CMP     #$02
         BEQ     bu7
-
         JSR     s5
 
 .nxbu
@@ -2390,26 +2206,19 @@ gunp4 = gunp2+2
         INY
         CPY     no
         BMI     ntbu
-
         RTS
 
 .nb
         RTS
-
         EQUB    $01
-
-.L2960
         BIT     bfg
         BNE     nwb0
-
         LDA     #$81
         LDY     #$FF
         LDX     #$B6
         JSR     osbyte
-
         INX
         BEQ     nwb1
-
         LDA     #$00
         STA     fp0
         RTS
@@ -2419,11 +2228,11 @@ gunp4 = gunp2+2
 
 .nwb1
         JMP     fpat
-
         EQUB    $71,$D0,$F9
 
 .L297D
         LDY     #$FF
+		
 .nwb2
         INY
         INY
@@ -2431,7 +2240,6 @@ gunp4 = gunp2+2
         INY
         LDA     (bulst),Y
         BNE     nwb2
-
         DEY
         DEY
         LDA     #$9D
@@ -2453,7 +2261,6 @@ gunp4 = gunp2+2
         ADC     #$03
         STA     (bulst),Y
         JSR     s5
-
         LDA     #$03
         ORA     bfg
         STA     bfg
@@ -2497,57 +2304,47 @@ gunp4 = gunp2+2
         STA     (sd),Y
         DEY
         BPL     top_s5
-
         PLA
         TAY
         RTS
 
 .np
         RTS
-
         EQUB    $72
-
-.L29F9
         CMP     #$01
         BPL     nw
-
         DEC     de+1
         BNE     nw
-
         LDA     de+2
         STA     de+1
         LDA     no
         JSR     ra2
-
         TAY
         SEC
 		
 .n2_    \ de-duplication of label
         SBC     #$05
         BPL     n2_
-
         TAX
+		
 .n3_    \ de-duplication of label
         INY
         INX
         BNE     n3_
-
         DEY
         LDA     (pls),Y
         BMI     fy
-
         LDY     no
+		
 .se
         DEY
         LDA     (pls),Y
         BMI     fy
-
         DEY
         DEY
         DEY
         DEY
         BNE     se
-
         LDA     #$80
         ORA     sc
         STA     sc
@@ -2556,13 +2353,13 @@ gunp4 = gunp2+2
 .fy
         EOR     #$80
         STA     (pls),Y
+		
 .nw
         RTS
 
 .pxp
         LDA     exp
         BEQ     nx
-
         LDX     #$19
         STX     plf+1
         LDA     plf
@@ -2570,45 +2367,36 @@ gunp4 = gunp2+2
         LDA     exp
         CMP     #$15
         BNE     px1
-
         LDA     #$40
         STA     plf
         JSR     pp
-
         JMP     px4
 
 .px1
         CMP     #$0C
         BNE     px2
-
         LDA     #$40
         STA     plf
         JSR     pp
-
         LDA     #$80
         STA     plf
         JSR     pp
-
         JMP     px4
 
 .px2
         CMP     #$06
         BNE     px3
-
         LDA     #$80
         STA     plf
         JSR     pp
-
         LDA     #$C0
         STA     plf
         JSR     pp
-
         JMP     px4
 
 .px3
         CMP     #$01
         BNE     px4
-
         LDA     #$C0
         STA     plf
         JSR     pp
@@ -2619,6 +2407,7 @@ gunp4 = gunp2+2
         PLA
         STA     plf
         DEC     exp
+		
 .nx
         JMP     fo+3
 
@@ -2627,6 +2416,7 @@ gunp4 = gunp2+2
         LDA     (pls),Y
         STA     no
         STY     pflg
+		
 .nxpl
         INY
         LDA     (pls),Y
@@ -2646,13 +2436,11 @@ gunp4 = gunp2+2
         LDA     exp
         AND     #$C0
         BNE     p0
-
         JMP     pxp
 
 .p0
         LDA     psta
         BPL     p1
-
         JMP     pl1
 
 .p1
@@ -2669,27 +2457,21 @@ gunp4 = gunp2+2
         SEC
         SBC     L007B
         BMI     nh_
-
         CMP     #$08
         BPL     nh_
-
         INY
         INY
         LDA     (bulst),Y
         BEQ     L2B20
-
         INY
         LDA     (bulst),Y
         SEC
         SBC     psta
         BMI     L2B21
-
         CMP     #$07
         BPL     L2B21
-
         CMP     #$03
         BEQ     o
-
         LDA     #$40
         ORA     sc
         STA     sc
@@ -2713,7 +2495,6 @@ gunp4 = gunp2+2
         ORA     sc
         STA     sc
         JSR     pp
-
         JMP     pxp
 
 .nh_    \ de-duplication of label
@@ -2724,7 +2505,6 @@ gunp4 = gunp2+2
 .L2B21
         CPY     sd
         BMI     h_
-
         PLA
         TAY
         LDA     bofg
@@ -2732,11 +2512,9 @@ gunp4 = gunp2+2
         STA     bofg
         INC     pflg
         JSR     pp
-
         LDA     L007B
         CMP     #$AF
         BNE     hop5
-
         SEC
         LDA     pos
         SBC     #$87
@@ -2752,50 +2530,47 @@ gunp4 = gunp2+2
         LDA     #$3F
         AND     exp
         BNE     mid
-
         SEC
         LDA     psta
         SBC     Xg
         STA     exp
         LDA     #$00
         BCS     pl3
-
         SEC
         ROR     A
+		
 .pl3
         ROR     A
         STA     sd
         LDA     exp
         BNE     pl5
-
         JSR     patch
 
 .pl5
         BPL     pl4
-
         EOR     #$FF
         CLC
         ADC     #$01
+		
 .pl4
         CMP     #$02
         BMI     pl6
-
-        STA     ra3p1
-        JSR     ra2p3
-
-        LSR     ra3p1
+        STA     ra3+1
+        JSR     ra2+3
+        LSR     ra3+1
         CLC
-        ADC     ra3p1
+        ADC     ra3+1
         AND     #$3F
+		
 .pl6
         ORA     sd
         STA     exp
+		
 .mid
         LDA     exp
         LDX     psta
         CPX     #$01
         BPL     nl_
-
         ORA     #$40
         AND     #$7F
         JMP     do
@@ -2803,18 +2578,18 @@ gunp4 = gunp2+2
 .nl_    \ de-duplication of label
         CPX     #$48
         BMI     L2BA1
-
         ORA     #$80
         AND     #$BF
+		
 .do
         STA     exp
+		
 .L2BA1
         INC     L007B
         LDA     #$07
         AND     pos
         CMP     #$07
         BEQ     pl2
-
         INC     pos
         JMP     lft
 
@@ -2828,16 +2603,12 @@ gunp4 = gunp2+2
         STA     pos+1
 .lft
         JMP     nlr
-
-.L2BC0
         BCC     rgt
-
         DEC     psta
         LDA     pos
         SBC     #$08
         STA     pos
         BCS     fo
-
         DEC     pos+1
         JMP     fo
 
@@ -2845,13 +2616,11 @@ gunp4 = gunp2+2
         INC     psta
         ROL     A
         BCC     fo
-
         CLC
         LDA     pos
         ADC     #$08
         STA     pos
         BCC     fo
-
         INC     pos+1
 .fo
         JSR     pp
@@ -2875,10 +2644,10 @@ gunp4 = gunp2+2
         INY
         LDA     L007B
         STA     (pls),Y
+		
 .pl1
         CPY     no
         BEQ     hop7
-
         JMP     nxpl
 
 .hop7
@@ -2897,9 +2666,12 @@ gunp4 = gunp2+2
         LDA     pos+1
         ADC     #$02
         STA     st+1
+		
 .L2C1D
         LDY     #$3F
-L2C1E = L2C1D+1
+		
+\ .L2C1D+1
+
 .plo
         LDX     #$07
         CPX     mod
@@ -2908,7 +2680,6 @@ L2C1E = L2C1D+1
 .bt
         LDA     (plf),Y
         BEQ     bz
-
         EOR     (st),Y
         STA     (st),Y
 .bz
@@ -2920,34 +2691,28 @@ L2C1E = L2C1D+1
 .tp
         LDA     (plf),Y
         BEQ     tz
-
         EOR     (pos),Y
         STA     (pos),Y
+		
 .tz
         DEY
         DEX
         BPL     tp
-
         TYA
         BPL     plo
-
         PLA
         TAY
         RTS
 
 .nbo
         RTS
-
         EQUB    $C0
-
-.L2C47
         BIT     bofg
         BNE     nbo4
-
         DEC     bofg
         BNE     nbo4
-
         LDY     #$FF
+		
 .nbo2
         INY
         INY
@@ -2956,14 +2721,12 @@ L2C1E = L2C1D+1
         INY
         LDA     (pls),Y
         BMI     nbo2
-
         DEY
         DEY
         DEY
         LDA     (pls),Y
         AND     #$C0
         BNE     nbo5
-
         INY
         INY
         INY
@@ -2980,14 +2743,12 @@ L2C1E = L2C1D+1
         ADC     #$02
         STA     sd+1
         JSR     s5
-
         LDY     #$00
 .nbo3
         INY
         INY
         LDA     (bost),Y
         BNE     nbo3
-
         LDA     sd+1
         STA     (bost),Y
         DEY
@@ -2995,6 +2756,7 @@ L2C1E = L2C1D+1
         STA     (bost),Y
         LDA     inb
         STA     bofg
+		
 .nbo4
         LDA     #$C0
         ORA     bofg
@@ -3017,7 +2779,6 @@ L2C1E = L2C1D+1
         LDA     (bost),Y
         STA     sd+1
         BNE     bo1
-
         LDA     #$7F
         AND     bofg
         STA     bofg
@@ -3025,12 +2786,10 @@ L2C1E = L2C1D+1
 
 .bo1
         JSR     s5
-
         LDA     sd
         AND     #$07
         CMP     #$06
         BPL     bo2
-
         INC     sd
         INC     sd
         LDA     sd+1
@@ -3044,43 +2803,46 @@ L2C1E = L2C1D+1
         LDA     sd+1
         ADC     #$02
         STA     sd+1
+		
 .bo4
         CMP     #$80
         BMI     bo6
-
         LDA     #$00
         STA     (bost),Y
         BEQ     bo7
 
 .bo6
         JSR     s5
-
         DEY
         LDA     sd
         STA     (bost),Y
         INY
         LDA     sd+1
         STA     (bost),Y
+		
 .bo7
         CPY     no
         BMI     ntbo
-
         RTS
 
 .ra2
-        STA     ra3p1
-ra2p1 = ra2+1
-ra2p2 = ra2+2
-.ra2p3
+        STA     ra3+1
+		
+\ .ra2+1
+
+\ .ra2+2
+
+\ .ra2+3
         SEC
         LDA     py
         AND     #$7F
+		
 .ra3
         SBC     #$10
-ra3p1 = ra3+1
+		
+\ .ra3+1
         BPL     ra3
-
-        ADC     ra3p1
+        ADC     ra3+1
         RTS
 
 .L2D0A
