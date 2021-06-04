@@ -42,7 +42,7 @@ cnt     = $008E
 L020C   = $020C
 L020D   = $020D
 
-\ Busy buffer
+\ OSFILE control block building area?? (AUG P.274)
 L02FC   = $02FC
 
 \ Screen addresses
