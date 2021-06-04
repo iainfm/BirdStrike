@@ -38,9 +38,8 @@ bulst   = $008A
 bost    = $008C
 cnt     = $008E
 
-\ osword vectors
-L020C   = $020C
-L020D   = $020D
+\ Vectors
+oswordv = $020C
 
 \ Unknown - uses osfile workspace
 L02FC   = $02FC    \ Defined in PIGSRCE as picn=&2FC, but suspect this is an error(?)
@@ -73,18 +72,18 @@ org     $1400   \ P% in old money
         JSR     key
         BNE     op1
         LDA     #$61
-        STA     L020C
+        STA     oswordv
         LDA     #$14
-        STA     L020D
+        STA     oswordv+1
 		
 .op1
         LDX     #$AE
         JSR     key
         BNE     op2
         LDA     soun
-        STA     L020C
+        STA     oswordv
         LDA     soun+1
-        STA     L020D
+        STA     oswordv+1
 		
 .op2
         LDX     #$CC
@@ -832,9 +831,9 @@ org     $1400   \ P% in old money
         LDA     #$04
         LDY     #$00
         JSR     osbyte
-        LDA     L020C
+        LDA     oswordv
         STA     soun
-        LDA     L020D
+        LDA     oswordv+1
         STA     soun+1
 		
 .newgame
