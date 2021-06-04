@@ -51,17 +51,16 @@ osbyte  = $FFF4
 .opt
         LDX     #$EF
         JSR     L21D5
-
         BNE     op1
 
         LDA     #$61
         STA     L020C
         LDA     #$14
         STA     L020D
+		
 .op1
         LDX     #$AE
         JSR     L21D5
-
         BNE     op2
 
         LDA     soun
@@ -311,9 +310,7 @@ osbyte  = $FFF4
         RTS
 
 .bmsg
-        EQUB    $11,$06,$1F,$07,$0F,$42,$4F,$4E
-        EQUB    $55,$53,$21
-
+        EQUB    $11,$06,$1F,$07,$0F
         EQUS    "BONUS!"
 
 .bsou
@@ -353,16 +350,17 @@ osbyte  = $FFF4
         EQUB    $20,$2A,$7C,$7E,$27,$20,$6F,$74
         EQUB    $30,$FF,$20,$20,$6F,$30,$FF,$20
         EQUB    $2B,$34,$6D,$78,$24,$1F,$05,$05
-        EQUB    $82,$46,$49,$52,$45,$42,$49,$52
-        EQUB    $44,$20,$28,$63,$29,$20,$41,$6E
-        EQUB    $64,$72,$65,$77,$20,$46,$72,$69
-        EQUB    $67,$61,$61,$72,$64,$0D,$1F,$0B
+        EQUB    $82
+				
+		EQUS    "FIREBIRD (c) Andrew Frigaard",$0D
+		
+		EQUB    $1F,$0B
         EQUB    $08,$8D,$83,$48,$69,$67,$68,$20
         EQUB    $53,$63,$6F,$72,$65,$1F,$0B,$09
         EQUB    $8D,$83,$48,$69,$67,$68,$20,$53
         EQUB    $63,$6F,$72,$65
 
-        EQUS    "FIREBIRD (c) Andrew Frigaard",$0D
+        
 
 .dts
         EQUB    $1F,$0B,$0B,$2E,$2E,$2E,$2E,$2E
