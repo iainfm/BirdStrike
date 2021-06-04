@@ -588,9 +588,10 @@ osbyte  = $FFF4
         PLA
         RTS
 
-.L1907  \ Lives, explosions, bullet(?) sprites
+.L1907  \ Protection? - infinite loop if ?&5D != &01
         JMP     L1907
-
+		
+        \ Lives, explosions, bullet(?) sprites
         EQUB    $00,$00,$05,$00,$00,$00,$00,$08
         EQUB    $08,$1C,$08,$08,$08,$00,$28,$28
         EQUB    $28,$3E,$28,$28,$00,$00,$00,$08
