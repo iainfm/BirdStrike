@@ -42,8 +42,12 @@ cnt     = $008E
 L020C   = $020C
 L020D   = $020D
 
-\ OSFILE control block building area?? (AUG P.274)
-L02FC   = $02FC
+\ Unknown - uses osfile workspace
+L02FC   = $02FC    \ Defined in PIGSRCE as picn=&2FC, but suspect this is an error(?)
+                   \ Variables on the same line (680) in the &2Dxx-&2Fxx range
+                   \ .picn defined at $1D54, as per various S/SOURCE.bas files
+				   \ picn is reset every new game, L02FC isn't.
+				   \ Doesn't seem to affect gameplay or create a bug.
 
 \ Screen addresses
 L4180   = $4180
@@ -1569,7 +1573,7 @@ pg = B%
         BIT     sc
         BEQ     ep
         LDA     #$02
-        BIT     L02FC
+        BIT     L02FC    \ Should this be picn?
         BEQ     pg1
         LDA     #$1B
         STA     sf+1
@@ -1600,7 +1604,7 @@ pg = B%
 .b3
         LDA     #$00
         STA     py
-        INC     L02FC
+        INC     L02FC    \ Should this be picn?
         LDA     #$07
         AND     ra1
         TAX
