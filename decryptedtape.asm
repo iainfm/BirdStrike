@@ -5,6 +5,7 @@
 \
 \ Does not have the bug fix
 \ Labels from Andy Frigaard's source discs
+\ Has hard-coded hi/lo byte addresses
 \
 \ To Run:
 \ Copy the assembled file to an emulator/floppy
@@ -12,7 +13,8 @@
 \ ?&5D = 1
 \ CALL &1E00
 
-L005D   = $005D
+\ Zero-page addresses
+L005D   = $005D    \ CMP'd with #$01 - nfinite loop if not equal
 no      = $0070
 bfg     = $0071
 pflg    = $0072
@@ -22,11 +24,11 @@ pls     = $0075
 exp     = $0077
 pos     = $0078
 psta    = $007A
-L007B   = $007B
+yo      = $007B    \ OLD1/OLDSRCE.BAS
 py      = $007C
 ra1     = $007D
-L007E   = $007E
-L007F   = $007F
+L007E   = $007E    \ Used by R% (rng?)
+L007F   = $007F    \ Used by R% (rng?)
 sd      = $0080
 sf      = $0082
 st      = $0084
@@ -35,20 +37,29 @@ plf     = $0088
 bulst   = $008A
 bost    = $008C
 cnt     = $008E
+
+\ osword vectors
 L020C   = $020C
 L020D   = $020D
+
+\ Busy buffer
 L02FC   = $02FC
-bof     = $2D74
+
+\ Screen addresses
 L4180   = $4180
 L4900   = $4900
+
+\ System VIA addresses
 sv_ifr  = $FE4D
 sv_ier  = $FE4E
+
+\ OS calls
 osasci  = $FFE3
 oswrch  = $FFEE
 osword  = $FFF1
 osbyte  = $FFF4
 
-        org     $1400
+org     $1400   \ P% in old money
 		
 .BeebDisStartAddr
         EQUS    "Thanks David,Ian,Martin,Mum,Dad,Susi C"
@@ -302,7 +313,7 @@ osbyte  = $FFF4
 \ .hs+2
         EQUB    $02
 
-.m7
+.m7     \ Mode 7 title screen
         EQUB    $16,$07,$17,$00,$0A,$20,$00,$00
         EQUB    $00,$00,$00,$00
         EQUB    $9A,$94,$68,$3F,$6F,$34,$20,$20
@@ -342,7 +353,7 @@ osbyte  = $FFF4
         EQUS    "andrew  "
         EQUB    $00
 
-.ints
+.ints   \ Instructions
         EQUB    $1F,$0E,$0E   \ Move text cursor
 		EQUB    $8D,$83       \ Double-height / yellow
         EQUS    "Keys"        \ Double height line 1
@@ -366,7 +377,7 @@ osbyte  = $FFF4
         EQUS    "R ................. rest"
         EQUB    $00
 
-.sps
+.sps    \ Press space to play
         EQUB    $1F,$07,$18   \ Move text cursor
 		EQUB    $81,$88       \ Red / flash
         EQUS    "Press space to play."
@@ -781,7 +792,7 @@ osbyte  = $FFF4
 \ .not+1
         EQUB    $00
 
-.L1D5B
+.L1D5B  \ Hard coded in S*.BAS files
         EQUB    $00
 
 .fc     \ Current level / building sprites
@@ -1358,7 +1369,7 @@ osbyte  = $FFF4
         LDY     #$00
 		
 .L21F0
-        LDA     L220E,Y
+        LDA     sl,Y
         JSR     oswrch
         INY
         CPY     #$09
@@ -1369,7 +1380,7 @@ osbyte  = $FFF4
         LDY     #$09
 		
 .L21FF
-        LDA     L220E,Y
+        LDA     sl,Y
         JSR     oswrch
         INY
         CPY     #$15
@@ -1378,7 +1389,7 @@ osbyte  = $FFF4
         BNE     L21FD
         RTS
 
-.L220E  \ Stave data
+.sl     \ Stave data
         EQUB    $12,$00,$04,$19,$04,$00,$01,$EC
         EQUB    $03,$19,$01,$00,$03,$00,$00,$19
         EQUB    $00,$00,$FD,$F0,$FF
@@ -1879,7 +1890,7 @@ pg = B%
         DEY
         BPL     L2632
         LDA     #$2E
-        STA     L007B
+        STA     yo
         LDA     #$20
         STA     pos
         LDX     #$08
@@ -2239,7 +2250,7 @@ pg = B%
         JMP     fpat
         EQUB    $71,$D0,$F9
 
-.L297D
+.L297D  \ Hard-coded in S*.BAS
         LDY     #$FF
 		
 .nwb2
@@ -2441,7 +2452,7 @@ pg = B%
         STA     psta
         INY
         LDA     (pls),Y
-        STA     L007B
+        STA     yo
         LDA     exp
         AND     #$C0
         BNE     p0
@@ -2464,7 +2475,7 @@ pg = B%
         INY
         LDA     (bulst),Y
         SEC
-        SBC     L007B
+        SBC     yo
         BMI     nh_
         CMP     #$08
         BPL     nh_
@@ -2521,7 +2532,7 @@ pg = B%
         STA     bofg
         INC     pflg
         JSR     pp
-        LDA     L007B
+        LDA     yo
         CMP     #$AF
         BNE     hop5
         SEC
@@ -2532,7 +2543,7 @@ pg = B%
         SBC     #$48
         STA     pos+1
         LDA     #$C0
-        STA     L007B
+        STA     yo
         JSR     stp6
 
 .hop5
@@ -2594,7 +2605,7 @@ pg = B%
         STA     exp
 		
 .L2BA1
-        INC     L007B
+        INC     yo
         LDA     #$07
         AND     pos
         CMP     #$07
@@ -2651,7 +2662,7 @@ pg = B%
         LDA     psta
         STA     (pls),Y
         INY
-        LDA     L007B
+        LDA     yo
         STA     (pls),Y
 		
 .pl1
@@ -2852,11 +2863,11 @@ pg = B%
         ADC     ra3+1
         RTS
 
-.L2D0A  \ Unknown
+.L2D0A  \ Unknown - hard-coded in *.BAS
         EQUB    $06,$02,$31,$00,$05,$02,$39,$00
         EQUB    $06
 
-.L2D13  \ Unknown
+.L2D13  \ Unknown - hard-coded in *.BAS
         EQUB    $1E,$9E,$F0,$35,$9E,$C0,$81,$A8
         EQUB    $3A,$95,$D0,$81,$F8,$3A,$9F,$D0
         EQUB    $81,$48,$3B,$A9,$D0,$81,$98,$3B
@@ -2865,7 +2876,7 @@ pg = B%
         EQUB    $00,$00,$00,$00,$00,$00,$00,$00
         EQUB    $00,$00,$00,$00,$00,$00,$00,$00
 
-.L2D47  \ Bomb slots / stack
+.L2D47  \ Bomb slots / stack - hard-coded in *.BAS
         EQUB    $02,$D6,$00,$00,$00,$00,$00,$00
         EQUB    $00,$00,$00,$00,$00,$00,$00,$00
         EQUB    $00,$00,$00,$00,$00,$00,$00,$00
@@ -2890,6 +2901,7 @@ pg = B%
         EQUB    $1A
 
 \ .buf+1
+.bof
         EQUB    $50
 
 \ .bof+1
@@ -2940,10 +2952,10 @@ pg = B%
         EQUB    $00,$13,$00,$01,$00,$FA,$00,$0A
         EQUB    $00,$01,$00,$05,$00
 
-.L2DFC
+.L2DFC  \  Hard-coded in *.BAS
         EQUB    $49,$00
 
-.L2DFE  \ Cloud / Enemy sprites from &2E00
+.L2DFE  \ Cloud / Enemy sprites from &2E00  - hard-coded in *.BAS
         EQUB    $0F,$00,$FF,$FF,$FF,$FF,$FF,$FF
         EQUB    $FF,$FF,$FF,$FF,$FF,$FF,$FF,$AA
         EQUB    $AA,$00,$55,$AA,$FF,$AA,$55,$55
