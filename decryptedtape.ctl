@@ -1,9 +1,14 @@
-# Control file for Beebdis.exe to disassemble the BirdSk2 binary
+# Control file for Beebdis.exe to disassemble the Bird Strike game binary
 # Data regions originally found using https://www.white-flame.com/wfdis/
 # There's probably an easier way to do it though...
 
+# Note: This will not produce a 100% assemble-able source file due to nuances
+# with the game and some peculiarities with BeebDis. Notably, symbols defined
+# in symbols.asm are only applied to code areas, not byte/string areas.
+# See decryptedtape.asm for an assemble-able version.
+
 # Change this line to reflect the name of your original binary
-# Leave the load address as $1200
+
 load $1400 decryptedtape.bin
 
 # Where the code executes at
@@ -19,8 +24,9 @@ entry $2c47
 string $1400 38
 string $14CA 14
 string $1e51 27
-string $15b1 6
-string $1665 29
+# These removed due to duplications / laziness to fix the addresses and lengths on my part
+# string $15b1 6    BONUS!
+# string $1665 29   FIREBIRD (c) Andrew Frigaard
 # string $1687 10
 # string $1696 10
 
@@ -48,7 +54,7 @@ byte $2d0a 758
 symbols symbols.asm
 
 # What to save the output as
-save decryptedtape.asm
+save decryptedtape-initial.asm
 
 # Probably unnecessary, but to save ambiguity
 cpu 6502
