@@ -1,3 +1,17 @@
+\ Disassembly of Bird Strike from the original tape
+\ Tape binary recovered in beebjit by setting a breakpoint at &1E00,
+\ loading the game and then saving memory from &1400 to &3000 when
+\ the breakpoint was triggered
+\
+\ Does not have the bug fix
+\ Labels from Andy Frigaard's source discs
+\
+\ To Run:
+\ Copy the assembled file to an emulator/floppy
+\ *LOAD <filename> 1400
+\ CALL &1E00
+\ (or set the file's load/run addresses as above and *RUN it)
+
 L005D   = $005D
 no      = $0070
 bfg     = $0071
