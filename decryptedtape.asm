@@ -118,6 +118,7 @@ osbyte  = $FFF4
         STA     pos
         BCC     enlr
         INC     pos+1
+		
 .enlr
         LDA     #$01
         EOR     tog
@@ -145,6 +146,7 @@ osbyte  = $FFF4
         PLA
         PLA
         LDY     #$FF
+		
 .gov1
         INY
         LDA     #$0A
@@ -216,8 +218,8 @@ osbyte  = $FFF4
         ADC     #$18
         STA     gex+2
         BCC     exg5
-
         INC     gex+3
+		
 .exg5
         RTS
 
@@ -237,6 +239,7 @@ osbyte  = $FFF4
 .bon11
         JSR     wbmsg
         LDY     #$4B
+		
 .bon1
         SED
         CLC
@@ -369,6 +372,7 @@ osbyte  = $FFF4
 
 .stmv
         LDY     #$0A
+		
 .stm4
         LDA     stm10,Y
         JSR     oswrch
@@ -414,17 +418,17 @@ osbyte  = $FFF4
         LDA     #$00
         STA     fc
         LDA     #$26
-        STA     L1A0C
+        STA     tm+4
         LDA     #$88
-        STA     L1A0B
+        STA     tm+3
 		
 .stm6
         CLC
-        LDA     L1A0B
+        LDA     tm+3
         STA     not
-        LDA     L1A0C
+        LDA     tm+4
         ADC     #$0A
-        STA     L1A0C
+        STA     tm+4
         STA     not+1
         JSR     cht
         STX     nl
@@ -626,13 +630,13 @@ osbyte  = $FFF4
 \ .tm+1
         EQUB    $FF
 
-.L1A0A
+\ .tm+2
         EQUB    $FF
 
-.L1A0B
+\ .tm+3
         EQUB    $FF
 
-.L1A0C  \ Player sprites
+\ .tm+4 \ Player sprites
         EQUB    $FF,$FF,$FF,$FF,$00,$04,$00,$04
         EQUB    $28,$04,$00,$04,$00,$00,$00,$00
         EQUB    $28,$00,$00,$00,$28,$00,$28,$00
@@ -1104,13 +1108,13 @@ osbyte  = $FFF4
         JMP     w
 
 .delay
-        STA     L1A0A
+        STA     tm+2
         TYA
         PHA
 		
 .del1
         JSR     scr
-        DEC     L1A0A
+        DEC     tm+2
         BNE     del1
         PLA
         TAY
@@ -1537,7 +1541,7 @@ pg = B%
         LDA     #$1B
         STA     sf+1
         LDA     ba+1
-        BNE     b_0
+        BNE     b0_
         LDA     #$42
         BIT     sc
         BEQ     ep
@@ -1577,7 +1581,6 @@ pg = B%
         LDA     #$07
         AND     ra1
         TAX
-.L246B
         LDA     #$4B
 		
 \ .b5-2
@@ -1603,12 +1606,12 @@ pg = B%
 .ep
         RTS
 
-.b_0    \ de-duplication of label
+.b0_    \ de-duplication of label
         LDA     ba
         STA     sd
         LDA     ba+1
         STA     sd+1
-        BPL     b_1
+        BPL     b1_
         DEC     ba+2
         BNE     ep
         EOR     #$80
@@ -1620,7 +1623,7 @@ pg = B%
         STA     ba+1
         BEQ     bx
 
-.b_1    \ de-duplication of label
+.b1_    \ de-duplication of label
         LDA     ba+2
         AND     #$7F
         TAX
@@ -1905,45 +1908,38 @@ pg = B%
 		
 .L266E
         LDA     L4900,Y
-		
-L266F = L266E+1
-L2670 = L266E+2
 
 .L2671
         STA     L4180,X
-		
-L2672 = L2671+1
-
-L2673 = L2671+2
         INY
         DEX
         BPL     L266E
         CLC
-        LDA     L2672
+        LDA     L2671+1
         ADC     #$08
-        STA     L2672
+        STA     L2671+1
         BCC     L2686
-        INC     L2673
+        INC     L2671+2
 		
 .L2686
         CPY     #$80
         BNE     L266C
-        LDA     L266F
+        LDA     L266E+1
         EOR     #$80
-        STA     L266F
+        STA     L266E+1
         BMI     L2697
-        INC     L2670
+        INC     L266E+2
 .L2697
         LDA     #$44
-        CMP     L2673
+        CMP     L2671+2
         BNE     L266A
-        STY     L2672
+        STY     L2671+1
         INX
-        STX     L266F
+        STX     L266E+1
         LDA     #$49
-        STA     L2670
+        STA     L266E+2
         LDA     #$41
-        STA     L2673
+        STA     L2671+2
         RTS
 
 .L26B0  \ Scenery art VDU calls
@@ -2054,8 +2050,6 @@ L2673 = L2671+2
 .mg
         EQUB    $60
         EQUB    $D3,$28
-
-.L2871
         LDA     #$81
         LDY     #$FF
         LDX     #$BD
@@ -2133,7 +2127,7 @@ L2673 = L2671+2
         LDY     #$00
         LDA     (bulst),Y
         STA     no
-        LDA     L2D72
+        LDA     inb+1
         STA     sf
         LDA     buf
         STA     sf+1
@@ -2832,9 +2826,7 @@ L2673 = L2671+2
         STA     ra3+1
 		
 \ .ra2+1
-
 \ .ra2+2
-
 \ .ra2+3
         SEC
         LDA     py
@@ -2879,7 +2871,7 @@ L2673 = L2671+2
 .inb
         EQUB    $D7
 
-.L2D72
+\ .inb+1
         EQUB    $00
 
 .buf
