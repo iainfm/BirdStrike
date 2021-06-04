@@ -9,8 +9,8 @@
 \ To Run:
 \ Copy the assembled file to an emulator/floppy
 \ *LOAD <filename> 1400
+\ ?&5D = 1
 \ CALL &1E00
-\ (or set the file's load/run addresses as above and *RUN it)
 
 L005D   = $005D
 no      = $0070
@@ -584,7 +584,7 @@ osbyte  = $FFF4
         PLA
         RTS
 
-.L1907
+.L1907  \ Lives, explosions, bullet(?) sprites
         JMP     L1907
 
         EQUB    $00,$00,$05,$00,$00,$00,$00,$08
@@ -632,7 +632,7 @@ osbyte  = $FFF4
 .L1A0B
         EQUB    $FF
 
-.L1A0C
+.L1A0C  \ Player sprites
         EQUB    $FF,$FF,$FF,$FF,$00,$04,$00,$04
         EQUB    $28,$04,$00,$04,$00,$00,$00,$00
         EQUB    $28,$00,$00,$00,$28,$00,$28,$00
@@ -645,7 +645,7 @@ osbyte  = $FFF4
         EQUB    $00,$00,$04,$2C,$00,$00,$00,$00
         EQUB    $00,$00,$00,$28
 
-.L1A60
+.L1A60  \ Skull, pigeon sprites, KEYS artefacts, scenery, etc
         EQUB    $00,$00,$00,$00,$00,$40,$00,$40
         EQUB    $40,$80,$80,$40,$40,$40,$80,$00
         EQUB    $C0,$80,$80,$40,$C0,$40,$80,$00
@@ -739,7 +739,7 @@ osbyte  = $FFF4
         EQUB    $00,$00,$00,$05,$00,$0E,$01,$0E
         EQUB    $00,$00,$01,$0E,$09,$06,$09,$06
 
-.L1D40
+.L1D40  \ Gravestone locations + other?
         EQUB    $31,$7A,$D9,$7C,$C9,$77,$12,$7A
         EQUB    $C8,$7C,$BA,$77,$51,$7A,$B8,$7C
         EQUB    $20,$7A,$42,$7A
@@ -768,7 +768,7 @@ osbyte  = $FFF4
 .L1D5B
         EQUB    $00
 
-.fc
+.fc     \ Current level / building sprites
         EQUB    $00,$00,$00,$00,$28,$3C,$0D,$2D
         EQUB    $2D,$0D,$3C,$2C,$28,$0F,$31,$31
         EQUB    $35,$30,$1A,$0F,$28,$0F,$30,$30
@@ -1333,6 +1333,8 @@ osbyte  = $FFF4
         JSR     osbyte
         INX
         RTS
+		
+		\ Artefacts?
         EQUB    $E8,$60,$00,$00,$00,$00,$00,$00
         EQUB    $00,$00,$00,$00,$00,$00,$00,$00
 
@@ -1360,7 +1362,7 @@ osbyte  = $FFF4
         BNE     L21FD
         RTS
 
-.L220E
+.L220E  \ Stave data
         EQUB    $12,$00,$04,$19,$04,$00,$01,$EC
         EQUB    $03,$19,$01,$00,$03,$00,$00,$19
         EQUB    $00,$00,$FD,$F0,$FF
@@ -1489,6 +1491,7 @@ osbyte  = $FFF4
         STA     gex+2
         JMP     mini
 
+        \ Musical notes sprites / bombs / player
         EQUB    $00,$00,$00,$00,$00,$14,$3C,$3C
         EQUB    $38,$38,$38,$38,$38,$38,$38,$20
         EQUB    $00,$00,$00,$00,$00,$14,$38,$3C
@@ -1515,7 +1518,7 @@ osbyte  = $FFF4
         EQUB    $8A,$84,$14,$82,$20,$44,$00,$44
         EQUB    $42,$42,$44,$46,$24,$14,$05,$00
 
-.tl
+.tl     \ tunes
         EQUB    $65,$17,$5D,$05,$59,$0A,$65,$05
         EQUB    $79,$0A,$81,$05,$89,$1E,$79,$1E
         EQUB    $00,$6D,$17,$75,$05,$79,$0A,$75
@@ -1943,7 +1946,7 @@ L2673 = L2671+2
         STA     L2673
         RTS
 
-.L26B0
+.L26B0  \ Scenery art VDU calls
         EQUB    $12,$00,$06,$19,$04,$00,$00,$13
         EQUB    $00,$19,$05,$04,$01,$17,$00,$19
         EQUB    $05,$2C,$01,$3C,$00,$19,$04,$7E
@@ -1980,7 +1983,7 @@ L2673 = L2671+2
         EQUB    $83,$A9,$F0,$85,$82,$4C,$13,$28
         EQUB    $A9,$00,$8D
 
-.L27C3
+.L27C3  \ Trees / scenery sprites
         EQUB    $58,$A0,$1C,$93,$73,$49,$71,$60
         EQUB    $76,$99,$75,$44,$73,$C9,$78,$B4
         EQUB    $76,$C0,$1C,$13,$76,$93,$78,$C9
@@ -2845,21 +2848,20 @@ L2673 = L2671+2
         ADC     ra3+1
         RTS
 
-.L2D0A
+.L2D0A  \ Unknown
         EQUB    $06,$02,$31,$00,$05,$02,$39,$00
         EQUB    $06
 
-.L2D13
+.L2D13  \ Unknown
         EQUB    $1E,$9E,$F0,$35,$9E,$C0,$81,$A8
         EQUB    $3A,$95,$D0,$81,$F8,$3A,$9F,$D0
         EQUB    $81,$48,$3B,$A9,$D0,$81,$98,$3B
         EQUB    $B3,$D0,$81,$E8
-
         EQUB    $3B,$BD,$D0,$00,$00,$00,$00,$00
         EQUB    $00,$00,$00,$00,$00,$00,$00,$00
         EQUB    $00,$00,$00,$00,$00,$00,$00,$00
 
-.L2D47
+.L2D47  \ Bomb slots / stack
         EQUB    $02,$D6,$00,$00,$00,$00,$00,$00
         EQUB    $00,$00,$00,$00,$00,$00,$00,$00
         EQUB    $00,$00,$00,$00,$00,$00,$00,$00
@@ -2916,7 +2918,7 @@ L2673 = L2671+2
 \ .ba+2
         EQUB    $06
 
-.L2D7F
+.L2D7F  \ Envelope data
         EQUB    $00,$01,$81,$FD,$00,$00,$28,$00
         EQUB    $00,$3C,$06,$CE,$CE,$3B,$7E,$00
         EQUB    $00,$02,$83,$00,$00,$00,$00,$00
@@ -2937,7 +2939,7 @@ L2673 = L2671+2
 .L2DFC
         EQUB    $49,$00
 
-.L2DFE
+.L2DFE  \ Cloud / Enemy sprites from &2E00
         EQUB    $0F,$00,$FF,$FF,$FF,$FF,$FF,$FF
         EQUB    $FF,$FF,$FF,$FF,$FF,$FF,$FF,$AA
         EQUB    $AA,$00,$55,$AA,$FF,$AA,$55,$55
