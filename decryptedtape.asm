@@ -107,10 +107,7 @@ org     $1400   \ P% in old money
         BEQ     op5
         JMP     (soun)
 
-.soun   \ Memory address of sound control thing
-        \ This breaks B/Master compatability (different addresses)
-		\ The 'loader' of the disc version fixes this by reading
-		\ and storing the correct address here.
+.soun   \ Sound control vector thing
         EQUB    $EB,$E7
 		
 .nlr
