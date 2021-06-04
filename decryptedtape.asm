@@ -325,50 +325,52 @@ osbyte  = $FFF4
         EQUB    $2B,$34,$6D,$78,$24,$1F,$05,$05
         EQUB    $82
 				
-		EQUS    "FIREBIRD (c) Andrew Frigaard",$0D
+		EQUS    "FIREBIRD (c) Andrew Frigaard"
+		EQUB    $0D,$1F,$0B,$08,$8D,$83
+		EQUS    "High Score"
 		
-		EQUB    $1F,$0B
-        EQUB    $08,$8D,$83,$48,$69,$67,$68,$20
-        EQUB    $53,$63,$6F,$72,$65,$1F,$0B,$09
-        EQUB    $8D,$83,$48,$69,$67,$68,$20,$53
-        EQUB    $63,$6F,$72,$65
+        EQUB    $1F,$0B,$09,$8D,$83
+        EQUS    "High Score"
 
 .dts
-        EQUB    $1F,$0B,$0B,$2E,$2E,$2E,$2E,$2E
-        EQUB    $2E,$2E,$2E,$2E,$2E,$2E,$2E,$2E
-        EQUB    $00,$1F,$19,$0B
+        EQUB    $1F,$0B,$0B   \ Move text cursor
+        EQUS    "............."
+        EQUB    $00
+		EQUB    $1F,$19,$0B   \ Move text cursor
 
 .nam
-        EQUB    $61,$6E,$64,$72,$65,$77,$20,$20
+        EQUS    "andrew  "
         EQUB    $00
 
 .ints
-        EQUB    $1F,$0E,$0E,$8D,$83,$4B,$65,$79
-        EQUB    $73,$1F,$0E,$0F,$8D,$83,$4B,$65
-        EQUB    $79,$73,$1F,$06,$11,$86,$5A,$20
-        EQUB    $2E,$2E,$2E,$2E,$2E,$2E,$2E,$2E
-        EQUB    $2E,$2E,$2E,$2E,$20,$6D,$6F,$76
-        EQUB    $65,$20,$6C,$65,$66,$74,$1F,$06
-        EQUB    $12,$86,$58,$20,$2E,$2E,$2E,$2E
-        EQUB    $2E,$2E,$2E,$2E,$2E,$2E,$2E,$20
-        EQUB    $6D,$6F,$76,$65,$20,$72,$69,$67
-        EQUB    $68,$74,$1F,$06,$13,$86,$52,$45
-        EQUB    $54,$55,$52,$4E,$20,$2E,$2E,$2E
-        EQUB    $2E,$2E,$2E,$2E,$2E,$2E,$2E,$2E
-        EQUB    $20,$73,$68,$6F,$6F,$74,$1F,$06
-        EQUB    $14,$86,$53,$2F,$51,$20,$2E,$2E
-        EQUB    $2E,$2E,$2E,$2E,$2E,$20,$73,$6F
-        EQUB    $75,$6E,$64,$20,$6F,$6E,$2F,$6F
-        EQUB    $66,$66,$1F,$06,$15,$86,$52,$20
-        EQUB    $2E,$2E,$2E,$2E,$2E,$2E,$2E,$2E
-        EQUB    $2E,$2E,$2E,$2E,$2E,$2E,$2E,$2E
-        EQUB    $2E,$20,$72,$65,$73,$74,$00
+        EQUB    $1F,$0E,$0E   \ Move text cursor
+		EQUB    $8D,$83       \ Double-height / yellow
+        EQUS    "Keys"        \ Double height line 1
+        EQUB    $1F,$0E,$0F   \ Move text cursor
+		EQUB    $8D,$83       \ Double-height / yellow
+        EQUS    "Keys"        \ Double height line 2
+        EQUB    $1F,$06,$11   \ Move text cursor
+		EQUB    $86           \ Cyan
+        EQUS    "Z ............ move left"
+        EQUB    $1F,$06,$12   \ Move text cursor
+		EQUB    $86           \ Cyan
+        EQUS    "X ........... move right"
+        EQUB    $1F,$06,$13   \ Move text cursor
+		EQUB    $86           \ Cyan
+        EQUS    "RETURN ........... shoot"
+        EQUB    $1F,$06,$14   \ Move text cursor
+		EQUB    $86           \ Cyan
+        EQUS    "S/Q ....... sound on/off"
+        EQUB    $1F,$06,$15   \ Move text cursor
+		EQUB    $86           \ Cyan
+        EQUS    "R ................. rest"
+        EQUB    $00
 
 .sps
-        EQUB    $1F,$07,$18,$81,$88,$50,$72,$65
-        EQUB    $73,$73,$20,$73,$70,$61,$63,$65
-        EQUB    $20,$74,$6F,$20,$70,$6C,$61,$79
-        EQUB    $2E,$00,$00,$00
+        EQUB    $1F,$07,$18   \ Move text cursor
+		EQUB    $81,$88       \ Red / flash
+        EQUS    "Press space to play."
+        EQUB    $00,$00,$00
 
 .stmv
         LDY     #$0A
@@ -450,8 +452,17 @@ osbyte  = $FFF4
         JMP     oswrch
 
 .stm10
-        EQUB    $10,$03,$FF,$04,$0F,$02,$0F,$00
-        EQUB    $F0,$18,$1A
+        EQUB    $10    \ Clear graphics area
+		EQUB    $03    \ 
+		EQUB    $FF    \ 
+		EQUB    $04    \ 
+		EQUB    $0F    \ 
+		EQUB    $02    \ 
+		EQUB    $0F    \ 
+		EQUB    $00    \ 
+        EQUB    $F0    \ 
+		EQUB    $18    \ Define graphics window
+		EQUB    $1A    \ Restore default windows
 
 .gend
         LDA     #$00
