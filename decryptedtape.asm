@@ -1263,7 +1263,7 @@ osbyte  = $FFF4
 .c5
         RTS
 
-.pno    \ same as .s5
+.pno    \ similar to .s5
         TYA
         PHA
         LDY     #$07
@@ -2275,7 +2275,7 @@ L2673 = L2671+2
         LDX     #$D0
         JMP     osword
 
-.s5     \ same as .pno
+.s5     \ similar to .pno
         TYA
         PHA
         LDY     #$05
