@@ -1924,7 +1924,7 @@ L18F6 = L18F4+2          \ wr1+3 \ SMC?
 		EQUB    $00,$00,$00,$00,$00,$00
         EQUB    $00,$00,$00,$00,$00,$00,$00,$00
 
-.drawStave      \ stv \ Draw stave    \ L21EE
+.drawStave      \ .stv \ Draw stave    \ L21EE
         LDY     #$00
 
 .staveLoop1     \ L21F0
