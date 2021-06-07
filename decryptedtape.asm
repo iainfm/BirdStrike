@@ -42,10 +42,10 @@ cnt     = $008E
 oswordv = $020C
 
 \ Unknown - uses osfile workspace
-L02FC   = $02FC    \ Defined in PIGSRCE as picn=&2FC, but suspect this is an error(?)
+picn_PS = $02FC    \ Defined in PIGSRCE as picn=&2FC, but suspect this is an error(?)
                    \ Variables on the same line (680) in the &2Dxx-&2Fxx range
                    \ .picn defined at $1D54, as per various S/SOURCE.bas files
-				   \ picn is reset every new game, L02FC isn't.
+				   \ picn is reset every new game, &2FC isn't.
 				   \ Doesn't seem to affect gameplay or create a bug.
 
 \ Screen addresses
@@ -84,7 +84,7 @@ org     $1400   \ P% in old money
         STA     oswordv
         LDA     soun+1
         STA     oswordv+1
-		
+
 .op2
         LDX     #$CC
         JSR     key
@@ -176,10 +176,12 @@ org     $1400   \ P% in old money
 .gov2
         EQUS    $1F,$05,$0F,$11,$01,"GAME OVER"
 
+
 .stp4_  \ de-duplication of label name
         RTS
 
 .stp6
+
         LDA     gex
         BEQ     stp4_
         LDA     psta
@@ -1572,7 +1574,7 @@ pg = B%
         BIT     sc
         BEQ     ep
         LDA     #$02
-        BIT     L02FC    \ Should this be picn?
+        BIT     picn_PS    \ Should this be picn?
         BEQ     pg1
         LDA     #$1B
         STA     sf+1
@@ -1603,7 +1605,7 @@ pg = B%
 .b3
         LDA     #$00
         STA     py
-        INC     L02FC    \ Should this be picn?
+        INC     picn_PS    \ Should this be picn?
         LDA     #$07
         AND     ra1
         TAX
@@ -2074,7 +2076,7 @@ pg = B%
         BRK
 		
 .mg
-        EQUB    $60
+        RTS
         EQUB    $D3,$28
         LDA     #$81
         LDY     #$FF
@@ -3027,7 +3029,7 @@ pg = B%
         EQUB    $10,$00,$00,$00,$3C,$00,$00,$00
         EQUB    $30,$00,$00,$34,$3C,$34,$10,$00
         EQUB    $38,$28,$28,$3A,$14,$38,$20,$00
-        EQUB    $20,$00,$00,$00,$3C,$00,$00,$3A
+        EQUB    $20,$00,$00,$00,$3C,$00,$00,$3A     \ Last byte should be $00 - this is a fault of the tape decryption routine.
 
 .BeebDisEndAddr
 SAVE "decryptedtape-asm.bin",BeebDisStartAddr,BeebDisEndAddr
