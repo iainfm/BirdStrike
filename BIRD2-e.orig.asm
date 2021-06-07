@@ -531,7 +531,7 @@ org     $1300     \ P% in old money
 .ge1
         LDY     #$00
 		
-.L1841  \ Differs from B versin
+.L1841  \ Differs from B version
         LDA     m7,Y
         JSR     oswrch
         INY
