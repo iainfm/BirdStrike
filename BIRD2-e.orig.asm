@@ -37,8 +37,10 @@ plf     = $0088
 bulst   = $008A
 bost    = $008C
 cnt     = $008E
+
 \ Vectors
 oswordv = $020C
+
 \ Unknown - uses osfile workspace								 
 picn_PS = $02FC    \ Defined in PIGSRCE as picn=&2FC, but suspect this is an error(?)
                    \ Variables on the same line (680) in the &2Dxx-&2Fxx range
@@ -49,17 +51,20 @@ picn_PS = $02FC    \ Defined in PIGSRCE as picn=&2FC, but suspect this is an err
 \ Screen addresses
 L4180   = $4180
 L4900   = $4900
+
 \ System VIA addresses					  
 sv_ifr  = $FE4D
 sv_ier  = $FE4E
+
 \ OS calls
 osasci  = $FFE3
-osnewl  = $FFE7
+osnewl  = $FFE7   \ Not used in B version
 oswrch  = $FFEE
 osword  = $FFF1
 osbyte  = $FFF4
 
 org     $1300     \ P% in old money
+
 .BeebDisStartAddr
         EQUS    "Thanks David,Ian,Martin,Mum,Dad,Susi D"
 
@@ -74,9 +79,7 @@ org     $1300     \ P% in old money
 .opt
         LDX     #$EF
         JSR     key
-
         BNE     op1
-
         LDA     #$72
         STA     oswordv
         LDA     #$13
@@ -108,11 +111,12 @@ org     $1300     \ P% in old money
 .op5
         RTS
 
+.mute 
         CMP     #$07
 		BEQ     op5
 		JMP     (soun)
 
-.soun
+.soun   \ Sound control vector thing
         EQUB    $EB,$E7
 
 .nlr
@@ -170,25 +174,22 @@ org     $1300     \ P% in old money
         INY
         LDA     #$0A
         JSR     delay
-
         LDA     gov2,Y
         JSR     oswrch
-
         CMP     #$52
         BNE     gov1
-
         LDA     #$96
         JSR     delay
-
         JMP     newgame
 
 .gov2
         EQUS    $1F,$05,$0F,$11,$01,"GAME OVER"
 
-.stp4_
+
+.stp4_  \ de-duplication of label name
         RTS
 		
-.stp6_
+.stp6
         LDA     gex
         BEQ     stp4_
         LDA     psta
@@ -242,6 +243,7 @@ org     $1300     \ P% in old money
         STA     gex+2
         BCC     exg5
         INC     gex+3
+		
 .exg5
         RTS
 
@@ -261,6 +263,7 @@ org     $1300     \ P% in old money
 .bon11
         JSR     wbmsg
         LDY     #$4B
+		
 .bon1
         SED
         CLC
@@ -297,6 +300,7 @@ org     $1300     \ P% in old money
 
 .wbmsg
         LDY     #$00
+		
 .wb1
         LDA     bmsg,Y
         JSR     oswrch
@@ -449,6 +453,7 @@ org     $1300     \ P% in old money
 		
 .stm3
         LDA     #$00
+		
 \ .stm3+1
         SBC     #$00
         STA     stm3+1
@@ -522,6 +527,7 @@ org     $1300     \ P% in old money
         LDA     sc+2
         STA     hs+2
         DEC     hs
+		
 .ge1
         LDY     #$00
 		
@@ -624,10 +630,11 @@ org     $1300     \ P% in old money
 .wr1
         INY
 		
-.L18F0
+\ .wr1+1
         LDA     dts,Y
 		
 \ .wr1+2
+
 \ .wr1+3
         JSR     oswrch
         CMP     #$00
@@ -816,7 +823,7 @@ org     $1300     \ P% in old money
 \ .not+1
         EQUB    $00
 
-.L1D5B
+.L1D5B  \ Hard coded in S*.BAS files
         EQUB    $00
 
 .fc     \ Current level / building sprites
@@ -858,7 +865,7 @@ org     $1300     \ P% in old money
         JSR     S%
 
 .GO
-        JSR     L25B8
+        JSR     R%
         LDA     #$13
         JSR     osbyte
         JSR     mp
@@ -927,7 +934,7 @@ org     $1300     \ P% in old money
         LDA     #$03
         STA     gex+1
         LDA     #$2F
-        STA     plf+2
+        STA     plf+1
         LDA     #$E8
         STA     inb
         LDA     #$04
@@ -1000,6 +1007,8 @@ org     $1300     \ P% in old money
         STA     gex+2
         DEX
         BNE     pmi
+		
+.ppos 
         LDA     #$3A
         STA     sd+1
         LDA     #$81
@@ -1129,6 +1138,7 @@ org     $1300     \ P% in old money
 .s3
         LDA     #$00
         STA     sc
+		\ B version has an RTS here   
 		
 .s7
         LDA     #$34
@@ -1166,8 +1176,8 @@ org     $1300     \ P% in old money
         PHA
 		
 .del1
-        LDA     #$13    \ doesn't exist in 
-        JSR     osbyte  \ b version
+        LDA     #$13
+        JSR     osbyte
         DEC     tm+2
         BNE     del1
         PLA
@@ -1230,19 +1240,20 @@ org     $1300     \ P% in old money
         STA     no
         AND     #$0E
         CMP     #$08
-        BPL     nl
+        BPL     n1
         CLC
         ADC     not
         STA     sd
         LDA     #$00
         BEQ     n2
 
-.nl
+.n1
         CLC
         ADC     not
         ADC     #$78
         STA     sd
         LDA     #$02
+		
 .n2
         ADC     not+1
         STA     sd+1
@@ -1362,11 +1373,11 @@ org     $1300     \ P% in old money
 		
 .t1
         LDY     no
-        LDA     t1,Y
+        LDA     tl,Y
         BEQ     t3
         STA     L2DFC
         INY
-        LDA     t1,Y
+        LDA     tl,Y
         STA     L2DFE
         LDX     #$F8
         LDY     #$2D
@@ -1525,6 +1536,7 @@ org     $1300     \ P% in old money
 
 .h8
         DEY
+		
 .h9
         DEY
         DEY
@@ -1548,7 +1560,7 @@ org     $1300     \ P% in old money
         STA     gex+2
         JMP     mini
 
-		\ Musican notes sprites / bombs / player									
+		\ Musical notes sprites / bombs / player									
         EQUB    $00,$00,$00,$00,$00,$14,$3C,$3C
         EQUB    $38,$38,$38,$38,$38,$38,$38,$20
         EQUB    $00,$00,$00,$00,$00,$14,$38,$3C
@@ -1575,7 +1587,7 @@ org     $1300     \ P% in old money
         EQUB    $8A,$84,$14,$82,$20,$44,$00,$44
         EQUB    $42,$42,$44,$46,$24,$14,$05,$00
 
-.t1     \ tunes
+.tl     \ tunes
         EQUB    $65,$17,$5D,$05,$59,$0A,$65,$05
         EQUB    $79,$0A,$81,$05,$89,$1E,$79,$1E
         EQUB    $00,$6D,$17,$75,$05,$79,$0A,$75
@@ -1599,7 +1611,7 @@ pg = B%
         BIT     sc
         BEQ     ep
         LDA     #$02
-        BIT     picn_PS
+        BIT     picn_PS    \ Should this be picn?
         BEQ     pg1
         LDA     #$1B
         STA     sf+1
@@ -1635,11 +1647,11 @@ pg = B%
         LDA     #$07
         AND     ra1
         TAX
-		
-.L246B
         LDA     #$4B
+		
 \ .b5-2
         CLC
+		
 .b5
         ADC     #$05
         TAY
@@ -1838,7 +1850,7 @@ pg = B%
 .L25B7
         RTS
 
-.L25B8
+.R%
         LDA     ra1
         AND     #$48
         ADC     #$38
@@ -1860,10 +1872,10 @@ pg = B%
         BNE     L25CB
         LDA     plf
         STA     sf
-        LDA     plf+2
+        LDA     plf+1
         STA     sf+1
         LDA     #$1F
-        STA     L2C1E
+        STA     L2C1D+1
         LDA     #$E0
         STA     no
         LDY     #$00
@@ -1875,7 +1887,7 @@ pg = B%
         LDA     L27C3,Y
         BIT     no
         BNE     L25FF
-        STA     plf+2
+        STA     plf+1
         STX     plf
         INY
         LDX     L27C3,Y
@@ -1889,11 +1901,11 @@ pg = B%
         CPY     L27C3
         BMI     L25E7
         LDA     #$3F
-        STA     L2C1E
+        STA     L2C1D+1
         LDA     sf
         STA     plf
         LDA     sf+1
-        STA     plf+2
+        STA     plf+1
         RTS
         EQUB    $00
 
@@ -1957,8 +1969,10 @@ pg = B%
 
 .L266A
         LDY     #$00
+		
 .L266C
         LDX     #$07
+		
 .L266E
         LDA     L4900,Y
 
@@ -2099,7 +2113,7 @@ pg = B%
         ADC     #$10
         STA     sd
         RTS
-        EQUB    $00
+        BRK
 
 .mg
         RTS
@@ -2162,15 +2176,12 @@ pg = B%
         LDA     sc
         ORA     #$20
         STA     sc
+		
 .gun
         LDY     #$27
 		
 .gop
         LDA     L1A60,Y
-		
-gun+3 = gop+1
-gun+4 = gop+2
-
         BEQ     gz
         EOR     (gunp),Y
         STA     (gunp),Y
@@ -2208,7 +2219,7 @@ gun+4 = gop+2
 
 .bu1
         INY
-        JSR     nxbu
+        JSR     nxbu       \ s5 in B version
         LDA     (bulst),Y
         BPL     bu2
 
@@ -2235,6 +2246,7 @@ gun+4 = gop+2
         LDA     sd+1
         SBC     L0050    \ #$02 in B version
         STA     sd+1
+		
 .bu4
         SEC
         LDA     exp
@@ -2242,7 +2254,7 @@ gun+4 = gop+2
         STA     exp
         CMP     #$02
         BEQ     bu7
-        JSR     nxbu
+        JSR     nxbu     \ s5 in B version
 
 .nxbu
         DEY
@@ -2281,7 +2293,6 @@ gun+4 = gop+2
 
 .nwb1
         JMP     fpat
-
         EQUB    $71,$D0,$F9
 
 .L297D  \ Hard-coded in S*.BAS
@@ -2314,7 +2325,7 @@ gun+4 = gop+2
         CLC
         ADC     #$03
         STA     (bulst),Y
-        JSR     nxbu
+        JSR     nxbu       \ s5 in B version
         LDA     #$03
         ORA     bfg
         STA     bfg
@@ -2326,7 +2337,7 @@ gun+4 = gop+2
         LDX     #$D0
         JMP     osword
 
-.nxbu
+.nxbu                      \ s5 in B version
         TYA
         PHA
         LDY     #$05
@@ -2342,22 +2353,22 @@ gun+4 = gop+2
         EOR     #$07
         STA     mod
         CMP     #$05
-        BPL     L29EB
+        BPL     top_s5
 
-.L29E0
+.bot_s5
         LDA     (sf),Y
         EOR     (st),Y
         STA     (st),Y
         DEY
         CPY     mod
-        BNE     L29E0
+        BNE     bot_s5
 
-.L29EB
+.top_s5
         LDA     (sf),Y
         EOR     (sd),Y
         STA     (sd),Y
         DEY
-        BPL     L29EB
+        BPL     top_s5
         PLA
         TAY
         RTS
@@ -2415,8 +2426,8 @@ gun+4 = gop+2
         LDA     exp
         BEQ     nx
         LDX     #$19
-        STX     plf+2   \ plf+1 in B version. Could be my typo - TODO: check
-        LDA     plf     \ plf in B version. Could be my typo - TODO: check
+        STX     plf+1
+        LDA     plf
         PHA
         LDA     exp
         CMP     #$15
@@ -2457,7 +2468,7 @@ gun+4 = gop+2
 
 .px4
         LDA     #$2F
-        STA     plf+2
+        STA     plf+1
         PLA
         STA     plf
         DEC     exp
@@ -2526,7 +2537,6 @@ gun+4 = gop+2
         BPL     L2B21
         CMP     #$03
         BEQ     o
-
         LDA     #$40
         ORA     sc
         STA     sc
@@ -2543,6 +2553,7 @@ gun+4 = gop+2
         LDA     #$07
         LDY     #$2D
         JSR     osword
+		
         PLA
         TAY
         LDA     #$02
@@ -2580,7 +2591,7 @@ gun+4 = gop+2
         STA     pos+1
         LDA     #$C0
         STA     yo
-        JSR     stp6_
+        JSR     stp6
 
 .hop5
         LDA     #$3F
@@ -2612,7 +2623,7 @@ gun+4 = gop+2
         CMP     #$02
         BMI     pl6
         STA     ra3+1
-        JSR     ra2+1
+        JSR     ra2+3
         LSR     ra3+1
         CLC
         ADC     ra3+1
@@ -2660,8 +2671,6 @@ gun+4 = gop+2
 		
 .lft
         JMP     nlr
-
-.L2BC0
         BCC     rgt
         DEC     psta
         LDA     pos
@@ -2740,7 +2749,6 @@ gun+4 = gop+2
 .bt
         LDA     (plf),Y
         BEQ     bz
-
         EOR     (st),Y
         STA     (st),Y
 .bz
@@ -2754,6 +2762,7 @@ gun+4 = gop+2
         BEQ     tz
         EOR     (pos),Y
         STA     (pos),Y
+		
 .tz
         DEY
         DEX
@@ -2766,10 +2775,7 @@ gun+4 = gop+2
 
 .nbo
         RTS
-
         EQUB    $C0
-
-.L2C47
         BIT     bofg
         BNE     nbo4
         DEC     bofg
@@ -2855,7 +2861,6 @@ gun+4 = gop+2
         AND     #$07
         CMP     #$06
         BPL     bo2
-
         INC     sd
         INC     sd
         LDA     sd+1
@@ -2869,6 +2874,7 @@ gun+4 = gop+2
         LDA     sd+1
         ADC     #$02
         STA     sd+1
+
 .bo4
         CMP     #$80
         BMI     bo6
@@ -2905,7 +2911,6 @@ gun+4 = gop+2
 		
 \ .ra3+1
         BPL     ra3
-
         ADC     ra3+1
         RTS
 
