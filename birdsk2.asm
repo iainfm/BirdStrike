@@ -391,7 +391,7 @@ org     $1200          \ "P%" as per the available disc binary
         PLA
         JMP     L2BE4       \ fo+3 / F%+3
 
-.L14EB  \ exg
+.L14EB  \ .exg
         LDA     #$01
         BIT     L151A       \ exg3
         BNE     L1502       \ exg1
@@ -937,7 +937,7 @@ L18F6 = L18F4+2          \ wr1+3 \ SMC?
 		EQUB    $00,$00,$00,$00,$00,$00,$15,$08
 		EQUB    $00,$80,$00,$00,$05,$00,$00,$00
 		
-.L1A00	EQUB    $2A,$2A,$2A,$2A,$2A,$2A,$2A,$2A    \ White vertical line (padding?)
+.L1A00	EQUB    $2A,$2A,$2A,$2A,$2A,$2A,$2A,$2A    \ White vertical line (bullet)
 
 .L1A08
         EQUB    $FF
@@ -1910,7 +1910,7 @@ L18F6 = L18F4+2          \ wr1+3 \ SMC?
 \\\\\\ END OF 1st PART $.S (&21DF) ////// \\\\\\ C.SOURCE continues //////
 
 
-.keyboardScan   \ (&21D0 in C.SOURCE if !pls=0) \ .L21D5
+.keyboardScan   \ .key (&21D0 in C.SOURCE if !pls=0) \ .L21D5
         LDA     #$81          \ X = (CC, AE, EF)
         LDY     #$FF          \     ( R,  S,  Q)
         JSR     osbyte        \ keyboard scan (Y=$FF)
@@ -3660,11 +3660,11 @@ L2D03 = L2D02+1             \ SMC?
         EQUB    $00,$00,$00,$00,$00,$00,$00,$00    \ Last byte is $2D5E ($2D0A + $54)
 
 .L2D5F
-        EQUB    $80,$40,$40,$00,$80,$00,$40,$80
+        EQUB    $80,$40,$40,$00,$80,$00,$40,$80    \ Cloud sprite pointers
         EQUB    $00
 
 .L2D68  \ .bis
-        EQUB    $88,$A0,$B8,$D0,$E8,$D0,$B8,$88
+        EQUB    $88,$A0,$B8,$D0,$E8,$D0,$B8,$88    \ Pigeon animation sprite offsets
 
 .playerXpos  \ .Xg \ .L2D70 \ Gun X
         EQUB    $20    \ Initial player X pos
